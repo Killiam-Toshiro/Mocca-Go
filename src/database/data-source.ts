@@ -9,6 +9,8 @@ import { Authentication1791244801000 } from './migrations/1791244801000-authenti
 import { RemoveTwoFactor1791244802000 } from './migrations/1791244802000-remove-two-factor';
 import { MoccaRoles1791244803000 } from './migrations/1791244803000-mocca-roles';
 import { Customers1791244804000 } from './migrations/1791244804000-customers';
+import { CatalogAndCombos1791244805000 } from './migrations/1791244805000-catalog-and-combos';
+import { ProductComponent } from '../products/entities/product-component.entity';
 import { Customer } from '../customers/entities/customer.entity';
 
 export function databaseOptions(
@@ -23,13 +25,21 @@ export function databaseOptions(
     password: config.DB_PASSWORD,
     schema: config.DB_SCHEMA,
     ssl: config.DB_SSL ? { rejectUnauthorized: true } : false,
-    entities: [User, Product, StockMovement, Session, Customer],
+    entities: [
+      User,
+      Product,
+      StockMovement,
+      Session,
+      Customer,
+      ProductComponent,
+    ],
     migrations: [
       InitialInventory1791244800000,
       Authentication1791244801000,
       RemoveTwoFactor1791244802000,
       MoccaRoles1791244803000,
       Customers1791244804000,
+      CatalogAndCombos1791244805000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

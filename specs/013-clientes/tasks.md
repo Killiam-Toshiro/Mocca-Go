@@ -15,4 +15,4 @@ Fecha: 2026-11-05. Una tarea se marca solo con evidencia verificable; los result
 - [x] C13-10: colecciones Postman (carpetas de clientes y cambio de contraseña).
 - [x] C13-11: `format:check`, `lint`, `typecheck`, `build` y `test:cov` con resultados reales (CA-42).
 - [x] C13-12: README, spec 001 (trazabilidad), `docs/commits/013.md`.
-- [ ] C13-13: commit, push y pull request (solo cuando el usuario lo pida).
+- [x] C13-13: commit `f200fab` («feature: Creacion del modelo customers…»), publicado en `origin/feature-fundaciones` y presente en `origin/develop`. Los incrementos 012 y 013 se confirmaron juntos en ese único commit; `main` sigue en `067bcbd`. No consta un pull request.

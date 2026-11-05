@@ -27,3 +27,4 @@ export function isConstraintViolation(
 // PostgreSQL nombra así las FK declaradas en línea en la migración inicial.
 export const MOVEMENT_PRODUCT_FK = 'stock_movements_product_id_fkey';
 export const MOVEMENT_USER_FK = 'stock_movements_user_id_fkey';
+export const COMPONENT_PRODUCT_FK = 'product_components_component_id_fkey';

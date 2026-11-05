@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
@@ -40,6 +41,8 @@ export function customerView(customer: Customer): CustomerView {
 
 @Injectable()
 export class CustomersService {
+  private readonly logger = new Logger(CustomersService.name);
+
   constructor(private readonly source: DataSource) {}
 
   /**
@@ -70,8 +73,11 @@ export class CustomersService {
     } catch (error) {
       if (isConstraintViolation(error, '23505', CUSTOMER_EMAIL_KEY))
         throw new ConflictException(EMAIL_TAKEN);
-      if (error instanceof QueryFailedError)
+      if (error instanceof QueryFailedError) {
+        // El cliente recibe un mensaje genérico; la causa queda en el log.
+        this.logger.error(`Registro de cliente fallido: ${error.message}`);
         throw new InternalServerErrorException('No se pudo registrar.');
+      }
       throw error;
     }
   }

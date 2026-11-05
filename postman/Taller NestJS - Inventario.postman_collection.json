@@ -2965,7 +2965,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA-NOPE\",\n  \"name\": \"No debe crearse\"\n}",
+              "raw": "{\n  \"sku\": \"QA-NOPE\",\n  \"name\": \"No debe crearse\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3488,7 +3488,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"x\",\n  \"sku\": \"X\",\n  \"active\": true\n}",
+              "raw": "{\n  \"name\": \"x\",\n  \"sku\": \"X\",\n  \"active\": true,\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3636,7 +3636,7 @@
           "response": []
         },
         {
-          "name": "Seed \u2014 operador consulta los productos INV-* (lectura permitida)",
+          "name": "Seed \u2014 operador consulta el men\u00fa cargado (lectura permitida)",
           "event": [
             {
               "listen": "test",
@@ -3645,9 +3645,10 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Aparecen INV-001, INV-002 e INV-003\", () => { const s = json.data.map(p => p.sku); [\"INV-001\",\"INV-002\",\"INV-003\"].forEach(k => pm.expect(s).to.include(k)); });",
+                  "pm.test(\"Aparecen los 23 productos del men\u00fa de Mocca Go\", () => { pm.expect(json.total).to.be.at.least(23); const s = json.data.map(p => p.sku); [\"CAF-CAPU\",\"PAN-PAND\",\"CMB-CLASICO\",\"CMB-ESTUDIO\",\"CMB-DULCE\"].forEach(k => pm.expect(s).to.include(k)); });",
+                  "pm.test(\"No queda inventario del taller (INV-*)\", () => pm.expect(json.data.some(p => p.sku.startsWith(\"INV-\"))).to.be.false);",
                   "pm.test(\"Saldos enteros no negativos\", () => json.data.forEach(p => { pm.expect(Number.isInteger(p.stock)).to.be.true; pm.expect(p.stock).to.be.at.least(0); }));",
-                  "const seed = json.data.find(p => p.sku === \"INV-001\"); if (seed) pm.collectionVariables.set(\"seedProductId\", seed.id);"
+                  "const seed = json.data.find(p => p.sku === \"CAF-CAPU\"); if (seed) pm.collectionVariables.set(\"seedProductId\", seed.id);"
                 ]
               }
             }
@@ -3666,7 +3667,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/products?search=INV-",
+              "raw": "{{baseUrl}}/products?limit=100",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -3675,8 +3676,8 @@
               ],
               "query": [
                 {
-                  "key": "search",
-                  "value": "INV-"
+                  "key": "limit",
+                  "value": "100"
                 }
               ]
             }
@@ -3717,7 +3718,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA-OPERADOR\",\n  \"name\": \"No debe crearse\"\n}",
+              "raw": "{\n  \"sku\": \"QA-OPERADOR\",\n  \"name\": \"No debe crearse\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3746,7 +3747,7 @@
                 "exec": [
                   "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
+                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"available\",\"category\",\"components\",\"cost\",\"costPercent\",\"createdAt\",\"description\",\"id\",\"name\",\"price\",\"sku\",\"soldOut\",\"stock\",\"updatedAt\"]));",
                   "pm.test(\"Saldo 0, activo, descripci\u00f3n guardada\", () => { pm.expect(json.stock).to.eql(0); pm.expect(json.active).to.eql(true); pm.expect(json.description).to.eql(\"Creado por la colecci\u00f3n de Postman\"); pm.expect(json.sku).to.eql(pm.collectionVariables.get(\"qaSku\")); });",
                   "pm.test(\"Fechas ISO-8601\", () => { pm.expect(new Date(json.createdAt).toISOString()).to.eql(json.createdAt); });",
                   "pm.collectionVariables.set(\"productId\", json.id); pm.collectionVariables.set(\"productCreatedAt\", json.createdAt);"
@@ -3774,7 +3775,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"{{qaSku}}\",\n  \"name\": \"Producto QA Postman\",\n  \"description\": \"Creado por la colecci\u00f3n de Postman\"\n}",
+              "raw": "{\n  \"sku\": \"{{qaSku}}\",\n  \"name\": \"Producto QA Postman\",\n  \"description\": \"Creado por la colecci\u00f3n de Postman\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3803,7 +3804,7 @@
                 "exec": [
                   "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
+                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"available\",\"category\",\"components\",\"cost\",\"costPercent\",\"createdAt\",\"description\",\"id\",\"name\",\"price\",\"sku\",\"soldOut\",\"stock\",\"updatedAt\"]));",
                   "pm.test(\"description null\", () => pm.expect(json.description).to.eql(null));",
                   "pm.collectionVariables.set(\"productId2\", json.id);"
                 ]
@@ -3830,7 +3831,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"{{qaSku2}}\",\n  \"name\": \"Producto QA 2\"\n}",
+              "raw": "{\n  \"sku\": \"{{qaSku2}}\",\n  \"name\": \"Producto QA 2\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3884,7 +3885,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"{{qaSku}}\",\n  \"name\": \"Duplicado\"\n}",
+              "raw": "{\n  \"sku\": \"{{qaSku}}\",\n  \"name\": \"Duplicado\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3992,7 +3993,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"qa-minuscula\",\n  \"name\": \"x\"\n}",
+              "raw": "{\n  \"sku\": \"qa-minuscula\",\n  \"name\": \"x\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4046,7 +4047,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA 001\",\n  \"name\": \"x\"\n}",
+              "raw": "{\n  \"sku\": \"QA 001\",\n  \"name\": \"x\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4100,7 +4101,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\n  \"name\": \"x\"\n}",
+              "raw": "{\n  \"sku\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\n  \"name\": \"x\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4154,7 +4155,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"\",\n  \"name\": \"x\"\n}",
+              "raw": "{\n  \"sku\": \"\",\n  \"name\": \"x\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4208,7 +4209,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA-SINNOMBRE\"\n}",
+              "raw": "{\n  \"sku\": \"QA-SINNOMBRE\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4262,7 +4263,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA-ESPACIOS\",\n  \"name\": \"   \"\n}",
+              "raw": "{\n  \"sku\": \"QA-ESPACIOS\",\n  \"name\": \"   \",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4316,7 +4317,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA-NOMBRELARGO\",\n  \"name\": \"nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn\"\n}",
+              "raw": "{\n  \"sku\": \"QA-NOMBRELARGO\",\n  \"name\": \"nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4370,7 +4371,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA-NOMBRENUM\",\n  \"name\": 123\n}",
+              "raw": "{\n  \"sku\": \"QA-NOMBRENUM\",\n  \"name\": 123,\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4424,7 +4425,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA-DESCLARGA\",\n  \"name\": \"x\",\n  \"description\": \"ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"\n}",
+              "raw": "{\n  \"sku\": \"QA-DESCLARGA\",\n  \"name\": \"x\",\n  \"description\": \"ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4478,7 +4479,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA-DESCVACIA\",\n  \"name\": \"x\",\n  \"description\": \"\"\n}",
+              "raw": "{\n  \"sku\": \"QA-DESCVACIA\",\n  \"name\": \"x\",\n  \"description\": \"\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4532,7 +4533,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA-CONSTOCK\",\n  \"name\": \"x\",\n  \"stock\": 100\n}",
+              "raw": "{\n  \"sku\": \"QA-CONSTOCK\",\n  \"name\": \"x\",\n  \"stock\": 100,\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4586,7 +4587,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA-CONACTIVE\",\n  \"name\": \"x\",\n  \"active\": false\n}",
+              "raw": "{\n  \"sku\": \"QA-CONACTIVE\",\n  \"name\": \"x\",\n  \"active\": false,\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4640,7 +4641,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"QA-CONID\",\n  \"name\": \"x\",\n  \"id\": \"00000000-0000-4000-8000-000000000000\"\n}",
+              "raw": "{\n  \"sku\": \"QA-CONID\",\n  \"name\": \"x\",\n  \"id\": \"00000000-0000-4000-8000-000000000000\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4671,7 +4672,7 @@
                   "const json = pm.response.json();",
                   "pm.test(\"Forma de p\u00e1gina\", () => pm.expect(Object.keys(json).sort()).to.eql([\"data\",\"limit\",\"page\",\"total\",\"totalPages\"]));",
                   "pm.test(\"Defaults 1/20\", () => { pm.expect(json.page).to.eql(1); pm.expect(json.limit).to.eql(20); });",
-                  "pm.test(\"Cada producto con los campos p\u00fablicos\", () => json.data.forEach(p => pm.expect(Object.keys(p).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"])));",
+                  "pm.test(\"Cada producto con los campos p\u00fablicos\", () => json.data.forEach(p => pm.expect(Object.keys(p).sort()).to.eql([\"active\",\"available\",\"category\",\"components\",\"cost\",\"costPercent\",\"createdAt\",\"description\",\"id\",\"name\",\"price\",\"sku\",\"soldOut\",\"stock\",\"updatedAt\"])));",
                   "pm.test(\"Orden por SKU ascendente\", () => { const s = json.data.map(p => p.sku); pm.expect(s).to.eql([...s].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))); });"
                 ]
               }
@@ -5184,7 +5185,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
+                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"available\",\"category\",\"components\",\"cost\",\"costPercent\",\"createdAt\",\"description\",\"id\",\"name\",\"price\",\"sku\",\"soldOut\",\"stock\",\"updatedAt\"]));",
                   "pm.test(\"Es el producto creado\", () => pm.expect(json.id).to.eql(pm.collectionVariables.get(\"productId\")));"
                 ]
               }
@@ -5384,7 +5385,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
+                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"available\",\"category\",\"components\",\"cost\",\"costPercent\",\"createdAt\",\"description\",\"id\",\"name\",\"price\",\"sku\",\"soldOut\",\"stock\",\"updatedAt\"]));",
                   "pm.test(\"Cambios aplicados; SKU y saldo intactos\", () => { pm.expect(json.name).to.eql(\"Producto QA editado\"); pm.expect(json.description).to.eql(\"Descripci\u00f3n editada\"); pm.expect(json.sku).to.eql(pm.collectionVariables.get(\"qaSku\")); pm.expect(json.stock).to.eql(0); });",
                   "pm.test(\"updatedAt avanza\", () => pm.expect(new Date(json.updatedAt).getTime()).to.be.above(new Date(pm.collectionVariables.get(\"productCreatedAt\")).getTime()));",
                   "pm.collectionVariables.set(\"productUpdatedAt\", json.updatedAt);"
@@ -6038,7 +6039,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
+                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"available\",\"category\",\"components\",\"cost\",\"costPercent\",\"createdAt\",\"description\",\"id\",\"name\",\"price\",\"sku\",\"soldOut\",\"stock\",\"updatedAt\"]));",
                   "pm.test(\"active false, saldo conservado\", () => { pm.expect(json.active).to.eql(false); pm.expect(json.stock).to.eql(0); });",
                   "pm.collectionVariables.set(\"productStatusAt\", json.updatedAt);"
                 ]
@@ -9012,7 +9013,7 @@
           "response": []
         },
         {
-          "name": "GET /movements?productId=<seed INV-001> \u2014 historial del seed",
+          "name": "GET /movements?productId=<seed CAF-CAPU> \u2014 historial del seed",
           "event": [
             {
               "listen": "test",
@@ -9672,7 +9673,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"{{qaSku3}}\",\n  \"name\": \"Producto QA para borrar\"\n}",
+              "raw": "{\n  \"sku\": \"{{qaSku3}}\",\n  \"name\": \"Producto QA para borrar\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -10580,14 +10581,14 @@
           "response": []
         },
         {
-          "name": "Repartidor \u2014 GET /products \u2192 200 (lee el cat\u00e1logo)",
+          "name": "Repartidor \u2014 GET /products \u2192 403 (usa el men\u00fa p\u00fablico)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
                 ]
               }
             }
@@ -10659,7 +10660,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"REP-NO\",\n  \"name\": \"No permitido\"\n}",
+              "raw": "{\n  \"sku\": \"REP-NO\",\n  \"name\": \"No permitido\",\n  \"category\": \"cafe\",\n  \"price\": 4500,\n  \"cost\": 1600\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -11419,14 +11420,14 @@
           "response": []
         },
         {
-          "name": "Cliente \u2014 GET /products \u2192 200",
+          "name": "Cliente \u2014 GET /products \u2192 403 (usa el men\u00fa p\u00fablico)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
                 ]
               }
             }
@@ -11451,6 +11452,44 @@
               ],
               "path": [
                 "products"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 GET /menu \u2192 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
               ]
             }
           },
@@ -11837,6 +11876,1831 @@
               "path": [
                 "users",
                 "{{customerId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07d Cat\u00e1logo, combos, \u00abagotado\u00bb y men\u00fa p\u00fablico (incremento 014)",
+      "item": [
+        {
+          "name": "Preparar SKU aleatorio del combo QA",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rnd = () => Math.random().toString(36).slice(2, 8).toUpperCase();",
+                  "pm.collectionVariables.set('qaComboSku', 'QA-CMB-' + rnd());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /menu sin token \u2192 200, no-store, solo campos p\u00fablicos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Cache-Control no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
+                  "pm.test(\"Cada elemento tiene solo las claves p\u00fablicas\", () => json.data.forEach(p => pm.expect(Object.keys(p).sort()).to.eql([\"available\",\"category\",\"components\",\"description\",\"id\",\"name\",\"price\",\"sku\"])));",
+                  "pm.test(\"Sin datos internos\", () => { const t = pm.response.text(); [\"\\\"cost\\\"\",\"costPercent\",\"\\\"stock\\\"\",\"\\\"active\\\"\",\"soldOut\"].forEach(w => pm.expect(t).to.not.include(w)); });",
+                  "pm.test(\"Ordenado por categor\u00eda: combos primero y snacks al final\", () => { const order = [\"combo\",\"cafe\",\"bebida\",\"panaderia\",\"pasteleria\",\"snack\"]; const idx = json.data.map(p => order.indexOf(p.category)); pm.expect(idx.every(i => i >= 0)).to.be.true; pm.expect([...idx].sort((a,b) => a-b)).to.eql(idx); });",
+                  "pm.test(\"Aparecen los tres combos con su composici\u00f3n\", () => { [\"CMB-CLASICO\",\"CMB-ESTUDIO\",\"CMB-DULCE\"].forEach(sku => { const p = json.data.find(x => x.sku === sku); pm.expect(p, sku).to.exist; pm.expect(p.components.length).to.eql(2); }); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /menu con un token de repartidor \u2192 200 (tambi\u00e9n sirve con sesi\u00f3n)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /products?category=combo \u2014 operador ve costo y porcentaje",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Los tres combos del seed\", () => pm.expect(json.data.map(p => p.sku).sort()).to.include.members([\"CMB-CLASICO\",\"CMB-DULCE\",\"CMB-ESTUDIO\"]));",
+                  "pm.test(\"Cada combo cuesta menos del 39 % del precio\", () => json.data.filter(p => p.sku.startsWith(\"CMB-\")).forEach(p => { pm.expect(p.costPercent).to.be.below(39); pm.expect(p.stock).to.be.at.least(0); }));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?category=combo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "combo"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /products?category=postre \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?category=postre",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "postre"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar el capuchino del seed (id de componente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const p = pm.response.json().data.find(x => x.sku === \"CAF-CAPU\"); pm.expect(p).to.exist; pm.collectionVariables.set(\"menuCapuId\", p.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?search=CAF-CAPU",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "CAF-CAPU"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar el pandebono del seed (id de componente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const p = pm.response.json().data.find(x => x.sku === \"PAN-PAND\"); pm.expect(p).to.exist; pm.collectionVariables.set(\"menuPandId\", p.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?search=PAN-PAND",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "PAN-PAND"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /products combo \u2014 operador \u2192 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"QA-CMB-NO\",\n  \"name\": \"No\",\n  \"category\": \"combo\",\n  \"price\": 5000,\n  \"components\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /products combo con un solo componente \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"El mensaje explica el motivo\", () => pm.expect(JSON.stringify(pm.response.json().message)).to.include(\"2 y 10\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{qaComboSku}}\",\n  \"name\": \"Combo QA\",\n  \"category\": \"combo\",\n  \"price\": 5000,\n  \"components\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /products combo con costo enviado \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{qaComboSku}}\",\n  \"name\": \"Combo QA\",\n  \"category\": \"combo\",\n  \"price\": 5000,\n  \"cost\": 100,\n  \"components\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /products combo con componente repetido \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{qaComboSku}}\",\n  \"name\": \"Combo QA\",\n  \"category\": \"combo\",\n  \"price\": 5000,\n  \"components\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /products simple sin costo \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{qaComboSku}}\",\n  \"name\": \"Sin costo\",\n  \"category\": \"snack\",\n  \"price\": 3000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /products precio 0 \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{qaComboSku}}\",\n  \"name\": \"Gratis\",\n  \"category\": \"snack\",\n  \"price\": 0,\n  \"cost\": 100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /products categor\u00eda desconocida \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{qaComboSku}}\",\n  \"name\": \"Raro\",\n  \"category\": \"postre\",\n  \"price\": 3000,\n  \"cost\": 100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /products combo v\u00e1lido \u2192 201 con costo y saldo calculados",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Costo = suma de los componentes y porcentaje a un decimal\", () => { pm.expect(json.cost).to.eql(2500); pm.expect(json.costPercent).to.eql(38.5); });",
+                  "pm.test(\"Nace activo, sin \u00abagotado\u00bb, con componentes\", () => { pm.expect(json.active).to.eql(true); pm.expect(json.soldOut).to.eql(false); pm.expect(json.components.map(c => c.sku).sort()).to.eql([\"CAF-CAPU\",\"PAN-PAND\"]); });",
+                  "pm.test(\"El saldo se calcula de los componentes\", () => pm.expect(json.stock).to.be.at.least(0));",
+                  "pm.collectionVariables.set(\"qaComboId\", json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{qaComboSku}}\",\n  \"name\": \"Combo QA Postman\",\n  \"category\": \"combo\",\n  \"price\": 6500,\n  \"components\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /products combo con el mismo SKU \u2192 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{qaComboSku}}\",\n  \"name\": \"Duplicado\",\n  \"category\": \"combo\",\n  \"price\": 5000,\n  \"components\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /movements sobre el combo \u2192 409 (no tiene saldo propio)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Mensaje de combo\", () => pm.expect(pm.response.json().message).to.include(\"Un combo no tiene saldo propio\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/movements",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "movements"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{qaComboId}}\",\n  \"type\": \"IN\",\n  \"quantity\": 1,\n  \"reason\": \"Prueba\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /products/:id con costo sobre un combo \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cost\": 100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /products/:id categor\u00eda hacia otra distinta de combo \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"cafe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /products/:id precio del combo \u2192 200 y se recalcula costPercent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"costPercent 25\", () => pm.expect(pm.response.json().costPercent).to.eql(25));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 10000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH sold-out sin token \u2192 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}/sold-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}",
+                "sold-out"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"soldOut\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH sold-out \u2014 repartidor \u2192 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}/sold-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}",
+                "sold-out"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"soldOut\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH sold-out \u2014 soldOut como texto \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}/sold-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}",
+                "sold-out"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"soldOut\": \"true\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH sold-out \u2014 producto inexistente \u2192 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/00000000-0000-4000-8000-000000000000/sold-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "00000000-0000-4000-8000-000000000000",
+                "sold-out"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"soldOut\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH sold-out \u2014 operador marca el combo como agotado \u2192 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"soldOut y no disponible\", () => { const j = pm.response.json(); pm.expect(j.soldOut).to.eql(true); pm.expect(j.available).to.eql(false); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}/sold-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}",
+                "sold-out"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"soldOut\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /menu \u2014 el combo agotado aparece como no disponible al instante",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const p = pm.response.json().data.find(x => x.sku === pm.collectionVariables.get(\"qaComboSku\")); pm.test(\"Listado y no disponible\", () => { pm.expect(p).to.exist; pm.expect(p.available).to.eql(false); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH sold-out \u2014 repetir el valor es idempotente \u2192 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}/sold-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}",
+                "sold-out"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"soldOut\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH sold-out \u2014 operador lo desmarca \u2192 200 y vuelve a estar disponible",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Disponible de nuevo\", () => pm.expect(pm.response.json().available).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}/sold-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}",
+                "sold-out"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"soldOut\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT components \u2014 operador \u2192 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}/components",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}",
+                "components"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"components\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT components \u2014 composici\u00f3n inv\u00e1lida \u2192 400 y se conserva la anterior",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}/components",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}",
+                "components"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"components\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT components sobre un producto simple \u2192 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Mensaje\", () => pm.expect(pm.response.json().message).to.eql(\"El producto no es un combo.\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{menuCapuId}}/components",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{menuCapuId}}",
+                "components"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"components\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT components \u2014 producto inexistente \u2192 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/00000000-0000-4000-8000-000000000000/components",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "00000000-0000-4000-8000-000000000000",
+                "components"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"components\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT components \u2014 admin reemplaza la composici\u00f3n \u2192 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Costo recalculado 2\u00b71600 + 900\", () => pm.expect(j.cost).to.eql(4100));",
+                  "pm.test(\"Cantidades nuevas\", () => pm.expect(j.components.find(c => c.sku === \"CAF-CAPU\").quantity).to.eql(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}/components",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}",
+                "components"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"components\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /products/:id de un componente en uso \u2192 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Mensaje\", () => pm.expect(pm.response.json().message).to.include(\"componente\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{menuCapuId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{menuCapuId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /products/:id del combo QA \u2192 204 (no tiene movimientos)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /products/:id del combo eliminado \u2192 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{qaComboId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{qaComboId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /products/:id del capuchino sigue existiendo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{menuCapuId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{menuCapuId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
               ]
             }
           },
@@ -12890,6 +14754,26 @@
     },
     {
       "key": "customerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "menuCapuId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "menuPandId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaComboSku",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaComboId",
       "value": "",
       "type": "string"
     }

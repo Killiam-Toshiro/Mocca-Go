@@ -44,6 +44,7 @@ const PUBLIC = [
   'GET /api/v1/health/ready',
   'POST /api/v1/auth/login',
   'POST /api/v1/customers',
+  'GET /api/v1/menu',
 ];
 const ADMIN_ONLY = [
   'POST /api/v1/users',
@@ -55,19 +56,30 @@ const ADMIN_ONLY = [
   'POST /api/v1/products',
   'PATCH /api/v1/products/{id}',
   'PATCH /api/v1/products/{id}/status',
+  'PUT /api/v1/products/{id}/components',
   'DELETE /api/v1/products/{id}',
+];
+// Admin y operador (la cocina): datos internos del catálogo y «agotado».
+const STAFF_ONLY = [
+  'GET /api/v1/products',
+  'GET /api/v1/products/{id}',
+  'PATCH /api/v1/products/{id}/sold-out',
 ];
 const ANY_ROLE = [
   'GET /api/v1/auth/me',
   'POST /api/v1/auth/logout',
-  'GET /api/v1/products',
-  'GET /api/v1/products/{id}',
   'POST /api/v1/movements',
   'GET /api/v1/movements',
 ];
 const CLIENT_ONLY = ['GET /api/v1/customers/me', 'PATCH /api/v1/customers/me'];
 const OWN_PASSWORD = ['PATCH /api/v1/auth/password'];
-const PROTECTED = [...ADMIN_ONLY, ...ANY_ROLE, ...CLIENT_ONLY, ...OWN_PASSWORD];
+const PROTECTED = [
+  ...ADMIN_ONLY,
+  ...STAFF_ONLY,
+  ...ANY_ROLE,
+  ...CLIENT_ONLY,
+  ...OWN_PASSWORD,
+];
 
 const SUCCESS: Record<string, string> = {
   'GET /api/v1/health': '200',
@@ -90,6 +102,9 @@ const SUCCESS: Record<string, string> = {
   'GET /api/v1/products/{id}': '200',
   'PATCH /api/v1/products/{id}': '200',
   'PATCH /api/v1/products/{id}/status': '200',
+  'PATCH /api/v1/products/{id}/sold-out': '200',
+  'PUT /api/v1/products/{id}/components': '200',
+  'GET /api/v1/menu': '200',
   'DELETE /api/v1/products/{id}': '204',
   'POST /api/v1/movements': '201',
   'GET /api/v1/movements': '200',
@@ -141,12 +156,12 @@ describe('Documentación OpenAPI (Swagger)', () => {
     });
   });
 
-  it('S-02: documenta exactamente las 23 operaciones con el prefijo /api/v1', () => {
+  it('S-02: documenta exactamente las 26 operaciones con el prefijo /api/v1', () => {
     const operations = Object.entries(doc.paths).flatMap(([path, methods]) =>
       Object.keys(methods).map((method) => `${method.toUpperCase()} ${path}`),
     );
     expect(operations.sort()).toEqual([...PUBLIC, ...PROTECTED].sort());
-    expect(operations).toHaveLength(23);
+    expect(operations).toHaveLength(26);
   });
 
   it('cada operación tiene etiqueta del módulo, resumen y respuesta de éxito', () => {
@@ -173,7 +188,12 @@ describe('Documentación OpenAPI (Swagger)', () => {
   });
 
   it('S-03: las rutas por rol documentan 403 y las de cualquier rol no', () => {
-    for (const key of [...ADMIN_ONLY, ...CLIENT_ONLY, ...OWN_PASSWORD])
+    for (const key of [
+      ...ADMIN_ONLY,
+      ...STAFF_ONLY,
+      ...CLIENT_ONLY,
+      ...OWN_PASSWORD,
+    ])
       expect(operation(key).responses['403']).toBeDefined();
     for (const key of ANY_ROLE)
       expect(operation(key).responses['403']).toBeUndefined();
@@ -186,6 +206,7 @@ describe('Documentación OpenAPI (Swagger)', () => {
       'DELETE /api/v1/users/{id}',
       'PATCH /api/v1/users/{id}/role',
       'POST /api/v1/products',
+      'PUT /api/v1/products/{id}/components',
       'DELETE /api/v1/products/{id}',
       'POST /api/v1/movements',
     ])
@@ -199,6 +220,8 @@ describe('Documentación OpenAPI (Swagger)', () => {
       'GET /api/v1/products/{id}',
       'PATCH /api/v1/products/{id}',
       'PATCH /api/v1/products/{id}/status',
+      'PATCH /api/v1/products/{id}/sold-out',
+      'PUT /api/v1/products/{id}/components',
       'POST /api/v1/movements',
     ])
       expect(operation(key).responses['404']).toBeDefined();
@@ -208,6 +231,7 @@ describe('Documentación OpenAPI (Swagger)', () => {
       'POST /api/v1/auth/logout',
       'PATCH /api/v1/auth/password',
       'POST /api/v1/customers',
+      'GET /api/v1/menu',
     ])
       expect(operation(key).responses['429']).toBeDefined();
     expect(operation('POST /api/v1/customers').responses['409']).toBeDefined();
@@ -280,11 +304,28 @@ describe('Documentación OpenAPI (Swagger)', () => {
       'cliente',
     ]);
     expect(schema('CreateProductDto')).toMatchObject({
-      required: ['sku', 'name'],
+      required: ['sku', 'name', 'category', 'price'],
       properties: {
         sku: { pattern: '^[A-Z0-9][A-Z0-9._-]{0,47}$', maxLength: 48 },
         name: { minLength: 1, maxLength: 120 },
         description: { nullable: true, maxLength: 500 },
+        category: {
+          enum: ['combo', 'cafe', 'bebida', 'panaderia', 'pasteleria', 'snack'],
+        },
+        price: { type: 'integer', minimum: 1, maximum: 1000000 },
+        cost: { type: 'integer', minimum: 0, maximum: 1000000 },
+      },
+    });
+    expect(schema('SetSoldOutDto')).toMatchObject({
+      required: ['soldOut'],
+      properties: { soldOut: { type: 'boolean' } },
+    });
+    expect(schema('ReplaceComponentsDto').required).toEqual(['components']);
+    expect(schema('ComponentInputDto')).toMatchObject({
+      required: ['productId', 'quantity'],
+      properties: {
+        productId: { format: 'uuid' },
+        quantity: { type: 'integer', minimum: 1, maximum: 10 },
       },
     });
     expect(schema('UpdateProductDto').required).toBeUndefined();
@@ -324,6 +365,9 @@ describe('Documentación OpenAPI (Swagger)', () => {
       'query:limit': { type: 'integer', minimum: 1, maximum: 100 },
       'query:search': { maxLength: 64 },
       'query:active': { enum: ['true', 'false'] },
+      'query:category': {
+        enum: ['combo', 'cafe', 'bebida', 'panaderia', 'pasteleria', 'snack'],
+      },
     });
     expect(params('GET /api/v1/movements')).toMatchObject({
       'query:productId': { format: 'uuid' },
@@ -335,6 +379,8 @@ describe('Documentación OpenAPI (Swagger)', () => {
     ]);
     for (const key of [
       'PATCH /api/v1/products/{id}/status',
+      'PATCH /api/v1/products/{id}/sold-out',
+      'PUT /api/v1/products/{id}/components',
       'DELETE /api/v1/products/{id}',
       'GET /api/v1/users/{id}',
       'PATCH /api/v1/users/{id}',
@@ -349,13 +395,30 @@ describe('Documentación OpenAPI (Swagger)', () => {
       Object.keys(schema(name).properties!).sort();
     expect(fields('ProductResponse')).toEqual([
       'active',
+      'available',
+      'category',
+      'components',
+      'cost',
+      'costPercent',
       'createdAt',
       'description',
       'id',
       'name',
+      'price',
       'sku',
+      'soldOut',
       'stock',
       'updatedAt',
+    ]);
+    expect(fields('MenuItemResponse')).toEqual([
+      'available',
+      'category',
+      'components',
+      'description',
+      'id',
+      'name',
+      'price',
+      'sku',
     ]);
     expect(fields('UserResponse')).toEqual([
       'createdAt',

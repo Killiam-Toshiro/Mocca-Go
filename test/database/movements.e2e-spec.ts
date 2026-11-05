@@ -370,10 +370,10 @@ describe('Movimientos HTTP, saldo e historial con PostgreSQL real', () => {
       courierPassword: 'Seed-test-courier-password',
     });
     const history = (await list().expect(200)).body as History;
-    expect(history.total).toBe(3);
-    expect(history.data.map((m) => m.quantity).sort((a, b) => a - b)).toEqual([
-      10, 20, 30,
-    ]);
+    expect(history.total).toBe(20);
+    const page = (await list('?limit=100').expect(200)).body as History;
+    expect(page.data).toHaveLength(20);
+    expect(page.data.reduce((sum, m) => sum + m.quantity, 0)).toBe(647);
     history.data.forEach(assertSafe);
     for (const method of ['patch', 'delete'] as const) {
       const client = request(server);
@@ -381,7 +381,7 @@ describe('Movimientos HTTP, saldo e historial con PostgreSQL real', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(404);
     }
-    expect(await count()).toBe(3);
+    expect(await count()).toBe(20);
   });
 
   it('dos salidas concurrentes de 4 con saldo 6 dejan 2 y un solo OUT', async () => {

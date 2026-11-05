@@ -423,7 +423,8 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
     });
 
     it('aplicada sobre datos del esquema anterior conserva usuarios, sesiones e inventario y elimina solo el 2FA', async () => {
-      // Las últimas migraciones son clientes y roles; se deshacen primero.
+      // Las últimas migraciones son catálogo, clientes y roles; se deshacen primero.
+      await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       await context.source.undoLastMigration();
@@ -446,9 +447,13 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
         userId: user.id,
         expiresAt: new Date(Date.now() + 600_000),
       });
-      const product = await context.source
-        .getRepository(Product)
-        .save({ sku: 'KEEP-1', name: 'Conservar', stock: 3 });
+      // Inserción directa: en este esquema aún no existen las columnas del catálogo.
+      const product = (
+        await context.source.query<{ id: string }[]>(
+          `INSERT INTO ${table('products')} (sku, name, stock)
+           VALUES ('KEEP-1', 'Conservar', 3) RETURNING id`,
+        )
+      )[0];
 
       await context.source.runMigrations();
 
@@ -493,7 +498,8 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
     });
 
     it('down restaura la estructura vacía con sus restricciones y up la vuelve a quitar', async () => {
-      // Las últimas migraciones son clientes y roles; se deshacen primero.
+      // Las últimas migraciones son catálogo, clientes y roles; se deshacen primero.
+      await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       await context.source.undoLastMigration();

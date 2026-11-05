@@ -6,6 +6,9 @@ import {
   withDataSource,
 } from '../../src/database/commands';
 import { seedCredentials } from '../../src/seed/credentials';
+import { Like } from 'typeorm';
+import { costPercent } from '../../src/products/catalog';
+import { ProductComponent } from '../../src/products/entities/product-component.entity';
 import { Product } from '../../src/products/entities/products.entity';
 import { User } from '../../src/users/entities/user.entity';
 import { StockMovement } from '../../src/movements/entities/stock-movement.entity';
@@ -17,6 +20,33 @@ import {
   inTestEnvironment,
   TestDatabase,
 } from '../helpers/database';
+
+// Saldos de partida del menú: los combos no tienen saldo propio.
+const EXPECTED_BALANCES = {
+  'CAF-AMER': 40,
+  'CAF-CAPU': 40,
+  'CAF-LATT': 30,
+  'CAF-COLD': 30,
+  'CAF-LFRI': 30,
+  'CAF-FRAP': 25,
+  'BEB-JNAR': 25,
+  'BEB-JMOR': 25,
+  'BEB-GASE': 48,
+  'BEB-AGUA': 48,
+  'BEB-TEFR': 30,
+  'PAN-ESPO': 30,
+  'PAN-PAND': 30,
+  'PAN-ALMO': 30,
+  'PAS-CHEE': 16,
+  'PAS-CUPC': 20,
+  'SNK-PAPA': 40,
+  'SNK-GAAV': 40,
+  'SNK-GACH': 40,
+  'SNK-MIXF': 30,
+  'CMB-CLASICO': 0,
+  'CMB-ESTUDIO': 0,
+  'CMB-DULCE': 0,
+};
 
 const credentials = {
   adminPassword: 'Test-only-admin-password',
@@ -37,19 +67,19 @@ describe('PostgreSQL: seed transaccional', () => {
   });
 
   async function balances() {
-    const products = await context.source
-      .getRepository(Product)
-      .find({ order: { sku: 'ASC' } });
-    return products.map((product) => product.stock);
+    const products = await context.source.getRepository(Product).find();
+    return Object.fromEntries(
+      products.map((product) => [product.sku, product.stock]),
+    );
   }
 
   it('carga usuarios, productos, entradas y saldos sin exponer hashes por defecto', async () => {
     expect(await runSeed(context.source, credentials)).toEqual({
       usersCreated: 3,
-      productsCreated: 3,
-      movementsCreated: 3,
+      productsCreated: 23,
+      movementsCreated: 20,
     });
-    expect(await balances()).toEqual([20, 30, 10]);
+    expect(await balances()).toEqual(EXPECTED_BALANCES);
     const users = context.source.getRepository(User);
     expect((await users.findOneByOrFail({ username: 'admin' })).role).toBe(
       'admin',
@@ -70,7 +100,7 @@ describe('PostgreSQL: seed transaccional', () => {
       .getOneOrFail();
     expect(admin.passwordHash).toMatch(/^scrypt\$/);
     expect(admin.passwordHash).not.toBe(credentials.adminPassword);
-    expect(await context.source.getRepository(StockMovement).count()).toBe(3);
+    expect(await context.source.getRepository(StockMovement).count()).toBe(20);
   });
 
   it('la segunda ejecución conserva credenciales, roles, catálogo, saldo e historial posterior', async () => {
@@ -83,7 +113,7 @@ describe('PostgreSQL: seed transaccional', () => {
       .where('user.username = :username', { username: 'admin' })
       .getOneOrFail();
     const products = source.getRepository(Product);
-    const product = await products.findOneByOrFail({ sku: 'INV-001' });
+    const product = await products.findOneByOrFail({ sku: 'CAF-CAPU' });
     await source.transaction(async (manager) => {
       await manager.increment(Product, { id: product.id }, 'stock', 5);
       await manager.getRepository(StockMovement).save({
@@ -118,9 +148,9 @@ describe('PostgreSQL: seed transaccional', () => {
       name: 'Nombre editado',
       description: 'Descripción propia',
       active: false,
-      stock: 25,
+      stock: 45,
     });
-    expect(await source.getRepository(StockMovement).count()).toBe(4);
+    expect(await source.getRepository(StockMovement).count()).toBe(21);
   });
 
   it('dos ejecuciones simultáneas aplican cada entrada una sola vez', async () => {
@@ -133,32 +163,35 @@ describe('PostgreSQL: seed transaccional', () => {
     ).toBe(3);
     expect(
       results.reduce((total, result) => total + result.movementsCreated, 0),
-    ).toBe(3);
-    expect(await balances()).toEqual([20, 30, 10]);
+    ).toBe(20);
+    expect(
+      results.reduce((total, result) => total + result.productsCreated, 0),
+    ).toBe(23);
+    expect(await balances()).toEqual(EXPECTED_BALANCES);
     expect(await context.source.getRepository(User).count()).toBe(3);
-    expect(await context.source.getRepository(StockMovement).count()).toBe(3);
+    expect(await context.source.getRepository(StockMovement).count()).toBe(20);
   });
 
   it('agrega la entrada faltante a un SKU existente sin reemplazar catálogo ni saldo previo', async () => {
     await context.source
       .getRepository(Product)
-      .save({ sku: 'INV-001', name: 'Producto propio', stock: 7 });
+      .save({ sku: 'CAF-AMER', name: 'Producto propio', stock: 7 });
     expect(await runSeed(context.source, credentials)).toEqual({
       usersCreated: 3,
-      productsCreated: 2,
-      movementsCreated: 3,
+      productsCreated: 22,
+      movementsCreated: 20,
     });
     expect(
       await context.source
         .getRepository(Product)
-        .findOneByOrFail({ sku: 'INV-001' }),
-    ).toMatchObject({ name: 'Producto propio', stock: 27 });
+        .findOneByOrFail({ sku: 'CAF-AMER' }),
+    ).toMatchObject({ name: 'Producto propio', stock: 47 });
   });
 
   it('revierte toda la carga si falla después de crear usuarios y dos entradas', async () => {
     const products = context.source.getRepository(Product);
     const original = await products.save({
-      sku: 'INV-003',
+      sku: 'CAF-LATT',
       name: 'Inactivo previo',
       active: false,
       stock: 5,
@@ -179,7 +212,7 @@ describe('PostgreSQL: seed transaccional', () => {
     await runSeed(context.source, credentials);
     const product = await context.source
       .getRepository(Product)
-      .findOneByOrFail({ sku: 'INV-001' });
+      .findOneByOrFail({ sku: 'CAF-AMER' });
     const admin = await context.source
       .getRepository(User)
       .findOneByOrFail({ username: 'admin' });
@@ -201,16 +234,59 @@ describe('PostgreSQL: seed transaccional', () => {
           .getRepository(Product)
           .findOneByOrFail({ id: product.id })
       ).stock,
-    ).toBe(20);
-    expect(await context.source.getRepository(StockMovement).count()).toBe(3);
+    ).toBe(40);
+    expect(await context.source.getRepository(StockMovement).count()).toBe(20);
+  });
+
+  it('CA-26 y CA-27: crea los combos con su composición y todos quedan bajo el 39 % de costo', async () => {
+    await runSeed(context.source, credentials);
+    expect(await runSeed(context.source, credentials)).toEqual({
+      usersCreated: 0,
+      productsCreated: 0,
+      movementsCreated: 0,
+    });
+    const products = context.source.getRepository(Product);
+    expect(await products.countBy({ sku: Like('INV-%') })).toBe(0);
+    const links = await context.source
+      .getRepository(ProductComponent)
+      .find({ relations: { combo: true, component: true } });
+    const composition = (sku: string) =>
+      links
+        .filter((link) => link.combo?.sku === sku)
+        .map((link) => [link.component?.sku, link.quantity])
+        .sort();
+    expect(composition('CMB-CLASICO')).toEqual([
+      ['CAF-CAPU', 1],
+      ['PAN-PAND', 1],
+    ]);
+    expect(composition('CMB-ESTUDIO')).toEqual([
+      ['CAF-COLD', 1],
+      ['SNK-GAAV', 1],
+    ]);
+    expect(composition('CMB-DULCE')).toEqual([
+      ['CAF-LATT', 1],
+      ['PAS-CUPC', 1],
+    ]);
+    const costs = new Map(
+      (await products.find()).map((product) => [product.sku, product]),
+    );
+    const percent = (sku: string, parts: string[]) => {
+      const total = parts.reduce((sum, part) => sum + costs.get(part)!.cost, 0);
+      return costPercent(total, costs.get(sku)!.price);
+    };
+    expect(percent('CMB-CLASICO', ['CAF-CAPU', 'PAN-PAND'])).toBe(38.5);
+    expect(percent('CMB-ESTUDIO', ['CAF-COLD', 'SNK-GAAV'])).toBe(37.3);
+    expect(percent('CMB-DULCE', ['CAF-LATT', 'PAS-CUPC'])).toBe(38);
+    for (const product of costs.values())
+      expect(product.price).toBeGreaterThan(0);
   });
 
   it('el comando por entorno carga y repite el seed cerrando sus conexiones', async () => {
     await inTestEnvironment(context, () => seedFromEnvironment());
     await inTestEnvironment(context, () => seedFromEnvironment());
-    expect(await balances()).toEqual([20, 30, 10]);
+    expect(await balances()).toEqual(EXPECTED_BALANCES);
     expect(await context.source.getRepository(User).count()).toBe(3);
-    expect(await context.source.getRepository(StockMovement).count()).toBe(3);
+    expect(await context.source.getRepository(StockMovement).count()).toBe(20);
   });
 
   it('el cargador de .env conserva las credenciales de seed al validar la conexión', async () => {
@@ -241,7 +317,7 @@ describe('PostgreSQL: seed transaccional', () => {
           process.env.NODE_ENV = previousEnvironment;
         }
       });
-      expect(await balances()).toEqual([20, 30, 10]);
+      expect(await balances()).toEqual(EXPECTED_BALANCES);
     } finally {
       unlinkSync(envFile);
       rmdirSync(directory);

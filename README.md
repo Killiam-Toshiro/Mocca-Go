@@ -10,11 +10,13 @@ Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backe
 
 **Clientes (2026-11-05):** el incremento 013 agrega el registro público de clientes con correo, contraseña, nombre y teléfono (guardado en formato E.164 para avisos futuros por WhatsApp o SMS), el inicio de sesión con correo, el perfil propio y el cambio de contraseña propio para los cuatro roles. Ver [especificación 013](specs/013-clientes/spec.md) y su [overview](docs/commits/013.md). Los datos de estado de abajo describen la API heredada del taller.
 
+**Catálogo y combos (2026-11-05):** el incremento 014 convierte el catálogo en el menú de Mocca Go: seis categorías (`cafe`, `bebida`, `panaderia`, `pasteleria`, `snack`, `combo`), precio y costo en pesos COP, el interruptor «agotado» para la cocina, combos formados por productos simples (con costo, saldo y disponibilidad calculados) y el menú público `GET /menu`, sin sesión. El inventario de ejemplo del taller (teclado, mouse, monitor) se reemplaza por 20 productos y 3 combos. `GET /products` pasa a ser solo para `admin` y `operador`. Ver [especificación 014](specs/014-catalogo-combos/spec.md) y su [overview](docs/commits/014.md).
+
 Main actualizado/verificado a `635e928` el 2026-10-13. Incluye seed/PostgreSQL, JWT con sesiones revocables, roles, catálogo, movimientos, Swagger, despliegue Railway y CRUD completo/readiness. La colección Postman está versionada; el usuario confirma corridas exitosas locales y desplegadas. El informe está terminado según el usuario, pendiente de compartir para revisión documental.
 
 **Alcance acordado (2026-10-13):** el usuario excluye 2FA de los requisitos de aquí en adelante. La autenticación vigente es usuario/contraseña → JWT, con sesiones persistidas y logout revocable. El enunciado original incluía 2FA; se conserva como antecedente, mientras que el SDD y el seguimiento actual usan el alcance JWT-only aprobado (D-65).
 
-El código incluye 23 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, seis de catálogo y dos de movimientos.
+El código incluye 26 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, ocho de catálogo, una de menú público y dos de movimientos.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -69,8 +71,9 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 7      | Retiro del 2FA: login directo con JWT y sesiones revocables         | Ver resultados y estado en el [overview](docs/commits/007.md) |
 | 9      | Documentación OpenAPI con Swagger UI                                | Ver resultados y estado en el [overview](docs/commits/009.md) |
 | 11     | CRUD completo de productos y usuarios, readiness y colección        | Ver resultados y estado en el [overview](docs/commits/011.md) |
-| 12     | Mocca Go: roles ampliados, CORS, duración del JWT e identidad       | Ver resultados y estado en el [overview](docs/commits/012.md) |
-| 13     | Clientes: registro, login con correo, perfil y cambio de contraseña | Ver resultados y estado en el [overview](docs/commits/013.md) |
+| 12     | Mocca Go: roles ampliados, CORS, duración del JWT e identidad       | Cerrado (`f200fab`); ver el [overview](docs/commits/012.md)   |
+| 13     | Clientes: registro, login con correo, perfil y cambio de contraseña | Cerrado (`f200fab`); ver el [overview](docs/commits/013.md)   |
+| 14     | Catálogo ampliado y combos: categorías, precio, «agotado» y menú    | En revisión; ver el [overview](docs/commits/014.md)           |
 
 El despliegue ya está verificado. Quedan revisar el informe final cuando se comparta y confirmar la entrega en Intu. Swagger complementa el informe, pero no lo sustituye.
 
@@ -129,13 +132,15 @@ npm run migration:run
 npm run seed
 ```
 
-Los comandos de migración y seed compilan el proyecto antes de ejecutarse. El seed requiere `SEED_ADMIN_PASSWORD`, `SEED_OPERATOR_PASSWORD` y `SEED_COURIER_PASSWORD` de 12 a 128 caracteres, declaradas en `.env` o en el proceso. Crea `admin`, `operador`, `repartidor`, tres productos y entradas iniciales con saldos 20, 30 y 10. Las contraseñas se guardan con scrypt y salt aleatoria.
+Los comandos de migración y seed compilan el proyecto antes de ejecutarse. El seed requiere `SEED_ADMIN_PASSWORD`, `SEED_OPERATOR_PASSWORD` y `SEED_COURIER_PASSWORD` de 12 a 128 caracteres, declaradas en `.env` o en el proceso. Crea `admin`, `operador`, `repartidor`, el menú de Mocca Go (20 productos simples con su saldo inicial por movimientos de entrada y 3 combos: Clásico, Estudio y Dulce) y ninguna fila del inventario de ejemplo del taller (`INV-*`). Las contraseñas se guardan con scrypt y salt aleatoria.
 
 Repetir `npm run seed` conserva contraseñas, roles, catálogo, saldos e historial existentes y no aplica de nuevo las entradas ya identificadas. Si existe un producto activo sin su entrada inicial, se añade esa entrada a su saldo previo; si está inactivo, se rechaza la carga completa. Todo el seed es una transacción. Para iniciar sesión usa el recorrido siguiente: basta usuario y contraseña.
 
+**Menú nuevo (014):** el historial de movimientos es inmutable, así que los productos `INV-001` a `INV-003` de una base ya sembrada no se pueden borrar por la API. Para quedarte solo con el menú de Mocca Go recrea la base de desarrollo: `docker compose down -v`, `npm run db:up`, `npm run migration:run` y `npm run seed` (borra los datos de desarrollo).
+
 Desarrollo tiene un volumen persistente en Docker. `docker compose stop postgres` detiene ese servicio conservando los datos, y `npm run db:up` lo vuelve a iniciar. No es necesario borrar volúmenes para repetir el seed.
 
-`npm run migration:revert` revierte la última migración: la del incremento 7 restaura la estructura 2FA vacía (los secretos TOTP eliminados no se recuperan); la de autenticación elimina sesiones; la inicial elimina inventario/usuarios. Ambas reversiones **eliminan datos** y se prueban solo sobre bases descartables. La aplicación no ejecuta migraciones ni seed al arrancar; `synchronize` y `dropSchema` están desactivados.
+`npm run migration:revert` revierte la última migración: la del incremento 7 restaura la estructura 2FA vacía (los secretos TOTP eliminados no se recuperan); la de autenticación elimina sesiones; la inicial elimina inventario/usuarios; la del catálogo y combos (014) aborta si existe algún combo. Ambas reversiones **eliminan datos** y se prueban solo sobre bases descartables. La aplicación no ejecuta migraciones ni seed al arrancar; `synchronize` y `dropSchema` están desactivados.
 
 Las variables del proceso prevalecen sobre `.env`. Cuando `NODE_ENV=test`, no se carga `.env`. Una configuración inválida impide arrancar y el mensaje indica qué variable corregir sin mostrar su valor.
 
@@ -185,13 +190,13 @@ La documentación se genera con `@nestjs/swagger` a partir de los controladores 
 
 ## Colección Postman
 
-`postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json` es autocontenida (sus variables viven en la colección) y recorre casos exitosos y errores de todas las rutas en las carpetas 00 a 10 (más la 07b de roles de Mocca Go y la 07c de clientes y cambio de contraseña). Trae las contraseñas de demostración de `.env.example`; si tu seed usa otras, cámbialas en la pestaña **Variables**. Con migración, seed y API iniciados:
+`postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json` es autocontenida (sus variables viven en la colección) y recorre casos exitosos y errores de todas las rutas en las carpetas 00 a 10 (más la 07b de roles de Mocca Go, la 07c de clientes y cambio de contraseña y la 07d de catálogo, combos, «agotado» y menú público). Trae las contraseñas de demostración de `.env.example`; si tu seed usa otras, cámbialas en la pestaña **Variables**. Con migración, seed y API iniciados:
 
 ```bash
 postman collection run "postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json"
 ```
 
-También se puede importar en Postman y ejecutar con el Collection Runner. Cada corrida crea usuarios `qa_*` y productos `QA-*`; el límite de 20 peticiones por minuto en `/auth/*` y de 5 registros por minuto en `POST /customers` obligan a esperar un minuto entre corridas completas.
+También se puede importar en Postman y ejecutar con el Collection Runner. Cada corrida crea usuarios `qa_*` y productos `QA-*` (la 07d crea y elimina un combo `QA-CMB-*`); el límite de 20 peticiones por minuto en `/auth/*` y de 5 registros por minuto en `POST /customers` obligan a esperar un minuto entre corridas completas.
 
 ## Autenticación: recorrido manual
 
@@ -276,40 +281,51 @@ Invoke-RestMethod -Method Patch "$base/users/$($newUser.id)" -Headers $headers -
 Invoke-RestMethod -Method Delete "$base/users/$($newUser.id)" -Headers $headers
 ```
 
-## Catálogo de productos
+## Catálogo de productos y menú
 
-Todas las rutas requieren Bearer JWT de una sesión iniciada con `POST /auth/login`. Cualquier usuario autenticado (admin u operador) puede leer; solo admin puede crear, editar, activar/desactivar y eliminar. Sin sesión válida → `401`; operador en una ruta de escritura → `403`. La autorización se resuelve antes de validar el cuerpo.
+Las rutas de `/products` requieren Bearer JWT de una sesión iniciada con `POST /auth/login`. Desde el incremento 014 **leer** el catálogo (que incluye saldo y costo) es solo de `admin` y `operador`; `repartidor` y `cliente` reciben `403` y consultan el menú público `GET /menu`. Escribir es solo de `admin`, salvo el interruptor «agotado», que también cambia el `operador` (la cocina). Sin sesión válida → `401`. La autorización se resuelve antes de validar el cuerpo.
 
-| Ruta relativa a `/api/v1`    | Acceso | Entrada                                                  | Respuesta                                   |
-| ---------------------------- | ------ | -------------------------------------------------------- | ------------------------------------------- |
-| `POST /products`             | Admin  | JSON `sku`, `name`, `description` opcional               | `201`: producto con `stock` 0 y activo      |
-| `GET /products`              | Todos  | `page`, `limit`, `search`, `active` opcionales           | `200`: `{data,page,limit,total,totalPages}` |
-| `GET /products/:id`          | Todos  | UUID v4                                                  | `200`: producto                             |
-| `PATCH /products/:id`        | Admin  | UUID v4, JSON `name` y/o `description` (`null` la borra) | `200`: producto actualizado                 |
-| `PATCH /products/:id/status` | Admin  | UUID v4, JSON `{active}` booleano                        | `200`: producto actualizado                 |
-| `DELETE /products/:id`       | Admin  | UUID v4                                                  | `204` sin cuerpo                            |
+| Ruta relativa a `/api/v1`      | Acceso           | Entrada                                                                    | Respuesta                                      |
+| ------------------------------ | ---------------- | -------------------------------------------------------------------------- | ---------------------------------------------- |
+| `GET /menu`                    | Público          | Sin parámetros                                                             | `200`: `{data:[…]}` solo con productos activos |
+| `POST /products`               | Admin            | `sku`, `name`, `description?`, `category`, `price` y `cost` o `components` | `201`: producto activo, con `stock` 0          |
+| `GET /products`                | Admin y operador | `page`, `limit`, `search`, `active`, `category` opcionales                 | `200`: `{data,page,limit,total,totalPages}`    |
+| `GET /products/:id`            | Admin y operador | UUID v4                                                                    | `200`: producto                                |
+| `PATCH /products/:id`          | Admin            | UUID v4, `name`, `description`, `category`, `price` y/o `cost`             | `200`: producto actualizado                    |
+| `PATCH /products/:id/status`   | Admin            | UUID v4, JSON `{active}` booleano                                          | `200`: producto actualizado                    |
+| `PATCH /products/:id/sold-out` | Admin y operador | UUID v4, JSON `{soldOut}` booleano                                         | `200`: producto con su `available` resultante  |
+| `PUT /products/:id/components` | Admin            | UUID v4, JSON `{components:[{productId,quantity}]}`                        | `200`: combo con la composición nueva          |
+| `DELETE /products/:id`         | Admin            | UUID v4                                                                    | `204` sin cuerpo                               |
 
-Producto: exactamente `{id,sku,name,description,active,stock,createdAt,updatedAt}`; `description` es `null` si no existe y las fechas son ISO-8601. `stock` es de solo lectura: ninguna ruta de catálogo lo escribe; cambiará únicamente con los movimientos.
+**Producto** (respuesta de `/products`): `{id,sku,name,description,category,price,cost,costPercent,soldOut,available,active,stock,components,createdAt,updatedAt}`. `description` es `null` si no existe y las fechas son ISO-8601. `stock` es de solo lectura: ninguna ruta de catálogo lo escribe; cambia únicamente con los movimientos.
 
-SKU canónico, sin transformación automática: `^[A-Z0-9][A-Z0-9._-]{0,47}$` (1–48 caracteres; un SKU en minúsculas recibe `400`) e inmutable. `name`: 1–120 caracteres con algún carácter visible. `description`: 1–500 caracteres. Los textos no admiten el carácter NUL. Campos extra (`stock`, `active`, `sku`, `id`, fechas…), body vacío en la edición, UUID/body/query inválidos → `400`. SKU duplicado → `409` sin detalles de SQL. Producto inexistente → `404`.
+**Categorías** (lista fija): `cafe`, `bebida`, `panaderia`, `pasteleria`, `snack` y `combo`. `price` es un entero en pesos COP de 1 a 1.000.000 y `cost` (costo variable unitario) de 0 a 1.000.000; el costo puede superar al precio. `costPercent` es `cost ÷ price × 100` con un decimal y sirve para vigilar la meta de costo variable de 39 %. Un producto no se convierte en combo ni a la inversa.
 
-Listado: misma paginación que usuarios (defaults 1 y 20; `page` 1–10000, `limit` 1–100, texto decimal sin ceros iniciales ni valores repetidos). `search` (1–64 caracteres) busca texto parcial en SKU o nombre sin distinguir mayúsculas y trata `%`, `_` y `\` como texto literal. `active` admite solo `true` o `false`; sin él se listan también los inactivos. Orden por SKU e ID; una página fuera del total devuelve `data:[]`.
+**Combos:** un producto de categoría `combo` con 2 a 10 componentes distintos, cada uno con cantidad de 1 a 10. Los componentes deben existir, estar activos y ser productos simples (un combo no contiene combos); si no, `400` con el motivo. Su `cost` es la suma de `cost × cantidad` de los componentes (no se envía) y su `stock` es cuántos combos completos alcanzan con el saldo actual. No tiene saldo propio: `POST /movements` sobre un combo responde `409` y los movimientos se registran en sus componentes. Un producto que es componente no se elimina (`409`); sí se desactiva, y entonces sus combos quedan no disponibles.
+
+**«Agotado» y disponibilidad:** `soldOut` es el interruptor manual de la cocina; `available` se calcula (activo, no agotado, con precio y con saldo suficiente; un combo exige lo mismo de cada componente). El módulo de pedidos exigirá `available` para vender.
+
+**Menú público (`GET /menu`):** no exige sesión, no se cachea (`Cache-Control: no-store`) y admite 60 peticiones por minuto por IP. Devuelve solo productos activos, ordenados por categoría (combos, café, bebida, panadería, pastelería, snack) y nombre, con exactamente `{id,sku,name,description,category,price,available,components}`; los componentes se reducen a `{name,quantity}`. Nunca incluye costo, saldo, `active` ni `soldOut`. Las respuestas de `/products` también llevan `no-store`.
+
+SKU canónico, sin transformación automática: `^[A-Z0-9][A-Z0-9._-]{0,47}$` (1–48 caracteres; un SKU en minúsculas recibe `400`) e inmutable. `name`: 1–120 caracteres con algún carácter visible. `description`: 1–500 caracteres. Los textos no admiten el carácter NUL. Campos extra (`stock`, `active`, `soldOut`, `sku`, `id`, fechas…), `cost` en un combo, `components` en un producto simple, body vacío en la edición, UUID/body/query inválidos → `400`. SKU duplicado → `409` sin detalles de SQL. Producto inexistente → `404`.
+
+Listado: misma paginación que usuarios (defaults 1 y 20; `page` 1–10000, `limit` 1–100, texto decimal sin ceros iniciales ni valores repetidos). `search` (1–64 caracteres) busca texto parcial en SKU o nombre sin distinguir mayúsculas y trata `%`, `_` y `\` como texto literal. `active` admite solo `true` o `false`; sin él se listan también los inactivos. `category` admite una de las seis categorías. Orden por SKU e ID; una página fuera del total devuelve `data:[]`.
 
 Editar o cambiar el estado bloquea la fila del producto, compara y solo escribe las columnas de catálogo que cambian: repetir los mismos valores responde `200` sin modificar `updatedAt`, y una edición nunca pisa un saldo confirmado por otra transacción. Desactivar conserva datos, saldo e historial.
 
-`DELETE /products/:id` elimina físicamente solo un producto **sin movimientos**; su SKU queda libre. Con historial responde `409` y el producto se retira con `PATCH /products/:id/status`. El borrado bloquea la misma fila que los movimientos: si coincide con una entrada, o se elimina el producto y el movimiento recibe `404`, o se registra el movimiento y el borrado recibe `409`.
+`DELETE /products/:id` elimina físicamente solo un producto **sin movimientos** y que no sea componente de un combo; su SKU queda libre. Con historial responde `409` y el producto se retira con `PATCH /products/:id/status`; eliminar un combo borra su composición. El borrado bloquea la misma fila que los movimientos: si coincide con una entrada, o se elimina el producto y el movimiento recibe `404`, o se registra el movimiento y el borrado recibe `409`.
 
 Ejemplo PowerShell después del recorrido de autenticación (`$base` y `$headers` siguen definidos con una sesión admin vigente):
 
 ```powershell
-$p = Invoke-RestMethod -Method Post "$base/products" -Headers $headers -ContentType 'application/json' -Body (@{ sku = 'INV-100'; name = 'Cable HDMI'; description = 'Dos metros' } | ConvertTo-Json)
-Invoke-RestMethod "$base/products?search=cable&active=true" -Headers $headers
-Invoke-RestMethod "$base/products/$($p.id)" -Headers $headers
-Invoke-RestMethod -Method Patch "$base/products/$($p.id)" -Headers $headers -ContentType 'application/json' -Body (@{ name = 'Cable HDMI 2 m' } | ConvertTo-Json)
+Invoke-RestMethod "$base/menu"   # público: no necesita $headers
+$p = Invoke-RestMethod -Method Post "$base/products" -Headers $headers -ContentType 'application/json' -Body (@{ sku = 'CAF-MOCA'; name = 'Moca'; category = 'cafe'; price = 6000; cost = 2100 } | ConvertTo-Json)
+Invoke-RestMethod "$base/products?category=cafe&search=moca" -Headers $headers
+Invoke-RestMethod -Method Patch "$base/products/$($p.id)/sold-out" -Headers $headers -ContentType 'application/json' -Body (@{ soldOut = $true } | ConvertTo-Json)
 Invoke-RestMethod -Method Patch "$base/products/$($p.id)/status" -Headers $headers -ContentType 'application/json' -Body (@{ active = $false } | ConvertTo-Json)
 ```
 
-El incremento 6 no necesita migración ni dependencias nuevas: reutiliza la tabla `products` y sus restricciones de la migración inicial.
+El incremento 14 agrega la migración `1791244805000-catalog-and-combos` (columnas de catálogo y tabla `product_components`) y no necesita dependencias nuevas.
 
 ## Pruebas y verificaciones
 

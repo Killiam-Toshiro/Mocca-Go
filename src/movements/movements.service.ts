@@ -51,6 +51,10 @@ export class MovementsService {
         if (!session)
           throw new UnauthorizedException('Credenciales inválidas.');
         if (!product) throw new NotFoundException('Producto no encontrado.');
+        if (product.category === 'combo')
+          throw new ConflictException(
+            'Un combo no tiene saldo propio; registra el movimiento de sus componentes.',
+          );
         if (!product.active)
           throw new ConflictException('El producto está inactivo.');
         const stock =

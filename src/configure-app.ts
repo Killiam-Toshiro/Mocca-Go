@@ -29,7 +29,7 @@ export function configureApplication(
     // OPTIONS se responda sin pasar por guards ni validación.
     app.enableCors({
       origin: corsOrigins,
-      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Authorization', 'Content-Type'],
       credentials: false,
       maxAge: 600,
@@ -40,6 +40,8 @@ export function configureApplication(
       '/api/v1/auth',
       '/api/v1/customers',
       '/api/v1/users',
+      '/api/v1/products',
+      '/api/v1/menu',
       '/api/v1/movements',
       '/api/v1/health/ready',
     ],

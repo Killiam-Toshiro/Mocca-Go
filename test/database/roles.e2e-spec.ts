@@ -208,17 +208,24 @@ describe('Roles de Mocca Go: HTTP con PostgreSQL real', () => {
     });
 
     it.each(['repartidor', 'cliente'] as const)(
-      '%s lee el catálogo pero no lo modifica',
+      '%s no accede al catálogo interno: lo lee del menú público',
       async (role) => {
         await request(server)
           .get('/api/v1/products')
           .set('Authorization', as(role))
-          .expect(200);
+          .expect(403);
         await request(server)
           .post('/api/v1/products')
           .set('Authorization', as(role))
-          .send({ sku: 'NO-PERMITIDO', name: 'No permitido' })
+          .send({
+            sku: 'NO-PERMITIDO',
+            name: 'No permitido',
+            category: 'snack',
+            price: 1000,
+            cost: 400,
+          })
           .expect(403);
+        await request(server).get('/api/v1/menu').expect(200);
       },
     );
   });

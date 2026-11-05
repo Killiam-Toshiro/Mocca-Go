@@ -1,3 +1,5 @@
+> **Nota (014):** este manual describe el catálogo del taller. Desde el incremento 014 los productos tienen categoría, precio, costo, «agotado» y combos, la lectura de `/products` es solo de `admin` y `operador` y existe el menú público `GET /menu`; ver el README y la [especificación 014](../specs/014-catalogo-combos/spec.md).
+
 # Recorrido manual del catálogo — PowerShell
 
 Guía actualizada a main el 2026-10-13. Prueba las cinco rutas de catálogo de 006 y explica su flujo; main también incluye DELETE /products/:id (011), documentado en README/Postman: 204 sin historial, 409 con movimientos. Usa desarrollo; los productos de prueba permanecen en ella. Pruebas automatizadas usan PostgreSQL independiente. No publiques contraseñas ni JWT.
@@ -55,7 +57,7 @@ $page.data | Format-Table sku, name, active, stock
 Invoke-RestMethod "$base/products?search=teclado&active=true&limit=2&page=1" -Headers $adminHeaders
 ```
 
-El seed contiene `INV-001`, `INV-002`, `INV-003`, con saldos 20, 30 y 10. La respuesta incluye `data`, `page`, `limit`, `total`, `totalPages`. `ProductsService.list()` filtra con `ILIKE` sobre SKU/nombre, escapa comodines, ordena por SKU/ID y pagina mediante TypeORM. Sin filtro de estado aparecen activos e inactivos.
+El seed contiene el menú de Mocca Go desde el incremento 014 (20 productos simples y 3 combos; antes `INV-001` a `INV-003` con saldos 20, 30 y 10). La respuesta incluye `data`, `page`, `limit`, `total`, `totalPages`. `ProductsService.list()` filtra con `ILIKE` sobre SKU/nombre, escapa comodines, ordena por SKU/ID y pagina mediante TypeORM. Sin filtro de estado aparecen activos e inactivos.
 
 ## 5. Crear y consultar
 

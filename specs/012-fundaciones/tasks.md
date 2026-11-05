@@ -16,4 +16,4 @@ Fecha: 2026-11-04. Una tarea se marca solo con evidencia verificable; los result
 - [x] C12-10: colecciones Postman (local y de despliegue): claims `mocca-go-*` y carpeta «07b» con el repartidor y el rol `cliente`. La local corrió con newman contra la API nueva: 235 peticiones y 610 aserciones, 0 fallos (carpetas 00 a 07b y 09).
 - [x] C12-11: `format:check`, `lint`, `typecheck`, `build` y `test:cov` con resultados reales (CA-21).
 - [x] C12-12: actualizar spec 001 (RN-07 → RN-12 a RN-15), README, decisiones y escribir `docs/commits/012.md`.
-- [ ] C12-13: commit con la identidad real de Git, push de `feature-fundaciones` y pull request para revisión.
+- [x] C12-13: commit `f200fab` («feature: Creacion del modelo customers…»), publicado en `origin/feature-fundaciones` y presente en `origin/develop`. Los incrementos 012 y 013 se confirmaron juntos en ese único commit; `main` sigue en `067bcbd`. No consta un pull request.

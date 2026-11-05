@@ -53,7 +53,7 @@ describe('CORS para el frontend de Mocca Go (CA-12, CA-13)', () => {
     const response = await preflight(ALLOWED).expect(204);
     expect(response.headers['access-control-allow-origin']).toBe(ALLOWED);
     expect(response.headers['access-control-allow-methods']).toBe(
-      'GET,POST,PATCH,DELETE,OPTIONS',
+      'GET,POST,PUT,PATCH,DELETE,OPTIONS',
     );
     expect(response.headers['access-control-allow-headers']).toBe(
       'Authorization,Content-Type',

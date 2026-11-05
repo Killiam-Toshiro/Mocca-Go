@@ -45,7 +45,7 @@ Reglas:
 - **RN-12 — Roles válidos.** Los roles válidos son `admin`, `operador`, `repartidor` y `cliente`; se validan en el servidor y en un CHECK de PostgreSQL. Reemplaza RN-07 («admin y operador»).
 - **RN-13 — Roles de personal.** Un admin solo puede asignar los roles de personal (`admin`, `operador`, `repartidor`) al crear un usuario o cambiar su rol. `cliente` nace únicamente del registro propio (013).
 - **RN-14 — El cliente no cambia de rol.** `PATCH /users/:id/role` sobre un usuario `cliente` responde `409`. Un cliente tampoco se convierte en personal ni a la inversa.
-- **RN-15 — Permisos sin cambios.** Los guards existentes no se modifican: `/users` es solo admin, `/movements` es `admin` y `operador`, las escrituras de `/products` son solo admin y las lecturas de `/products` admiten cualquier usuario autenticado. Por tanto `repartidor` y `cliente` reciben `403` en `/users` y `/movements`, y pueden leer el catálogo.
+- **RN-15 — Permisos sin cambios.** Los guards existentes no se modifican: `/users` es solo admin, `/movements` es `admin` y `operador`, las escrituras de `/products` son solo admin y las lecturas de `/products` admiten cualquier usuario autenticado. Por tanto `repartidor` y `cliente` reciben `403` en `/users` y `/movements`, y pueden leer el catálogo. _Modificada por RN-36 de la [especificación 014](../014-catalogo-combos/spec.md): las lecturas de `/products` pasan a ser solo de `admin` y `operador`, y `repartidor` y `cliente` consultan el menú público `GET /menu`._
 - La regla del último admin (RN de 005/011) se conserva intacta.
 
 ## Contratos

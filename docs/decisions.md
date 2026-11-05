@@ -134,3 +134,12 @@ Decisiones del incremento 013 (Clientes; aprobadas por el usuario el 2026-11-05)
 - D-77: `PATCH /auth/password` permite a cualquier rol cambiar su propia contraseña: verifica la actual con el contador de fallos del login, exige una nueva distinta y revoca las demás sesiones. Una contraseña actual incorrecta responde `403` para no confundirla con una sesión vencida. Complementa D-61.
 - D-78: sin verificación de correo ni de teléfono; el origen de adquisición queda fuera de alcance.
 - D-79: las respuestas de usuario (`GET /users`, `GET /users/:id`, `POST` y `PATCH /users/:id`, solo admin) añaden `email`, `fullName` y `phone`; son `null` en el personal. Los datos se leen de `customers` con una consulta aparte por página (sin relación nueva en la entidad `User`). Corrección pedida por el usuario tras probar el listado (2026-11-05).
+
+Decisiones del incremento 014 (Catálogo y combos; aprobadas por el usuario el 2026-11-05):
+
+- D-80: el menú vendible vive en `products`, ampliada con `category`, `price`, `cost` y `sold_out`; los combos son productos de categoría `combo` con filas en `product_components`. Un combo no tiene saldo propio (`CHECK category <> 'combo' OR stock = 0`); su saldo, costo y disponibilidad se calculan al leer.
+- D-81: `available` y `costPercent` son calculados, nunca almacenados; `soldOut` es el interruptor manual de la cocina y es independiente de `active` (retirado del menú) y del saldo.
+- D-82: seis categorías fijas (`cafe`, `bebida`, `panaderia`, `pasteleria`, `snack`, `combo`) en un CHECK; un producto no cambia entre simple y combo.
+- D-83: `GET /products` pasa a ser solo `admin` y `operador` (datos internos: saldo y costo); el cliente lee `GET /menu`, público y `no-store`. Modifica el RN-15 de 012.
+- D-84: el inventario de ejemplo del taller (teclado, mouse, monitor) se reemplaza por el menú de Mocca Go. Como el historial de movimientos es inmutable, la base de desarrollo se recrea en vez de borrar filas.
+- D-85: las reglas entre filas (solo los combos tienen componentes, sin combos anidados, componentes activos) las verifica el servicio en una transacción con bloqueo de fila del combo; la FK `RESTRICT` del componente protege contra eliminaciones concurrentes.

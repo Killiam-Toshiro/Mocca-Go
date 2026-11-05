@@ -505,7 +505,7 @@ describe('Clientes de Mocca Go: HTTP con PostgreSQL real', () => {
   });
 
   describe('roles y administración (CA-26 a CA-29)', () => {
-    it('CA-26: el cliente no accede a /users, /movements ni escribe productos, pero lee el catálogo', async () => {
+    it('CA-26: el cliente no accede a /users, /movements ni al catálogo interno, pero lee el menú', async () => {
       const header = await clientToken();
       await request(server)
         .get('/api/v1/users')
@@ -518,10 +518,20 @@ describe('Clientes de Mocca Go: HTTP con PostgreSQL real', () => {
       await request(server)
         .post('/api/v1/products')
         .set('Authorization', header)
-        .send({ sku: 'X-1', name: 'X' })
+        .send({
+          sku: 'X-1',
+          name: 'X',
+          category: 'snack',
+          price: 1000,
+          cost: 400,
+        })
         .expect(403);
       await request(server)
         .get('/api/v1/products')
+        .set('Authorization', header)
+        .expect(403);
+      await request(server)
+        .get('/api/v1/menu')
         .set('Authorization', header)
         .expect(200);
     });
