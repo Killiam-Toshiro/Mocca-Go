@@ -1,0 +1,18 @@
+# Dependencias y archivos generados
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+
+# Credenciales locales; los ejemplos de configuración sí se versionan
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Herramientas locales
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
