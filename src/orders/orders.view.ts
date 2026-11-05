@@ -38,6 +38,13 @@ export interface OrderView {
   updatedAt: Date;
 }
 
+/** Relaciones que se cargan para armar la vista de un pedido. */
+export const ORDER_RELATIONS = {
+  customer: true,
+  items: { components: true },
+  events: true,
+} as const;
+
 const bySku = (a: { sku: string }, b: { sku: string }) =>
   a.sku < b.sku ? -1 : a.sku > b.sku ? 1 : 0;
 

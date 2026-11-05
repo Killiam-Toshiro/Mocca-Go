@@ -42,13 +42,10 @@ import { OrderEvent } from './entities/order-event.entity';
 import { OrderItemComponent } from './entities/order-item-component.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { Order, OrderStatus } from './entities/order.entity';
-import { OrderView, orderView } from './orders.view';
+import { ORDER_RELATIONS, OrderView, orderView } from './orders.view';
+import { OrderNotificationsService } from './notifications/order-notifications.service';
 
-const RELATIONS = {
-  customer: true,
-  items: { components: true },
-  events: true,
-} as const;
+const RELATIONS = ORDER_RELATIONS;
 
 const CLIENT_CANCELABLE: readonly OrderStatus[] = ['recibido'];
 const STAFF_CANCELABLE: readonly OrderStatus[] = ['recibido', 'en_preparacion'];
@@ -66,6 +63,7 @@ export class OrdersService {
   constructor(
     private readonly source: DataSource,
     private readonly movements: MovementsService,
+    private readonly notifications: OrderNotificationsService,
   ) {}
 
   async create(
@@ -156,6 +154,11 @@ export class OrdersService {
         await manager
           .getRepository(OrderEvent)
           .insert({ orderId: saved.id, status: 'recibido', userId: actor.id });
+        await this.notifications.publish(
+          manager,
+          { id: saved.id, number, customerId: actor.id },
+          'recibido',
+        );
         for (const need of needs)
           await this.movements.applyLocked(
             manager,
@@ -264,6 +267,11 @@ export class OrdersService {
         await manager
           .getRepository(OrderEvent)
           .insert({ orderId: id, status: 'cancelado', userId: actor.id });
+        await this.notifications.publish(
+          manager,
+          { id, number: order.number, customerId: order.customerId },
+          'cancelado',
+        );
         return this.load(manager, id);
       });
     } catch (error) {

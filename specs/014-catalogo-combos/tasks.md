@@ -17,4 +17,4 @@ Fecha: 2026-11-05. Una tarea se marca solo con evidencia verificable; los result
 - [x] C14-12: colecciones Postman (cuerpos, roles y carpeta 07d).
 - [x] C14-13: `format:check`, `lint`, `typecheck`, `build` y `test:cov` con resultados reales (CA-29).
 - [x] C14-14: README, spec 001 (trazabilidad), RN-15 de 012 y `docs/commits/014.md`.
-- [ ] C14-15: commit, push y pull request (solo cuando el usuario lo pida).
+- [x] C14-15: commit, push y pull request (hecho por el usuario).

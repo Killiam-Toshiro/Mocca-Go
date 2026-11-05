@@ -20,6 +20,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiProduces,
   ApiTags,
 } from '@nestjs/swagger';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
@@ -30,6 +31,11 @@ import { ApiErrors } from '../common/openapi';
 import { BEARER_SCHEME } from '../swagger';
 import { CancelOrderDto, CreateOrderDto, ListOrdersDto } from './orders.dto';
 import { OrderPageResponse, OrderResponse } from './orders.responses';
+import {
+  OrderNotificationsService,
+  StreamRequest,
+  StreamResponse,
+} from './notifications/order-notifications.service';
 import { OrdersService } from './orders.service';
 
 /** Lo único que se usa de la respuesta HTTP: fijar el código (201 o 200). */
@@ -49,7 +55,10 @@ const ORDER_ID = ApiParam({
 @Controller('orders')
 @UseGuards(AuthGuard, RolesGuard)
 export class OrdersController {
-  constructor(private readonly orders: OrdersService) {}
+  constructor(
+    private readonly orders: OrdersService,
+    private readonly notifications: OrderNotificationsService,
+  ) {}
 
   @Post()
   @Roles('cliente')
@@ -111,6 +120,29 @@ export class OrdersController {
   @ApiErrors(400, 403)
   list(@Req() request: AuthRequest, @Query() query: ListOrdersDto) {
     return this.orders.list(request.identity!, query);
+  }
+
+  // Debe declararse antes de `:id` para que el parámetro no lo capture.
+  @Get('stream')
+  @Roles('cliente')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @ApiProduces('text/event-stream')
+  @ApiOperation({
+    summary: 'Canal en tiempo real del cliente (SSE, solo cliente)',
+    description:
+      'Envía `ready` al abrir y tras cada reconexión de la escucha (el cliente vuelve a consultar sus pedidos), un evento `order` con número, estado y hora cada vez que cambia el estado de uno de **sus** pedidos, y un comentario de latido cada 25 segundos. Máximo 5 canales por usuario.',
+  })
+  @ApiOkResponse({
+    description: 'Flujo `text/event-stream`.',
+    content: { 'text/event-stream': { schema: { type: 'string' } } },
+  })
+  @ApiErrors(403, [429, 'Demasiados canales abiertos o aperturas por minuto.'])
+  stream(
+    @Req() request: AuthRequest & StreamRequest,
+    @Res() response: StreamResponse,
+  ): void {
+    this.notifications.serve(request.identity!, 'customer', request, response);
   }
 
   @Get(':id')

@@ -16441,6 +16441,1011 @@
       ]
     },
     {
+      "name": "07g Cocina y canales en tiempo real (incremento 017)",
+      "item": [
+        {
+          "name": "Preparar clave de idempotencia",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('idemKey3', pm.variables.replaceIn('{{$guid}}'));",
+                  "setTimeout(function () {}, 61000); // POST /orders admite 10 por minuto por IP: la 07f ya usó el cupo; se espera a la ventana siguiente."
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Comprador — POST /orders → 201 (pedido para la cocina)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"kitchenOrderId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey3}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 1,\n  \"note\": \"Para la cocina\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4242424242424242\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /kitchen/orders sin token → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /kitchen/orders — cliente → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /kitchen/orders — repartidor → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /kitchen/orders?status=cancelado → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders?status=cancelado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "cancelado"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /kitchen/orders — la cola incluye el pedido, el más antiguo primero y sin costos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Cache-Control no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Solo estados activos, orden ascendente por número\", () => { pm.expect(j.data.every(o => [\"recibido\",\"en_preparacion\"].includes(o.status))).to.be.true; const n = j.data.map(o => o.number); pm.expect(n).to.eql([...n].sort((a, b) => a - b)); });",
+                  "pm.test(\"Incluye el pedido del comprador con su nota, sin costos\", () => { const o = j.data.find(x => x.id === pm.collectionVariables.get(\"kitchenOrderId\")); pm.expect(o).to.exist; pm.expect(o.note).to.eql(\"Para la cocina\"); pm.expect(pm.response.text()).to.not.include(\"unitCost\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders?limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /kitchen/orders/:id/start — cliente → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders/{{kitchenOrderId}}/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders",
+                "{{kitchenOrderId}}",
+                "start"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /kitchen/orders/:id/start — repartidor → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders/{{kitchenOrderId}}/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders",
+                "{{kitchenOrderId}}",
+                "start"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /kitchen/orders/:id/start inexistente → 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders/00000000-0000-4000-8000-000000000000/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders",
+                "00000000-0000-4000-8000-000000000000",
+                "start"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /kitchen/orders/:id/start con id inválido → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders/no-es-uuid/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders",
+                "no-es-uuid",
+                "start"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /kitchen/orders/:id/ready antes de empezar → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Indica el estado actual\", () => pm.expect(pm.response.json().message).to.include(\"recibido\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders/{{kitchenOrderId}}/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders",
+                "{{kitchenOrderId}}",
+                "ready"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /kitchen/orders/:id/start — operador → 200 en_preparacion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"En preparación con dos eventos\", () => { pm.expect(j.status).to.eql(\"en_preparacion\"); pm.expect(j.events.map(e => e.status)).to.eql([\"recibido\",\"en_preparacion\"]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders/{{kitchenOrderId}}/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders",
+                "{{kitchenOrderId}}",
+                "start"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /kitchen/orders/:id/start otra vez → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders/{{kitchenOrderId}}/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders",
+                "{{kitchenOrderId}}",
+                "start"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders/:id — el comprador ve el nuevo estado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"en_preparacion\", () => pm.expect(pm.response.json().status).to.eql(\"en_preparacion\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{kitchenOrderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{kitchenOrderId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /kitchen/orders/:id/ready — admin → 200 listo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Listo con tres eventos\", () => { const j = pm.response.json(); pm.expect(j.status).to.eql(\"listo\"); pm.expect(j.events.map(e => e.status)).to.eql([\"recibido\",\"en_preparacion\",\"listo\"]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders/{{kitchenOrderId}}/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders",
+                "{{kitchenOrderId}}",
+                "ready"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /kitchen/orders/:id/ready otra vez → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders/{{kitchenOrderId}}/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders",
+                "{{kitchenOrderId}}",
+                "ready"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders/:id/cancel de un pedido listo → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{kitchenOrderId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{kitchenOrderId}}",
+                "cancel"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Ya está listo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /kitchen/orders?status=listo — aparece como listo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Está entre los listos\", () => pm.expect(pm.response.json().data.some(o => o.id === pm.collectionVariables.get(\"kitchenOrderId\"))).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/orders?status=listo&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "listo"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders/stream sin token → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/stream",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "stream"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders/stream — operador → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/stream",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "stream"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /kitchen/stream sin token → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/stream",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "stream"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /kitchen/stream — cliente → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/stream",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "stream"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /kitchen/stream — repartidor → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/kitchen/stream",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "kitchen",
+                "stream"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "08 OPCIONAL — bloqueo de cuenta por intentos fallidos",
       "item": [
         {
@@ -17569,6 +18574,16 @@
     },
     {
       "key": "orderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "kitchenOrderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idemKey3",
       "value": "",
       "type": "string"
     }

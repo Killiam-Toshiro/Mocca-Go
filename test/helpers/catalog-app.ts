@@ -10,6 +10,11 @@ import { configureApplication } from '../../src/configure-app';
 import { Customer } from '../../src/customers/entities/customer.entity';
 import { DeliveryPoint } from '../../src/delivery/entities/delivery-point.entity';
 import { DeliveryZone } from '../../src/delivery/entities/delivery-zone.entity';
+import {
+  DEFAULT_STREAM_OPTIONS,
+  STREAM_OPTIONS,
+  StreamOptions,
+} from '../../src/orders/notifications/order-notifications.service';
 import { Product } from '../../src/products/entities/products.entity';
 import { hashPassword } from '../../src/seed/password';
 import { User, UserRole } from '../../src/users/entities/user.entity';
@@ -65,13 +70,17 @@ export class CatalogHarness {
   server!: Server;
   private tokens = new Map<UserRole, string>();
 
-  async start(): Promise<void> {
+  async start(streams?: Partial<StreamOptions>): Promise<void> {
     this.context = await createTestDatabase();
     await this.context.source.runMigrations();
-    const module = await Test.createTestingModule({ imports: [AppModule] })
+    const builder = Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(DataSource)
-      .useValue(this.context.source)
-      .compile();
+      .useValue(this.context.source);
+    if (streams)
+      builder
+        .overrideProvider(STREAM_OPTIONS)
+        .useValue({ ...DEFAULT_STREAM_OPTIONS, ...streams });
+    const module = await builder.compile();
     this.app = module.createNestApplication({ logger: false });
     configureApplication(this.app);
     await this.app.listen(0, '127.0.0.1');

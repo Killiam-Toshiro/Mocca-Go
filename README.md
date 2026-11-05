@@ -20,7 +20,7 @@ Main actualizado/verificado a `635e928` el 2026-10-13. Incluye seed/PostgreSQL, 
 
 **Alcance acordado (2026-10-13):** el usuario excluye 2FA de los requisitos de aquí en adelante. La autenticación vigente es usuario/contraseña → JWT, con sesiones persistidas y logout revocable. El enunciado original incluía 2FA; se conserva como antecedente, mientras que el SDD y el seguimiento actual usan el alcance JWT-only aprobado (D-65).
 
-El código incluye 38 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, ocho de catálogo, una de menú público, dos de movimientos, ocho de zonas y puntos de entrega y cuatro de pedidos.
+El código incluye 43 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, ocho de catálogo, una de menú público, dos de movimientos, ocho de zonas y puntos de entrega, cinco de pedidos y cuatro de cocina.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -77,9 +77,10 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 11     | CRUD completo de productos y usuarios, readiness y colección        | Ver resultados y estado en el [overview](docs/commits/011.md) |
 | 12     | Mocca Go: roles ampliados, CORS, duración del JWT e identidad       | Cerrado (`f200fab`); ver el [overview](docs/commits/012.md)   |
 | 13     | Clientes: registro, login con correo, perfil y cambio de contraseña | Cerrado (`f200fab`); ver el [overview](docs/commits/013.md)   |
-| 14     | Catálogo ampliado y combos: categorías, precio, «agotado» y menú    | En revisión; ver el [overview](docs/commits/014.md)           |
-| 15     | Zonas y puntos de entrega del campus y consulta pública             | En revisión; ver el [overview](docs/commits/015.md)           |
-| 16     | Pedidos con pago de demostración y descuento de saldo               | En revisión; ver el [overview](docs/commits/016.md)           |
+| 14     | Catálogo ampliado y combos: categorías, precio, «agotado» y menú    | Cerrado; ver el [overview](docs/commits/014.md)               |
+| 15     | Zonas y puntos de entrega del campus y consulta pública             | Cerrado; ver el [overview](docs/commits/015.md)               |
+| 16     | Pedidos con pago de demostración y descuento de saldo               | Cerrado; ver el [overview](docs/commits/016.md)               |
+| 17     | Cocina (cola y transiciones) y avisos en tiempo real (SSE)          | En revisión; ver el [overview](docs/commits/017.md)           |
 
 El despliegue ya está verificado. Quedan revisar el informe final cuando se comparta y confirmar la entrega en Intu. Swagger complementa el informe, pero no lo sustituye.
 
@@ -360,6 +361,24 @@ Solo un `cliente` crea pedidos. El cuerpo lleva las líneas (`productId` y canti
 **Pago de demostración:** la tarjeta `4242424242424242` aprueba y `4000000000000002` rechaza (`402`, sin pedido ni cambios de saldo); cualquier otro número responde `400`. El número completo nunca se guarda: solo los últimos cuatro dígitos. `POST /orders` admite 10 peticiones por minuto por IP. Las respuestas de pedidos no incluyen costos. El `repartidor` no accede a estas rutas todavía.
 
 **Inventario:** cada producto simple del pedido genera un movimiento `OUT` con la razón «Pedido #1001» y el cliente como autor; `GET /movements` muestra `orderId` (`null` en los manuales). Un cliente con pedidos no se puede eliminar (`409`).
+
+## Cocina y avisos en tiempo real
+
+La cocina la operan `operador` y `admin`. Un pedido avanza solo hacia adelante: `recibido → en_preparacion → listo`; cada paso queda en el historial con quién y cuándo, y si dos personas lo intentan a la vez una recibe `409`.
+
+| Ruta                             | Acceso              | Resultado                                                                                      |
+| -------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------- |
+| `GET /kitchen/orders`            | `operador`, `admin` | Cola: `recibido` y `en_preparacion`, el más antiguo primero; filtro `status` (también `listo`) |
+| `POST /kitchen/orders/:id/start` | `operador`, `admin` | `recibido → en_preparacion`; `409` en otro estado                                              |
+| `POST /kitchen/orders/:id/ready` | `operador`, `admin` | `en_preparacion → listo`; `409` en otro estado                                                 |
+| `GET /orders/stream`             | `cliente`           | Canal SSE con los avisos de **sus** pedidos                                                    |
+| `GET /kitchen/stream`            | `operador`, `admin` | Canal SSE con los pedidos nuevos y todos los cambios de estado                                 |
+
+**Cómo funciona el push:** en vez de que el frontend consulte cada pocos segundos, el servidor avisa en el momento del cambio. Al confirmarse la transacción, PostgreSQL entrega el aviso (`pg_notify`/`LISTEN`) a todas las instancias de la API y estas lo reenvían por los canales abiertos. El aviso es mínimo: `{orderId, number, status, at}`, sin datos personales.
+
+**Cómo usarlo desde el frontend:** `EventSource` no permite enviar `Authorization`, así que se lee con `fetch` en flujo (con `Authorization: Bearer …`). Al abrir el canal y tras cada reconexión llega un evento `ready`: ahí el frontend vuelve a consultar `GET /orders` (o la cola) y desde entonces aplica los eventos `order`. Cada 25 segundos llega un comentario de latido; el servidor cierra el canal si la sesión se revoca. Máximo 5 canales abiertos por usuario y 30 aperturas por minuto por IP (`429`).
+
+**Operación:** cada instancia de la API abre una conexión adicional a PostgreSQL (fuera del pool) para escuchar. Si esa conexión se cae, se reconecta sola y los canales reciben otro `ready`.
 
 ## Pruebas y verificaciones
 

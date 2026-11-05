@@ -133,3 +133,21 @@ export class ListOrdersDto extends PaginationQueryDto {
   @IsIn(ORDER_STATUSES)
   status?: OrderStatus;
 }
+
+export const KITCHEN_STATUSES = [
+  'recibido',
+  'en_preparacion',
+  'listo',
+] as const;
+export type KitchenStatus = (typeof KITCHEN_STATUSES)[number];
+
+export class ListKitchenDto extends PaginationQueryDto {
+  @ApiPropertyOptional({
+    enum: KITCHEN_STATUSES,
+    description:
+      'Por defecto se listan `recibido` y `en_preparacion`, el más antiguo primero.',
+  })
+  @ValidateIf(defined)
+  @IsIn(KITCHEN_STATUSES)
+  status?: KitchenStatus;
+}

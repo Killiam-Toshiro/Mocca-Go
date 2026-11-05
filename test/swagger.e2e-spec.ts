@@ -86,6 +86,13 @@ const ORDERS = [
   'GET /api/v1/orders',
   'GET /api/v1/orders/{id}',
   'POST /api/v1/orders/{id}/cancel',
+  'GET /api/v1/orders/stream',
+];
+const KITCHEN = [
+  'GET /api/v1/kitchen/orders',
+  'POST /api/v1/kitchen/orders/{id}/start',
+  'POST /api/v1/kitchen/orders/{id}/ready',
+  'GET /api/v1/kitchen/stream',
 ];
 const OWN_PASSWORD = ['PATCH /api/v1/auth/password'];
 const PROTECTED = [
@@ -94,6 +101,7 @@ const PROTECTED = [
   ...ANY_ROLE,
   ...CLIENT_ONLY,
   ...ORDERS,
+  ...KITCHEN,
   ...OWN_PASSWORD,
 ];
 
@@ -184,12 +192,12 @@ describe('Documentación OpenAPI (Swagger)', () => {
     });
   });
 
-  it('S-02: documenta exactamente las 38 operaciones con el prefijo /api/v1', () => {
+  it('S-02: documenta exactamente las 43 operaciones con el prefijo /api/v1', () => {
     const operations = Object.entries(doc.paths).flatMap(([path, methods]) =>
       Object.keys(methods).map((method) => `${method.toUpperCase()} ${path}`),
     );
     expect(operations.sort()).toEqual([...PUBLIC, ...PROTECTED].sort());
-    expect(operations).toHaveLength(38);
+    expect(operations).toHaveLength(43);
   });
 
   it('cada operación tiene etiqueta del módulo, resumen y respuesta de éxito', () => {
@@ -221,11 +229,33 @@ describe('Documentación OpenAPI (Swagger)', () => {
       ...STAFF_ONLY,
       ...CLIENT_ONLY,
       ...ORDERS,
+      ...KITCHEN,
       ...OWN_PASSWORD,
     ])
       expect(operation(key).responses['403']).toBeDefined();
     for (const key of ANY_ROLE)
       expect(operation(key).responses['403']).toBeUndefined();
+  });
+
+  it('CA-20: los canales se documentan como text/event-stream y la cocina como 409/404', () => {
+    for (const key of [
+      'GET /api/v1/orders/stream',
+      'GET /api/v1/kitchen/stream',
+    ]) {
+      const op = operation(key);
+      expect(op.responses['200'].content).toHaveProperty('text/event-stream');
+      expect(op.responses['429']).toBeDefined();
+      expect(op.responses['403']).toBeDefined();
+    }
+    for (const key of [
+      'POST /api/v1/kitchen/orders/{id}/start',
+      'POST /api/v1/kitchen/orders/{id}/ready',
+    ]) {
+      expect(operation(key).responses['409']).toBeDefined();
+      expect(operation(key).responses['404']).toBeDefined();
+      expect(operation(key).responses['200']).toBeDefined();
+    }
+    expect(operation('GET /api/v1/kitchen/orders').tags).toEqual(['kitchen']);
   });
 
   it('documenta los conflictos, inexistentes y el límite de peticiones', () => {

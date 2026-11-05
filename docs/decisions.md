@@ -162,3 +162,12 @@ Decisiones del incremento 016 (Pedidos con pago de demostración; aprobadas por 
 - D-96: el pedido guarda copias (nombres, precios, costos, punto y zona, componentes de combos) para que el historial no cambie cuando cambie el menú.
 - D-97: los estados se modelan como CHECK y una tabla de eventos; 017 y 018 solo agregan transiciones.
 - D-98: el costo de las líneas es dato interno: se guarda pero no se devuelve en ninguna respuesta de pedidos.
+
+Decisiones del incremento 017 (Órdenes de cocina y notificaciones en tiempo real; aprobadas por el usuario el 2026-11-05):
+
+- D-99: los cambios de estado se avisan por **push** y no por consulta repetida; el estado sigue guardándose en la base y el aviso es solo una ayuda para no consultar.
+- D-100: el canal es SSE sobre HTTP normal (mismo `Bearer`, mismos guardas), no WebSocket, porque el flujo es solo del servidor al navegador. El frontend lo lee con `fetch` en flujo, ya que `EventSource` no envía `Authorization`.
+- D-101: la difusión entre instancias usa `LISTEN/NOTIFY` de PostgreSQL y el aviso se emite con `pg_notify` dentro de la transacción del cambio, de modo que un rollback lo descarta. No se añade Redis.
+- D-102: el aviso solo lleva número, estado, hora e id del pedido; el cliente solo recibe los de sus pedidos, la cocina todos. Al abrir el canal y tras cada reconexión de la escucha el servidor envía `ready` para que el frontend vuelva a consultar.
+- D-103: transiciones solo hacia adelante (`recibido → en_preparacion → listo`) con bloqueo de la fila del pedido; sin asignación a un operador, solo se registra quién hizo cada cambio.
+- D-104: un usuario tiene como máximo 5 canales abiertos y cada latido (25 s) verifica que su sesión siga vigente.

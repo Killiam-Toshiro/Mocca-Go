@@ -225,6 +225,19 @@ export class AuthService {
     };
   }
 
+  /** Indica si la sesión de una identidad ya autenticada sigue vigente. */
+  async isSessionActive(identity: Identity): Promise<boolean> {
+    const session = await this.source.getRepository(Session).findOne({
+      where: { id: identity.sessionId, userId: identity.id },
+      select: { id: true, revokedAt: true, expiresAt: true },
+    });
+    return (
+      session !== null &&
+      !session.revokedAt &&
+      session.expiresAt.getTime() > Date.now()
+    );
+  }
+
   async logout(identity: Identity): Promise<void> {
     await this.source
       .getRepository(Session)

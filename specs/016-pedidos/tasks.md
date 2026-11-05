@@ -16,5 +16,5 @@ Fecha: 2026-11-05. Una tarea se marca solo con evidencia verificable; los result
 - [x] C16-11: cabeceras, límite de peticiones y Swagger (38 operaciones; CA-27, CA-28).
 - [x] C16-12: colecciones Postman (carpeta 07f).
 - [x] C16-13: `format:check`, `lint`, `typecheck`, `build` y `test:cov` con resultados reales (CA-29).
-- [ ] C16-14: README, trazabilidad en la spec 001 si aplica y `docs/commits/016.md`.
-- [ ] C16-15: commit, push y pull request (solo cuando el usuario lo pida).
+- [x] C16-14: README, trazabilidad en la spec 001 si aplica y `docs/commits/016.md`.
+- [x] C16-15: commit, push y pull request (hecho por el usuario).
