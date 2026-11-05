@@ -28,3 +28,6 @@ export function isConstraintViolation(
 export const MOVEMENT_PRODUCT_FK = 'stock_movements_product_id_fkey';
 export const MOVEMENT_USER_FK = 'stock_movements_user_id_fkey';
 export const COMPONENT_PRODUCT_FK = 'product_components_component_id_fkey';
+export const ZONE_NAME_KEY = 'delivery_zones_name_key';
+export const POINT_NAME_KEY = 'delivery_points_name_key';
+export const POINT_ZONE_FK = 'delivery_points_zone_id_fkey';

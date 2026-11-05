@@ -10,13 +10,15 @@ Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backe
 
 **Clientes (2026-11-05):** el incremento 013 agrega el registro público de clientes con correo, contraseña, nombre y teléfono (guardado en formato E.164 para avisos futuros por WhatsApp o SMS), el inicio de sesión con correo, el perfil propio y el cambio de contraseña propio para los cuatro roles. Ver [especificación 013](specs/013-clientes/spec.md) y su [overview](docs/commits/013.md). Los datos de estado de abajo describen la API heredada del taller.
 
+**Zonas y puntos de entrega (2026-11-05):** el incremento 015 agrega los puntos fijos del campus donde se entrega (edificios, Biblioteca, Canchas, Coliseo…) agrupados en cuatro zonas de despacho, con su administración (solo `admin`) y la consulta pública `GET /delivery-zones`, sin sesión. El seed carga 4 zonas y 17 puntos con sus pisos e indicaciones. Ver [especificación 015](specs/015-zonas-puntos/spec.md) y su [overview](docs/commits/015.md).
+
 **Catálogo y combos (2026-11-05):** el incremento 014 convierte el catálogo en el menú de Mocca Go: seis categorías (`cafe`, `bebida`, `panaderia`, `pasteleria`, `snack`, `combo`), precio y costo en pesos COP, el interruptor «agotado» para la cocina, combos formados por productos simples (con costo, saldo y disponibilidad calculados) y el menú público `GET /menu`, sin sesión. El inventario de ejemplo del taller (teclado, mouse, monitor) se reemplaza por 20 productos y 3 combos. `GET /products` pasa a ser solo para `admin` y `operador`. Ver [especificación 014](specs/014-catalogo-combos/spec.md) y su [overview](docs/commits/014.md).
 
 Main actualizado/verificado a `635e928` el 2026-10-13. Incluye seed/PostgreSQL, JWT con sesiones revocables, roles, catálogo, movimientos, Swagger, despliegue Railway y CRUD completo/readiness. La colección Postman está versionada; el usuario confirma corridas exitosas locales y desplegadas. El informe está terminado según el usuario, pendiente de compartir para revisión documental.
 
 **Alcance acordado (2026-10-13):** el usuario excluye 2FA de los requisitos de aquí en adelante. La autenticación vigente es usuario/contraseña → JWT, con sesiones persistidas y logout revocable. El enunciado original incluía 2FA; se conserva como antecedente, mientras que el SDD y el seguimiento actual usan el alcance JWT-only aprobado (D-65).
 
-El código incluye 26 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, ocho de catálogo, una de menú público y dos de movimientos.
+El código incluye 34 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, ocho de catálogo, una de menú público, dos de movimientos y ocho de zonas y puntos de entrega.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -74,6 +76,7 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 12     | Mocca Go: roles ampliados, CORS, duración del JWT e identidad       | Cerrado (`f200fab`); ver el [overview](docs/commits/012.md)   |
 | 13     | Clientes: registro, login con correo, perfil y cambio de contraseña | Cerrado (`f200fab`); ver el [overview](docs/commits/013.md)   |
 | 14     | Catálogo ampliado y combos: categorías, precio, «agotado» y menú    | En revisión; ver el [overview](docs/commits/014.md)           |
+| 15     | Zonas y puntos de entrega del campus y consulta pública             | En revisión; ver el [overview](docs/commits/015.md)           |
 
 El despliegue ya está verificado. Quedan revisar el informe final cuando se comparta y confirmar la entrega en Intu. Swagger complementa el informe, pero no lo sustituye.
 
@@ -190,13 +193,13 @@ La documentación se genera con `@nestjs/swagger` a partir de los controladores 
 
 ## Colección Postman
 
-`postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json` es autocontenida (sus variables viven en la colección) y recorre casos exitosos y errores de todas las rutas en las carpetas 00 a 10 (más la 07b de roles de Mocca Go, la 07c de clientes y cambio de contraseña y la 07d de catálogo, combos, «agotado» y menú público). Trae las contraseñas de demostración de `.env.example`; si tu seed usa otras, cámbialas en la pestaña **Variables**. Con migración, seed y API iniciados:
+`postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json` es autocontenida (sus variables viven en la colección) y recorre casos exitosos y errores de todas las rutas en las carpetas 00 a 10 (más la 07b de roles de Mocca Go, la 07c de clientes y cambio de contraseña y la 07d de catálogo, combos, «agotado» y menú público y la 07e de zonas y puntos de entrega). Trae las contraseñas de demostración de `.env.example`; si tu seed usa otras, cámbialas en la pestaña **Variables**. Con migración, seed y API iniciados:
 
 ```bash
 postman collection run "postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json"
 ```
 
-También se puede importar en Postman y ejecutar con el Collection Runner. Cada corrida crea usuarios `qa_*` y productos `QA-*` (la 07d crea y elimina un combo `QA-CMB-*`); el límite de 20 peticiones por minuto en `/auth/*` y de 5 registros por minuto en `POST /customers` obligan a esperar un minuto entre corridas completas.
+También se puede importar en Postman y ejecutar con el Collection Runner. Cada corrida crea usuarios `qa_*` y productos `QA-*` (la 07d crea y elimina un combo `QA-CMB-*` y la 07e, una zona y un punto `QA`); el límite de 20 peticiones por minuto en `/auth/*` y de 5 registros por minuto en `POST /customers` obligan a esperar un minuto entre corridas completas.
 
 ## Autenticación: recorrido manual
 
@@ -301,7 +304,7 @@ Las rutas de `/products` requieren Bearer JWT de una sesión iniciada con `POST 
 
 **Categorías** (lista fija): `cafe`, `bebida`, `panaderia`, `pasteleria`, `snack` y `combo`. `price` es un entero en pesos COP de 1 a 1.000.000 y `cost` (costo variable unitario) de 0 a 1.000.000; el costo puede superar al precio. `costPercent` es `cost ÷ price × 100` con un decimal y sirve para vigilar la meta de costo variable de 39 %. Un producto no se convierte en combo ni a la inversa.
 
-**Combos:** un producto de categoría `combo` con 2 a 10 componentes distintos, cada uno con cantidad de 1 a 10. Los componentes deben existir, estar activos y ser productos simples (un combo no contiene combos); si no, `400` con el motivo. Su `cost` es la suma de `cost × cantidad` de los componentes (no se envía) y su `stock` es cuántos combos completos alcanzan con el saldo actual. No tiene saldo propio: `POST /movements` sobre un combo responde `409` y los movimientos se registran en sus componentes. Un producto que es componente no se elimina (`409`); sí se desactiva, y entonces sus combos quedan no disponibles.
+**Combos:** un producto de categoría `combo` con 2 a 10 componentes distintos, cada uno con cantidad de 1 a 10. Los componentes deben existir, estar activos y ser productos simples (un combo no contiene combos); si no, `400` con el motivo. Su `price` es opcional al crearlo: si se omite vale la suma de `price × cantidad` de los componentes en ese momento, y si se envía se respeta (promociones); después se edita con `PATCH` y ya no sigue a los componentes. Su `cost` es la suma de `cost × cantidad` de los componentes (no se envía) y su `stock` es cuántos combos completos alcanzan con el saldo actual. No tiene saldo propio: `POST /movements` sobre un combo responde `409` y los movimientos se registran en sus componentes. Un producto que es componente no se elimina (`409`); sí se desactiva, y entonces sus combos quedan no disponibles.
 
 **«Agotado» y disponibilidad:** `soldOut` es el interruptor manual de la cocina; `available` se calcula (activo, no agotado, con precio y con saldo suficiente; un combo exige lo mismo de cada componente). El módulo de pedidos exigirá `available` para vender.
 
@@ -326,6 +329,19 @@ Invoke-RestMethod -Method Patch "$base/products/$($p.id)/status" -Headers $heade
 ```
 
 El incremento 14 agrega la migración `1791244805000-catalog-and-combos` (columnas de catálogo y tabla `product_components`) y no necesita dependencias nuevas.
+
+## Zonas y puntos de entrega
+
+La entrega es en puntos fijos del campus. Cada **punto** (Edificio A, Biblioteca, Canchas…) pertenece a una **zona** de despacho (Zona 1 a Zona 4); el cliente elegirá el punto, y la zona se deduce de él. Un punto tiene un número de pisos (1 a 30) o ninguno, y una indicación de texto opcional (por ejemplo «Se entrega en la plazoleta de auditorios»).
+
+| Ruta                                                            | Acceso  | Resultado                                                                 |
+| --------------------------------------------------------------- | ------- | ------------------------------------------------------------------------- |
+| `GET /delivery-zones`                                           | Público | `200`: zonas activas con sus puntos activos `{id,name,hint,floors}`       |
+| `GET /delivery-zones/all`                                       | `admin` | `200`: todo, con `active`, fechas, inactivos y zonas vacías               |
+| `POST /delivery-zones`, `PATCH`, `DELETE /delivery-zones/:id`   | `admin` | `201`, `200` y `204`; `409` si el nombre se repite o la zona tiene puntos |
+| `POST /delivery-points`, `PATCH`, `DELETE /delivery-points/:id` | `admin` | `201`, `200` y `204`; `PATCH` también mueve de zona y activa o desactiva  |
+
+La consulta pública no se cachea (`Cache-Control: no-store`), admite 60 peticiones por minuto por IP y omite las zonas sin puntos activos. Los nombres son únicos sin distinguir mayúsculas. `npm run seed` crea las 4 zonas y 17 puntos sin repetirlos ni pisar lo que el admin haya editado.
 
 ## Pruebas y verificaciones
 

@@ -42,6 +42,8 @@ export function configureApplication(
       '/api/v1/users',
       '/api/v1/products',
       '/api/v1/menu',
+      '/api/v1/delivery-zones',
+      '/api/v1/delivery-points',
       '/api/v1/movements',
       '/api/v1/health/ready',
     ],

@@ -11,6 +11,9 @@ import { MoccaRoles1791244803000 } from './migrations/1791244803000-mocca-roles'
 import { Customers1791244804000 } from './migrations/1791244804000-customers';
 import { CatalogAndCombos1791244805000 } from './migrations/1791244805000-catalog-and-combos';
 import { ProductComponent } from '../products/entities/product-component.entity';
+import { DeliveryZonesPoints1791244806000 } from './migrations/1791244806000-delivery-zones-points';
+import { DeliveryZone } from '../delivery/entities/delivery-zone.entity';
+import { DeliveryPoint } from '../delivery/entities/delivery-point.entity';
 import { Customer } from '../customers/entities/customer.entity';
 
 export function databaseOptions(
@@ -32,6 +35,8 @@ export function databaseOptions(
       Session,
       Customer,
       ProductComponent,
+      DeliveryZone,
+      DeliveryPoint,
     ],
     migrations: [
       InitialInventory1791244800000,
@@ -40,6 +45,7 @@ export function databaseOptions(
       MoccaRoles1791244803000,
       Customers1791244804000,
       CatalogAndCombos1791244805000,
+      DeliveryZonesPoints1791244806000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

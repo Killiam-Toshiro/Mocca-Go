@@ -7,6 +7,8 @@ import {
 } from '../../src/database/commands';
 import { seedCredentials } from '../../src/seed/credentials';
 import { Like } from 'typeorm';
+import { DeliveryPoint } from '../../src/delivery/entities/delivery-point.entity';
+import { DeliveryZone } from '../../src/delivery/entities/delivery-zone.entity';
 import { costPercent } from '../../src/products/catalog';
 import { ProductComponent } from '../../src/products/entities/product-component.entity';
 import { Product } from '../../src/products/entities/products.entity';
@@ -78,6 +80,8 @@ describe('PostgreSQL: seed transaccional', () => {
       usersCreated: 3,
       productsCreated: 23,
       movementsCreated: 20,
+      zonesCreated: 4,
+      pointsCreated: 17,
     });
     expect(await balances()).toEqual(EXPECTED_BALANCES);
     const users = context.source.getRepository(User);
@@ -136,7 +140,13 @@ describe('PostgreSQL: seed transaccional', () => {
         operatorPassword: 'Other-valid-operator-password',
         courierPassword: 'Other-valid-courier-password',
       }),
-    ).toEqual({ usersCreated: 0, productsCreated: 0, movementsCreated: 0 });
+    ).toEqual({
+      usersCreated: 0,
+      productsCreated: 0,
+      movementsCreated: 0,
+      zonesCreated: 0,
+      pointsCreated: 0,
+    });
     const stored = await users
       .createQueryBuilder('user')
       .addSelect('user.passwordHash')
@@ -180,6 +190,8 @@ describe('PostgreSQL: seed transaccional', () => {
       usersCreated: 3,
       productsCreated: 22,
       movementsCreated: 20,
+      zonesCreated: 4,
+      pointsCreated: 17,
     });
     expect(
       await context.source
@@ -244,6 +256,8 @@ describe('PostgreSQL: seed transaccional', () => {
       usersCreated: 0,
       productsCreated: 0,
       movementsCreated: 0,
+      zonesCreated: 0,
+      pointsCreated: 0,
     });
     const products = context.source.getRepository(Product);
     expect(await products.countBy({ sku: Like('INV-%') })).toBe(0);
@@ -322,5 +336,55 @@ describe('PostgreSQL: seed transaccional', () => {
       unlinkSync(envFile);
       rmdirSync(directory);
     }
+  });
+
+  it('CA-16: crea 4 zonas y 17 puntos con pisos e indicaciones, sin repetir ni pisar ediciones', async () => {
+    await runSeed(context.source, credentials);
+    const zones = await context.source
+      .getRepository(DeliveryZone)
+      .find({ order: { name: 'ASC' } });
+    expect(zones.map((zone) => zone.name)).toEqual([
+      'Zona 1',
+      'Zona 2',
+      'Zona 3',
+      'Zona 4',
+    ]);
+    const points = await context.source.getRepository(DeliveryPoint).find();
+    expect(points).toHaveLength(17);
+    const byName = (name: string) =>
+      points.find((point) => point.name === name)!;
+    const zoneName = (name: string) =>
+      zones.find((zone) => zone.id === byName(name).zoneId)!.name;
+    expect(zoneName('Edificio M')).toBe('Zona 1');
+    expect(zoneName('Zona Samán')).toBe('Zona 1');
+    expect(zoneName('Bienestar Universitario')).toBe('Zona 2');
+    expect(zoneName('Edificio L')).toBe('Zona 3');
+    expect(zoneName('Coliseo')).toBe('Zona 4');
+    expect(byName('Edificio M').floors).toBe(4);
+    expect(byName('Edificio E').floors).toBe(5);
+    expect(byName('Edificio G').floors).toBe(1);
+    expect(byName('Canchas').floors).toBeNull();
+    expect(byName('Gym')).toMatchObject({
+      floors: null,
+      hint: 'Se entrega afuera del gym',
+    });
+    expect(byName('Auditorios')).toMatchObject({
+      floors: 1,
+      hint: 'Se entrega en la plazoleta de auditorios',
+    });
+    expect(byName('Biblioteca').hint).toBe('Solo se entrega en el primer piso');
+    await context.source
+      .getRepository(DeliveryPoint)
+      .update(byName('Canchas').id, { name: 'Canchas sintéticas', floors: 2 });
+    await context.source
+      .getRepository(DeliveryZone)
+      .update(zones[0].id, { name: 'Norte', active: false });
+    const again = await runSeed(context.source, credentials);
+    expect(again).toMatchObject({ zonesCreated: 1, pointsCreated: 1 });
+    expect(
+      await context.source.getRepository(DeliveryPoint).findOneByOrFail({
+        id: byName('Canchas').id,
+      }),
+    ).toMatchObject({ name: 'Canchas sintéticas', floors: 2 });
   });
 });

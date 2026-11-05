@@ -2,6 +2,8 @@ import { DataSource } from 'typeorm';
 import { ProductComponent } from '../products/entities/product-component.entity';
 import { Product, SimpleCategory } from '../products/entities/products.entity';
 import { StockMovement } from '../movements/entities/stock-movement.entity';
+import { DeliveryPoint } from '../delivery/entities/delivery-point.entity';
+import { DeliveryZone } from '../delivery/entities/delivery-zone.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { SeedCredentials, seedCredentials } from './credentials';
 import { hashPassword } from './password';
@@ -216,10 +218,71 @@ const combos: SeedCombo[] = [
   },
 ];
 
+interface SeedPoint {
+  name: string;
+  floors: number | null;
+  hint?: string;
+}
+
+// Zonas de despacho y puntos de entrega del campus (spec 015).
+const zones: { name: string; points: SeedPoint[] }[] = [
+  {
+    name: 'Zona 1',
+    points: [
+      { name: 'Edificio M', floors: 4 },
+      { name: 'Edificio A', floors: 2 },
+      {
+        name: 'Auditorios',
+        floors: 1,
+        hint: 'Se entrega en la plazoleta de auditorios',
+      },
+      { name: 'Central', floors: 1 },
+      {
+        name: 'Biblioteca',
+        floors: 1,
+        hint: 'Solo se entrega en el primer piso',
+      },
+      { name: 'Zona Samán', floors: null },
+    ],
+  },
+  {
+    name: 'Zona 2',
+    points: [
+      { name: 'Edificio C', floors: 3 },
+      { name: 'Edificio D', floors: 4 },
+      { name: 'Edificio E', floors: 5 },
+      {
+        name: 'Bienestar Universitario',
+        floors: 1,
+        hint: 'Se entrega en el primer piso',
+      },
+    ],
+  },
+  {
+    name: 'Zona 3',
+    points: [
+      { name: 'Edificio G', floors: 1 },
+      { name: 'Edificio L', floors: 5 },
+      { name: 'Canchas', floors: null },
+    ],
+  },
+  {
+    name: 'Zona 4',
+    points: [
+      { name: 'Bloque F', floors: 1 },
+      { name: 'Bloque H', floors: 1 },
+      { name: 'Gym', floors: null, hint: 'Se entrega afuera del gym' },
+      { name: 'Coliseo', floors: null },
+    ],
+  },
+];
+
 export interface SeedResult {
   usersCreated: number;
   productsCreated: number;
   movementsCreated: number;
+  zonesCreated: number;
+  pointsCreated: number;
 }
 
 export async function runSeed(
@@ -237,6 +300,8 @@ export async function runSeed(
       usersCreated: 0,
       productsCreated: 0,
       movementsCreated: 0,
+      zonesCreated: 0,
+      pointsCreated: 0,
     };
     const users = manager.getRepository(User);
     const userData: { username: string; role: UserRole; password: string }[] = [
@@ -325,6 +390,32 @@ export async function runSeed(
         });
       }
       result.productsCreated++;
+    }
+    const zoneRepo = manager.getRepository(DeliveryZone);
+    const pointRepo = manager.getRepository(DeliveryPoint);
+    for (const data of zones) {
+      let zone = await zoneRepo
+        .createQueryBuilder('zone')
+        .where('lower(zone.name) = lower(:name)', { name: data.name })
+        .getOne();
+      if (!zone) {
+        zone = await zoneRepo.save(zoneRepo.create({ name: data.name }));
+        result.zonesCreated++;
+      }
+      for (const item of data.points) {
+        const exists = await pointRepo
+          .createQueryBuilder('point')
+          .where('lower(point.name) = lower(:name)', { name: item.name })
+          .getExists();
+        if (exists) continue;
+        await pointRepo.insert({
+          zoneId: zone.id,
+          name: item.name,
+          hint: item.hint ?? null,
+          floors: item.floors,
+        });
+        result.pointsCreated++;
+      }
     }
     return result;
   });

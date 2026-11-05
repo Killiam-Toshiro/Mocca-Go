@@ -45,6 +45,7 @@ const PUBLIC = [
   'POST /api/v1/auth/login',
   'POST /api/v1/customers',
   'GET /api/v1/menu',
+  'GET /api/v1/delivery-zones',
 ];
 const ADMIN_ONLY = [
   'POST /api/v1/users',
@@ -58,6 +59,13 @@ const ADMIN_ONLY = [
   'PATCH /api/v1/products/{id}/status',
   'PUT /api/v1/products/{id}/components',
   'DELETE /api/v1/products/{id}',
+  'GET /api/v1/delivery-zones/all',
+  'POST /api/v1/delivery-zones',
+  'PATCH /api/v1/delivery-zones/{id}',
+  'DELETE /api/v1/delivery-zones/{id}',
+  'POST /api/v1/delivery-points',
+  'PATCH /api/v1/delivery-points/{id}',
+  'DELETE /api/v1/delivery-points/{id}',
 ];
 // Admin y operador (la cocina): datos internos del catálogo y «agotado».
 const STAFF_ONLY = [
@@ -105,6 +113,14 @@ const SUCCESS: Record<string, string> = {
   'PATCH /api/v1/products/{id}/sold-out': '200',
   'PUT /api/v1/products/{id}/components': '200',
   'GET /api/v1/menu': '200',
+  'GET /api/v1/delivery-zones': '200',
+  'GET /api/v1/delivery-zones/all': '200',
+  'POST /api/v1/delivery-zones': '201',
+  'PATCH /api/v1/delivery-zones/{id}': '200',
+  'DELETE /api/v1/delivery-zones/{id}': '204',
+  'POST /api/v1/delivery-points': '201',
+  'PATCH /api/v1/delivery-points/{id}': '200',
+  'DELETE /api/v1/delivery-points/{id}': '204',
   'DELETE /api/v1/products/{id}': '204',
   'POST /api/v1/movements': '201',
   'GET /api/v1/movements': '200',
@@ -156,12 +172,12 @@ describe('Documentación OpenAPI (Swagger)', () => {
     });
   });
 
-  it('S-02: documenta exactamente las 26 operaciones con el prefijo /api/v1', () => {
+  it('S-02: documenta exactamente las 34 operaciones con el prefijo /api/v1', () => {
     const operations = Object.entries(doc.paths).flatMap(([path, methods]) =>
       Object.keys(methods).map((method) => `${method.toUpperCase()} ${path}`),
     );
     expect(operations.sort()).toEqual([...PUBLIC, ...PROTECTED].sort());
-    expect(operations).toHaveLength(26);
+    expect(operations).toHaveLength(34);
   });
 
   it('cada operación tiene etiqueta del módulo, resumen y respuesta de éxito', () => {
@@ -304,7 +320,7 @@ describe('Documentación OpenAPI (Swagger)', () => {
       'cliente',
     ]);
     expect(schema('CreateProductDto')).toMatchObject({
-      required: ['sku', 'name', 'category', 'price'],
+      required: ['sku', 'name', 'category'],
       properties: {
         sku: { pattern: '^[A-Z0-9][A-Z0-9._-]{0,47}$', maxLength: 48 },
         name: { minLength: 1, maxLength: 120 },

@@ -143,3 +143,12 @@ Decisiones del incremento 014 (Catálogo y combos; aprobadas por el usuario el 2
 - D-83: `GET /products` pasa a ser solo `admin` y `operador` (datos internos: saldo y costo); el cliente lee `GET /menu`, público y `no-store`. Modifica el RN-15 de 012.
 - D-84: el inventario de ejemplo del taller (teclado, mouse, monitor) se reemplaza por el menú de Mocca Go. Como el historial de movimientos es inmutable, la base de desarrollo se recrea en vez de borrar filas.
 - D-85: las reglas entre filas (solo los combos tienen componentes, sin combos anidados, componentes activos) las verifica el servicio en una transacción con bloqueo de fila del combo; la FK `RESTRICT` del componente protege contra eliminaciones concurrentes.
+
+Decisiones del incremento 015 (Zonas y puntos de entrega; aprobadas por el usuario el 2026-11-05):
+
+- D-86: zonas y puntos son dos tablas (`delivery_zones`, `delivery_points`). La zona es solo de despacho y el cliente nunca la elige; se deduce del punto, que es lo que elegirá en el pedido (016).
+- D-87: `floors` es un entero de 1 a 30 o `NULL` («sin pisos»); `hint` es texto opcional de hasta 200 caracteres. La validación del piso elegido en un pedido es de 016.
+- D-88: la consulta pública (`GET /delivery-zones`, `no-store`, 60 peticiones por minuto por IP) y la de administración (`GET /delivery-zones/all`) son rutas separadas.
+- D-89: los nombres de zonas y puntos son únicos sin distinguir mayúsculas mediante índices únicos sobre `lower(name)`; la unicidad la decide PostgreSQL y el servicio la traduce a `409`.
+- D-90: las carreras entre crear o mover un punto y eliminar su zona se resuelven con bloqueo compartido de la zona al escribir un punto, bloqueo exclusivo al eliminarla y la FK `RESTRICT` como red de seguridad.
+- D-91: el teléfono del personal y el aviso «en camino» (estado y hora estimada en la app, botón del repartidor que abre WhatsApp) se difieren a 016/017; el máximo de 5 pedidos por ronda y una zona por ronda se aplican en 018.
