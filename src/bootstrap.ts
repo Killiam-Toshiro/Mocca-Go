@@ -15,6 +15,7 @@ export async function createApplication(
   const config = app.get<ConfigService<AppEnvironment, true>>(ConfigService);
   configureApplication(app, {
     trustProxyHops: config.get('TRUST_PROXY_HOPS', { infer: true }),
+    corsOrigins: config.get('CORS_ORIGINS', { infer: true }),
   });
   return app;
 }

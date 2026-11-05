@@ -296,6 +296,7 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
       await runSeed(context.source, {
         adminPassword: 'Test-only-admin-password',
         operatorPassword: 'Test-only-operator-password',
+        courierPassword: 'Test-only-courier-password',
       });
       const page = (await list('', operatorToken).expect(200))
         .body as ProductPage;

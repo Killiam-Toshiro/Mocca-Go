@@ -21,6 +21,7 @@ import {
 const credentials = {
   adminPassword: 'Test-only-admin-password',
   operatorPassword: 'Test-only-operator-password',
+  courierPassword: 'Test-only-courier-password',
 };
 
 describe('PostgreSQL: seed transaccional', () => {
@@ -44,7 +45,7 @@ describe('PostgreSQL: seed transaccional', () => {
 
   it('carga usuarios, productos, entradas y saldos sin exponer hashes por defecto', async () => {
     expect(await runSeed(context.source, credentials)).toEqual({
-      usersCreated: 2,
+      usersCreated: 3,
       productsCreated: 3,
       movementsCreated: 3,
     });
@@ -55,6 +56,9 @@ describe('PostgreSQL: seed transaccional', () => {
     );
     expect((await users.findOneByOrFail({ username: 'operador' })).role).toBe(
       'operador',
+    );
+    expect((await users.findOneByOrFail({ username: 'repartidor' })).role).toBe(
+      'repartidor',
     );
     expect(
       (await users.findOneByOrFail({ username: 'admin' })).passwordHash,
@@ -100,6 +104,7 @@ describe('PostgreSQL: seed transaccional', () => {
       await runSeed(source, {
         adminPassword: 'Other-valid-admin-password',
         operatorPassword: 'Other-valid-operator-password',
+        courierPassword: 'Other-valid-courier-password',
       }),
     ).toEqual({ usersCreated: 0, productsCreated: 0, movementsCreated: 0 });
     const stored = await users
@@ -125,12 +130,12 @@ describe('PostgreSQL: seed transaccional', () => {
     ]);
     expect(
       results.reduce((total, result) => total + result.usersCreated, 0),
-    ).toBe(2);
+    ).toBe(3);
     expect(
       results.reduce((total, result) => total + result.movementsCreated, 0),
     ).toBe(3);
     expect(await balances()).toEqual([20, 30, 10]);
-    expect(await context.source.getRepository(User).count()).toBe(2);
+    expect(await context.source.getRepository(User).count()).toBe(3);
     expect(await context.source.getRepository(StockMovement).count()).toBe(3);
   });
 
@@ -139,7 +144,7 @@ describe('PostgreSQL: seed transaccional', () => {
       .getRepository(Product)
       .save({ sku: 'INV-001', name: 'Producto propio', stock: 7 });
     expect(await runSeed(context.source, credentials)).toEqual({
-      usersCreated: 2,
+      usersCreated: 3,
       productsCreated: 2,
       movementsCreated: 3,
     });
@@ -204,7 +209,7 @@ describe('PostgreSQL: seed transaccional', () => {
     await inTestEnvironment(context, () => seedFromEnvironment());
     await inTestEnvironment(context, () => seedFromEnvironment());
     expect(await balances()).toEqual([20, 30, 10]);
-    expect(await context.source.getRepository(User).count()).toBe(2);
+    expect(await context.source.getRepository(User).count()).toBe(3);
     expect(await context.source.getRepository(StockMovement).count()).toBe(3);
   });
 
@@ -213,7 +218,7 @@ describe('PostgreSQL: seed transaccional', () => {
     const envFile = join(directory, '.env');
     writeFileSync(
       envFile,
-      'SEED_ADMIN_PASSWORD=File-only-admin-password\nSEED_OPERATOR_PASSWORD=File-only-operator-password\n',
+      'SEED_ADMIN_PASSWORD=File-only-admin-password\nSEED_OPERATOR_PASSWORD=File-only-operator-password\nSEED_COURIER_PASSWORD=File-only-courier-password\n',
     );
     try {
       await inTestEnvironment(context, async () => {
@@ -221,11 +226,13 @@ describe('PostgreSQL: seed transaccional', () => {
         process.env.NODE_ENV = 'development';
         delete process.env.SEED_ADMIN_PASSWORD;
         delete process.env.SEED_OPERATOR_PASSWORD;
+        delete process.env.SEED_COURIER_PASSWORD;
         try {
           const source = await configuredDataSource(envFile);
           const values = seedCredentials(process.env);
           expect(values.adminPassword).toBe('File-only-admin-password');
           expect(values.operatorPassword).toBe('File-only-operator-password');
+          expect(values.courierPassword).toBe('File-only-courier-password');
           await withDataSource(source, (connection) =>
             runSeed(connection, values),
           );

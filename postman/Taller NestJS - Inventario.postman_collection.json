@@ -127,7 +127,7 @@
                   "const json = pm.response.json();",
                   "pm.test(\"Devuelve JWT Bearer de 15 min directamente\", () => { pm.expect(json.tokenType).to.eql(\"Bearer\"); pm.expect(json.expiresIn).to.eql(900); pm.expect(json.accessToken.split(\".\")).to.have.lengthOf(3); });",
                   "pm.test(\"Solo accessToken, tokenType y expiresIn (sin desafío 2FA)\", () => pm.expect(Object.keys(json).sort()).to.eql([\"accessToken\",\"expiresIn\",\"tokenType\"]));",
-                  "pm.test(\"Claims del JWT (sub, sid, typ, iss, aud, exp)\", () => { const p = JSON.parse(atob(json.accessToken.split(\".\")[1].replace(/-/g,\"+\").replace(/_/g,\"/\"))); pm.expect(p.typ).to.eql(\"access\"); pm.expect(p.iss).to.eql(\"inventory-api\"); pm.expect(p.aud).to.eql(\"inventory-client\"); pm.expect(p.exp - p.iat).to.eql(900); pm.expect(p.sub).to.match(/^[0-9a-f-]{36}$/); pm.expect(p.sid).to.match(/^[0-9a-f-]{36}$/); });",
+                  "pm.test(\"Claims del JWT (sub, sid, typ, iss, aud, exp)\", () => { const p = JSON.parse(atob(json.accessToken.split(\".\")[1].replace(/-/g,\"+\").replace(/_/g,\"/\"))); pm.expect(p.typ).to.eql(\"access\"); pm.expect(p.iss).to.eql(\"mocca-go-api\"); pm.expect(p.aud).to.eql(\"mocca-go-client\"); pm.expect(p.exp - p.iat).to.eql(900); pm.expect(p.sub).to.match(/^[0-9a-f-]{36}$/); pm.expect(p.sid).to.match(/^[0-9a-f-]{36}$/); });",
                   "pm.collectionVariables.set(\"adminToken\", json.accessToken);"
                 ]
               }
@@ -223,7 +223,7 @@
                   "const json = pm.response.json();",
                   "pm.test(\"Devuelve JWT Bearer de 15 min directamente\", () => { pm.expect(json.tokenType).to.eql(\"Bearer\"); pm.expect(json.expiresIn).to.eql(900); pm.expect(json.accessToken.split(\".\")).to.have.lengthOf(3); });",
                   "pm.test(\"Solo accessToken, tokenType y expiresIn (sin desafío 2FA)\", () => pm.expect(Object.keys(json).sort()).to.eql([\"accessToken\",\"expiresIn\",\"tokenType\"]));",
-                  "pm.test(\"Claims del JWT (sub, sid, typ, iss, aud, exp)\", () => { const p = JSON.parse(atob(json.accessToken.split(\".\")[1].replace(/-/g,\"+\").replace(/_/g,\"/\"))); pm.expect(p.typ).to.eql(\"access\"); pm.expect(p.iss).to.eql(\"inventory-api\"); pm.expect(p.aud).to.eql(\"inventory-client\"); pm.expect(p.exp - p.iat).to.eql(900); pm.expect(p.sub).to.match(/^[0-9a-f-]{36}$/); pm.expect(p.sid).to.match(/^[0-9a-f-]{36}$/); });",
+                  "pm.test(\"Claims del JWT (sub, sid, typ, iss, aud, exp)\", () => { const p = JSON.parse(atob(json.accessToken.split(\".\")[1].replace(/-/g,\"+\").replace(/_/g,\"/\"))); pm.expect(p.typ).to.eql(\"access\"); pm.expect(p.iss).to.eql(\"mocca-go-api\"); pm.expect(p.aud).to.eql(\"mocca-go-client\"); pm.expect(p.exp - p.iat).to.eql(900); pm.expect(p.sub).to.match(/^[0-9a-f-]{36}$/); pm.expect(p.sid).to.match(/^[0-9a-f-]{36}$/); });",
                   "pm.collectionVariables.set(\"operatorToken\", json.accessToken);"
                 ]
               }
@@ -10487,6 +10487,422 @@
       "description": "Rutas del incremento 011 (`specs/011-crud-completion`): eliminar productos sin movimientos, consultar/editar/eliminar usuarios y readiness, además de Swagger. El borrado de usuarios usa un usuario desechable `qa_del_*` para que la carpeta 09 pueda cerrar la sesión del usuario QA."
     },
     {
+      "name": "07b Roles de Mocca Go — repartidor y rol cliente",
+      "description": "Incremento 012: cuatro roles. El repartidor del seed inicia sesión, lee el catálogo y recibe 403 en usuarios, movimientos y escrituras. El rol cliente no se asigna desde POST /users.",
+      "item": [
+        {
+          "name": "Repartidor — POST /auth/login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Devuelve un JWT Bearer\", () => { pm.expect(json.tokenType).to.eql(\"Bearer\"); pm.expect(json.accessToken).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"courierToken\", json.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{courierUsername}}\",\n  \"password\": \"{{courierPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Repartidor — GET /auth/me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Rol repartidor\", () => pm.expect(pm.response.json().role).to.eql(\"repartidor\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Repartidor — GET /products → 200 (lee el catálogo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Repartidor — POST /products → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"REP-NO\",\n  \"name\": \"No permitido\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Repartidor — GET /users → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Repartidor — GET /movements → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/movements",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "movements"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin — POST /users con rol repartidor → 201",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('qaCourierUsername', 'qa_rep_' + Math.random().toString(16).slice(2, 8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Rol repartidor\", () => pm.expect(json.role).to.eql(\"repartidor\"));",
+                  "pm.collectionVariables.set(\"qaCourierId\", json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{qaCourierUsername}}\",\n  \"password\": \"{{qaPassword}}\",\n  \"role\": \"repartidor\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin — POST /users con rol cliente → 400 (nace del registro propio)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"qa_cliente_no\",\n  \"password\": \"{{qaPassword}}\",\n  \"role\": \"cliente\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin — DELETE /users/:id del repartidor QA → 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{qaCourierId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{qaCourierId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "08 OPCIONAL — bloqueo de cuenta por intentos fallidos",
       "item": [
         {
@@ -11484,6 +11900,31 @@
     {
       "key": "productId3",
       "value": ""
+    },
+    {
+      "key": "courierUsername",
+      "value": "repartidor",
+      "type": "string"
+    },
+    {
+      "key": "courierPassword",
+      "value": "change-courier-password",
+      "type": "string"
+    },
+    {
+      "key": "courierToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaCourierUsername",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "qaCourierId",
+      "value": "",
+      "type": "string"
     }
   ]
 }

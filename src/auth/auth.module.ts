@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { RuntimeEnvironment } from '../config/runtime-environment';
-import { ACCESS_SECONDS, JWT_AUDIENCE, JWT_ISSUER } from './auth.config';
+import { JWT_AUDIENCE, JWT_ISSUER } from './auth.config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
@@ -17,7 +17,7 @@ import { RolesGuard } from './roles.guard';
         secret: config.get('JWT_SECRET', { infer: true }),
         signOptions: {
           algorithm: 'HS256',
-          expiresIn: ACCESS_SECONDS,
+          expiresIn: config.get('ACCESS_TOKEN_TTL_SECONDS', { infer: true }),
           issuer: JWT_ISSUER,
           audience: JWT_AUDIENCE,
         },

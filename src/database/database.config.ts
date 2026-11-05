@@ -25,7 +25,7 @@ function text(
 export function validateDatabaseEnvironment(
   environment: Record<string, unknown>,
 ): DatabaseEnvironment {
-  const DB_NAME = text(environment, 'DB_NAME', 'inventory');
+  const DB_NAME = text(environment, 'DB_NAME', 'mocca_go');
   const DB_SCHEMA = text(environment, 'DB_SCHEMA', 'public');
   for (const [variable, value] of Object.entries({ DB_NAME, DB_SCHEMA })) {
     if (!/^[a-z][a-z0-9_]{0,62}$/.test(value)) {
@@ -45,7 +45,7 @@ export function validateDatabaseEnvironment(
     DB_HOST: text(environment, 'DB_HOST', '127.0.0.1'),
     DB_PORT: parsePort(environment.DB_PORT ?? '5433', 'DB_PORT'),
     DB_NAME,
-    DB_USERNAME: text(environment, 'DB_USERNAME', 'inventory'),
+    DB_USERNAME: text(environment, 'DB_USERNAME', 'mocca_go'),
     DB_PASSWORD: text(environment, 'DB_PASSWORD'),
     DB_SCHEMA,
     DB_SSL: ssl === 'true',

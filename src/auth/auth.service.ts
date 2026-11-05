@@ -1,9 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { isUUID } from 'class-validator';
 import { DataSource, EntityManager } from 'typeorm';
 import { User, UserRole } from '../users/entities/user.entity';
-import { ACCESS_SECONDS, JWT_AUDIENCE, JWT_ISSUER } from './auth.config';
+import { RuntimeEnvironment } from '../config/runtime-environment';
+import { JWT_AUDIENCE, JWT_ISSUER } from './auth.config';
 import { verifyPassword } from './crypto';
 import { Session } from './entities/session.entity';
 
@@ -25,7 +27,12 @@ export class AuthService {
   constructor(
     private readonly source: DataSource,
     private readonly jwt: JwtService,
+    private readonly config: ConfigService<RuntimeEnvironment, true>,
   ) {}
+
+  private get accessSeconds(): number {
+    return this.config.get('ACCESS_TOKEN_TTL_SECONDS', { infer: true });
+  }
 
   private rejected(): UnauthorizedException {
     return new UnauthorizedException('Credenciales inválidas.');
@@ -63,6 +70,7 @@ export class AuthService {
       const validPassword = await verifyPassword(password, user?.passwordHash);
       if (!user) return null;
       const now = Date.now();
+      const accessSeconds = this.accessSeconds;
       if (user.blockedUntil && user.blockedUntil.getTime() > now) return null;
       if (user.blockedUntil) {
         user.loginFailures = 0;
@@ -80,7 +88,7 @@ export class AuthService {
       await manager.save(user);
       const session = await manager.save(Session, {
         userId: user.id,
-        expiresAt: new Date(now + ACCESS_SECONDS * 1000),
+        expiresAt: new Date(now + accessSeconds * 1000),
       });
       const accessToken = await this.jwt.signAsync({
         sub: user.id,
@@ -90,7 +98,7 @@ export class AuthService {
       return {
         accessToken,
         tokenType: 'Bearer' as const,
-        expiresIn: ACCESS_SECONDS,
+        expiresIn: accessSeconds,
       };
     });
     if (!result) throw this.rejected();

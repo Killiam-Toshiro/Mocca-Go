@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsString, Length, Matches, ValidateIf } from 'class-validator';
-import { USER_ROLES, UserRole } from './entities/user.entity';
+import { STAFF_ROLES, StaffRole } from './entities/user.entity';
 import { PaginationQueryDto } from '../common/pagination';
 
 /** Username canónico; idéntico al CHECK users_username_format. */
@@ -29,9 +29,13 @@ export class CreateUserDto {
   @Length(12, 128)
   password!: string;
 
-  @ApiProperty({ enum: USER_ROLES, example: 'operador' })
-  @IsIn(USER_ROLES)
-  role!: UserRole;
+  @ApiProperty({
+    enum: STAFF_ROLES,
+    example: 'operador',
+    description: 'Rol de personal. `cliente` solo nace del registro propio.',
+  })
+  @IsIn(STAFF_ROLES)
+  role!: StaffRole;
 }
 
 export class UpdateUserDto {
@@ -62,9 +66,13 @@ export class UpdateUserDto {
 }
 
 export class ChangeRoleDto {
-  @ApiProperty({ enum: USER_ROLES, example: 'admin' })
-  @IsIn(USER_ROLES)
-  role!: UserRole;
+  @ApiProperty({
+    enum: STAFF_ROLES,
+    example: 'admin',
+    description: 'Rol de personal; un cliente no cambia de rol.',
+  })
+  @IsIn(STAFF_ROLES)
+  role!: StaffRole;
 }
 
 export class ListUsersDto extends PaginationQueryDto {}

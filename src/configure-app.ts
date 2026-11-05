@@ -7,17 +7,33 @@ export interface ApplicationOptions {
    * Con 0 se ignora `X-Forwarded-For` y la IP es la del socket.
    */
   trustProxyHops?: number;
+  /**
+   * Orígenes del frontend autorizados por CORS (lista exacta, sin comodín).
+   * Vacío mantiene CORS desactivado.
+   */
+  corsOrigins?: string[];
 }
 
 export function configureApplication(
   app: INestApplication,
-  { trustProxyHops = 0 }: ApplicationOptions = {},
+  { trustProxyHops = 0, corsOrigins = [] }: ApplicationOptions = {},
 ): void {
   if (trustProxyHops > 0) {
     const express = app.getHttpAdapter().getInstance() as {
       set(setting: string, value: number): void;
     };
     express.set('trust proxy', trustProxyHops);
+  }
+  if (corsOrigins.length > 0) {
+    // Se registra antes que el resto del middleware para que el preflight
+    // OPTIONS se responda sin pasar por guards ni validación.
+    app.enableCors({
+      origin: corsOrigins,
+      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Authorization', 'Content-Type'],
+      credentials: false,
+      maxAge: 600,
+    });
   }
   app.use(
     [

@@ -1,13 +1,18 @@
 export interface SeedCredentials {
   adminPassword: string;
   operatorPassword: string;
+  courierPassword: string;
 }
 
 export function seedCredentials(
   environment: Record<string, unknown>,
 ): SeedCredentials {
   const values: string[] = [];
-  for (const variable of ['SEED_ADMIN_PASSWORD', 'SEED_OPERATOR_PASSWORD']) {
+  for (const variable of [
+    'SEED_ADMIN_PASSWORD',
+    'SEED_OPERATOR_PASSWORD',
+    'SEED_COURIER_PASSWORD',
+  ]) {
     const value = environment[variable];
     if (
       typeof value !== 'string' ||
@@ -18,5 +23,9 @@ export function seedCredentials(
     }
     values.push(value);
   }
-  return { adminPassword: values[0], operatorPassword: values[1] };
+  return {
+    adminPassword: values[0],
+    operatorPassword: values[1],
+    courierPassword: values[2],
+  };
 }

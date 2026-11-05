@@ -1,10 +1,12 @@
-# Taller Backend NestJS — API de inventario
+# Mocca Go — Backend
 
-Backend académico para administrar productos, existencias y movimientos de inventario con NestJS y PostgreSQL. El proyecto se desarrolla mediante **Spec-Driven Design con archivos versionados**: especificar, planificar, implementar, verificar y actualizar la documentación en cada commit.
+Backend de **Mocca Go** (café y snacks a domicilio en el campus de Icesi) con NestJS y PostgreSQL. Parte de la API de inventario del taller (productos, existencias y movimientos) y la evoluciona hacia clientes, pedidos, cocina y despacho en los incrementos 012 a 019. El proyecto se desarrolla mediante **Spec-Driven Design con archivos versionados**: especificar, planificar, implementar, verificar y actualizar la documentación en cada commit.
 
 Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backend-NestJS).
 
 ## Estado actual
+
+**Mocca Go (2026-11-05):** el incremento 012 (fundaciones) amplía los roles a `admin`, `operador` (cocina), `repartidor` y `cliente`, agrega CORS configurable para el frontend Next.js, hace configurable la duración del JWT, renombra la identidad del proyecto y la base de desarrollo a `mocca_go`, y suma un usuario `repartidor` al seed. Ver [especificación 012](specs/012-fundaciones/spec.md) y su [overview](docs/commits/012.md). Los datos de estado de abajo describen la API heredada del taller.
 
 Main actualizado/verificado a `635e928` el 2026-10-13. Incluye seed/PostgreSQL, JWT con sesiones revocables, roles, catálogo, movimientos, Swagger, despliegue Railway y CRUD completo/readiness. La colección Postman está versionada; el usuario confirma corridas exitosas locales y desplegadas. El informe está terminado según el usuario, pendiente de compartir para revisión documental.
 
@@ -65,6 +67,7 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 7      | Retiro del 2FA: login directo con JWT y sesiones revocables        | Ver resultados y estado en el [overview](docs/commits/007.md) |
 | 9      | Documentación OpenAPI con Swagger UI                               | Ver resultados y estado en el [overview](docs/commits/009.md) |
 | 11     | CRUD completo de productos y usuarios, readiness y colección       | Ver resultados y estado en el [overview](docs/commits/011.md) |
+| 12     | Mocca Go: roles ampliados, CORS, duración del JWT e identidad      | Ver resultados y estado en el [overview](docs/commits/012.md) |
 
 El despliegue ya está verificado. Quedan revisar el informe final cuando se comparta y confirmar la entrega en Intu. Swagger complementa el informe, pero no lo sustituye.
 
@@ -96,19 +99,24 @@ node -e "const fs = require('node:fs'), c = require('node:crypto'); fs.appendFil
 
 Ejecuta ese comando una sola vez al configurar tu entorno. Conserva la clave: cambiarla invalida los JWT emitidos; la rotación requiere un procedimiento que aún no se implementa. Si tu `.env` antiguo aún contiene `TOTP_ENCRYPTION_KEY`, la variable se ignora y puedes borrarla.
 
-| Variable           | Por defecto         | Regla                                                                   |
-| ------------------ | ------------------- | ----------------------------------------------------------------------- |
-| `NODE_ENV`         | `development`       | `development`, `test` o `production`                                    |
-| `PORT`             | `3000`              | Entero entre 1 y 65535, escrito solo con dígitos                        |
-| `DB_HOST`          | `127.0.0.1`         | Host de PostgreSQL                                                      |
-| `DB_PORT`          | `5433`              | Entero entre 1 y 65535                                                  |
-| `DB_NAME`          | `inventory`         | Identificador en minúsculas; en test debe terminar en `_test`           |
-| `DB_USERNAME`      | `inventory`         | Usuario de PostgreSQL                                                   |
-| `DB_PASSWORD`      | Sin valor en código | Obligatoria; `.env.example` contiene una clave de demostración local    |
-| `DB_SCHEMA`        | `public`            | Identificador en minúsculas, máximo 63 caracteres                       |
-| `DB_SSL`           | `false`             | `true` o `false`; con `true` se verifica el certificado                 |
-| `JWT_SECRET`       | Sin valor           | Al menos 32 bytes; firma los JWT (HS256)                                |
-| `TRUST_PROXY_HOPS` | `0`                 | Entero de 0 a 10: proxies de confianza; `1` en Railway (ver despliegue) |
+| Variable                   | Por defecto         | Regla                                                                                                                     |
+| -------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                 | `development`       | `development`, `test` o `production`                                                                                      |
+| `PORT`                     | `3000`              | Entero entre 1 y 65535, escrito solo con dígitos                                                                          |
+| `DB_HOST`                  | `127.0.0.1`         | Host de PostgreSQL                                                                                                        |
+| `DB_PORT`                  | `5433`              | Entero entre 1 y 65535                                                                                                    |
+| `DB_NAME`                  | `mocca_go`          | Identificador en minúsculas; en test debe terminar en `_test`                                                             |
+| `DB_USERNAME`              | `mocca_go`          | Usuario de PostgreSQL                                                                                                     |
+| `DB_PASSWORD`              | Sin valor en código | Obligatoria; `.env.example` contiene una clave de demostración local                                                      |
+| `DB_SCHEMA`                | `public`            | Identificador en minúsculas, máximo 63 caracteres                                                                         |
+| `DB_SSL`                   | `false`             | `true` o `false`; con `true` se verifica el certificado                                                                   |
+| `JWT_SECRET`               | Sin valor           | Al menos 32 bytes; firma los JWT (HS256)                                                                                  |
+| `TRUST_PROXY_HOPS`         | `0`                 | Entero de 0 a 10: proxies de confianza; `1` en Railway (ver despliegue)                                                   |
+| `ACCESS_TOKEN_TTL_SECONDS` | `900`               | Entero de 60 a 86400: vida del JWT y de su sesión en segundos                                                             |
+| `CORS_ORIGINS`             | vacío               | Orígenes del frontend separados por comas (`http://localhost:3001`); sin comodín, ruta ni `/` final. Vacío desactiva CORS |
+| `SEED_COURIER_PASSWORD`    | Sin valor           | Obligatoria para el seed; 12 a 128 caracteres                                                                             |
+
+**Cambio de nombre de la base (012):** el nombre, usuario y contraseña de ejemplo de desarrollo pasan de `inventory` a `mocca_go`. PostgreSQL solo crea la base al inicializar un volumen vacío, así que si ya tenías el volumen `inventory_data` ejecuta una vez `docker compose down -v` (borra los datos de desarrollo) después de actualizar tu `.env`, y repite los pasos siguientes. `compose.yaml` no cambia.
 
 Preparar la base y cargar los registros iniciales:
 
@@ -118,7 +126,7 @@ npm run migration:run
 npm run seed
 ```
 
-Los comandos de migración y seed compilan el proyecto antes de ejecutarse. El seed requiere `SEED_ADMIN_PASSWORD` y `SEED_OPERATOR_PASSWORD` de 12 a 128 caracteres, declaradas en `.env` o en el proceso. Crea `admin`, `operador`, tres productos y entradas iniciales con saldos 20, 30 y 10. Las contraseñas se guardan con scrypt y salt aleatoria.
+Los comandos de migración y seed compilan el proyecto antes de ejecutarse. El seed requiere `SEED_ADMIN_PASSWORD`, `SEED_OPERATOR_PASSWORD` y `SEED_COURIER_PASSWORD` de 12 a 128 caracteres, declaradas en `.env` o en el proceso. Crea `admin`, `operador`, `repartidor`, tres productos y entradas iniciales con saldos 20, 30 y 10. Las contraseñas se guardan con scrypt y salt aleatoria.
 
 Repetir `npm run seed` conserva contraseñas, roles, catálogo, saldos e historial existentes y no aplica de nuevo las entradas ya identificadas. Si existe un producto activo sin su entrada inicial, se añade esa entrada a su saldo previo; si está inactivo, se rechaza la carga completa. Todo el seed es una transacción. Para iniciar sesión usa el recorrido siguiente: basta usuario y contraseña.
 
@@ -174,7 +182,7 @@ La documentación se genera con `@nestjs/swagger` a partir de los controladores 
 
 ## Colección Postman
 
-`postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json` es autocontenida (sus variables viven en la colección) y recorre casos exitosos y errores de todas las rutas en las carpetas 00 a 10. Trae las contraseñas de demostración de `.env.example`; si tu seed usa otras, cámbialas en la pestaña **Variables**. Con migración, seed y API iniciados:
+`postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json` es autocontenida (sus variables viven en la colección) y recorre casos exitosos y errores de todas las rutas en las carpetas 00 a 10 (más la 07b de roles de Mocca Go). Trae las contraseñas de demostración de `.env.example`; si tu seed usa otras, cámbialas en la pestaña **Variables**. Con migración, seed y API iniciados:
 
 ```bash
 postman collection run "postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json"
@@ -203,20 +211,20 @@ Invoke-RestMethod -Method Post "$base/auth/logout" -Headers $headers
 
 Las rutas son relativas a `/api/v1`. Las antiguas `/auth/2fa/setup`, `/auth/2fa/confirm` y `/auth/verify-2fa` fueron retiradas y devuelven `404`. Se rechazan campos adicionales con `400`; credenciales inválidas, usuario inexistente o cuenta bloqueada con el mismo `401`; exceso de peticiones con `429`. Username canónico y contraseña de 12–128 caracteres. Cinco fallos de contraseña bloquean el login de esa cuenta 15 minutos y un éxito reinicia el contador. El límite por IP/ruta es 20 peticiones/minuto en memoria por proceso.
 
-El JWT es HS256, dura 15 minutos y no hay refresh. Cada login crea una sesión en PostgreSQL; el guard comprueba JWT y sesión y toma el rol vigente de BD, y `logout` revoca solo esa sesión. Todas las respuestas auth llevan `Cache-Control: no-store`. Sin segundo factor, la contraseña es la única barrera: usa contraseñas propias en cualquier entorno compartido. Un admin puede cambiar la contraseña de un usuario con `PATCH /users/:id`; no hay cambio por el propio usuario, recuperación de contraseña, refresh tokens ni rotación de claves automatizada.
+El JWT es HS256, dura `ACCESS_TOKEN_TTL_SECONDS` (15 minutos por defecto) y no hay refresh. Cada login crea una sesión en PostgreSQL; el guard comprueba JWT y sesión y toma el rol vigente de BD, y `logout` revoca solo esa sesión. Todas las respuestas auth llevan `Cache-Control: no-store`. Sin segundo factor, la contraseña es la única barrera: usa contraseñas propias en cualquier entorno compartido. Un admin puede cambiar la contraseña de un usuario con `PATCH /users/:id`; no hay cambio por el propio usuario, recuperación de contraseña, refresh tokens ni rotación de claves automatizada.
 
 ## Administración de usuarios y roles
 
-Después de iniciar sesión como admin, usa el Bearer JWT obtenido. Un operador recibe `403` y una petición sin sesión válida recibe `401` en las seis rutas. No existe registro público.
+Después de iniciar sesión como admin, usa el Bearer JWT obtenido. Un operador, repartidor o cliente recibe `403` y una petición sin sesión válida recibe `401` en las seis rutas. No existe registro público (el de clientes llega en el incremento 013).
 
-| Ruta relativa a `/api/v1` | Parámetros                                                 | Respuesta                                   |
-| ------------------------- | ---------------------------------------------------------- | ------------------------------------------- |
-| `POST /users`             | JSON `username`, `password`, `role` (`admin` u `operador`) | `201`: usuario seguro                       |
-| `GET /users`              | `page` opcional 1–10000, `limit` opcional 1–100            | `200`: `{data,page,limit,total,totalPages}` |
-| `GET /users/:id`          | UUID v4                                                    | `200`: usuario seguro                       |
-| `PATCH /users/:id`        | UUID v4, JSON `username` y/o `password`                    | `200`: usuario seguro actualizado           |
-| `DELETE /users/:id`       | UUID v4                                                    | `204` sin cuerpo                            |
-| `PATCH /users/:id/role`   | UUID v4, JSON `{role}`                                     | `200`: usuario seguro actualizado           |
+| Ruta relativa a `/api/v1` | Parámetros                                                               | Respuesta                                   |
+| ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
+| `POST /users`             | JSON `username`, `password`, `role` (`admin`, `operador` o `repartidor`) | `201`: usuario seguro                       |
+| `GET /users`              | `page` opcional 1–10000, `limit` opcional 1–100                          | `200`: `{data,page,limit,total,totalPages}` |
+| `GET /users/:id`          | UUID v4                                                                  | `200`: usuario seguro                       |
+| `PATCH /users/:id`        | UUID v4, JSON `username` y/o `password`                                  | `200`: usuario seguro actualizado           |
+| `DELETE /users/:id`       | UUID v4                                                                  | `204` sin cuerpo                            |
+| `PATCH /users/:id/role`   | UUID v4, JSON `{role}`                                                   | `200`: usuario seguro actualizado           |
 
 Usuario seguro contiene solo `id`, `username`, `role`, `createdAt` y `updatedAt`, con fechas ISO-8601. El listado no devuelve credenciales. La creación ya no emite credencial de enrolamiento: el admin comunica privadamente la contraseña inicial y el nuevo usuario inicia sesión directamente con ella.
 
@@ -316,6 +324,8 @@ Los scripts habilitan las VM de módulos de Node para cargar las dependencias ES
 [El workflow de CI](.github/workflows/ci.yml) se ejecuta en GitHub Actions ante push o pull request: instala desde lockfile en Node 24, levanta un servicio PostgreSQL de pruebas, revisa formato, lint y tipos, compila y ejecuta pruebas con cobertura. Conserva el reporte como artefacto. En un push a `main`, si todo lo anterior pasa, el job `deploy` publica la API en Railway y ejecuta un smoke test; en ramas y pull requests nunca despliega.
 
 ## Despliegue (Railway)
+
+> Mocca Go se vuelve a desplegar en un proyecto nuevo de Railway. La URL y los enlaces de esta sección corresponden al despliegue anterior del taller y quedan como antecedente. Variables a cargar: `DB_*`, `JWT_SECRET`, `ACCESS_TOKEN_TTL_SECONDS`, `CORS_ORIGINS` (URL del frontend), `TRUST_PROXY_HOPS=1` y las tres contraseñas de seed.
 
 La API se despliega en Railway con PostgreSQL gestionado; el diseño completo está en [la especificación 010](specs/010-deployment/spec.md) y la configuración del panel en [su plan](specs/010-deployment/plan.md).
 

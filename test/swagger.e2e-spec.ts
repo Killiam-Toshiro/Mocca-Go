@@ -31,7 +31,7 @@ interface Operation {
 
 interface OpenApiDocument {
   openapi: string;
-  info: { title: string; version: string };
+  info: { title: string; version: string; description?: string };
   paths: Record<string, Record<string, Operation>>;
   components: {
     schemas: Record<string, Schema>;
@@ -126,9 +126,10 @@ describe('Documentación OpenAPI (Swagger)', () => {
     expect(ui.text).toContain('swagger-ui');
     expect(ui.text).not.toMatch(/https?:\/\/(?:cdn|unpkg)/);
 
+    expect(doc.info.description).toContain('El token dura 15 minutos');
     expect(doc.openapi).toMatch(/^3\./);
     expect(doc.info).toMatchObject({
-      title: 'API de inventario',
+      title: 'API de Mocca Go',
       version: '1.0',
     });
   });
@@ -231,6 +232,24 @@ describe('Documentación OpenAPI (Swagger)', () => {
     expect(schema('CreateUserDto').properties!.role.enum).toEqual([
       'admin',
       'operador',
+      'repartidor',
+    ]);
+    expect(schema('ChangeRoleDto').properties!.role.enum).toEqual([
+      'admin',
+      'operador',
+      'repartidor',
+    ]);
+    expect(schema('UserResponse').properties!.role.enum).toEqual([
+      'admin',
+      'operador',
+      'repartidor',
+      'cliente',
+    ]);
+    expect(schema('IdentityResponse').properties!.role.enum).toEqual([
+      'admin',
+      'operador',
+      'repartidor',
+      'cliente',
     ]);
     expect(schema('CreateProductDto')).toMatchObject({
       required: ['sku', 'name'],

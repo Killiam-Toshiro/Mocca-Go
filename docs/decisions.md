@@ -113,3 +113,14 @@ Decisiones del incremento 011 (aprobadas por el usuario el 2026-10-12, tras cont
 Decisión de alcance posterior a la auditoría (2026-10-13):
 
 - D-65: el usuario excluye explícitamente 2FA de los requisitos de aquí en adelante y autoriza commit/push de documentación a main. R-02 vigente exige login con usuario/contraseña, JWT, logout revocable y rutas protegidas; se verifica con las pruebas existentes. No se planifica restaurar 2FA. Se conserva el enunciado original como antecedente, sin atribuir esta modificación al docente. El informe está terminado según usuario y pendiente de compartir para revisión.
+
+Decisiones del incremento 012 (Mocca Go; aprobadas por el usuario el 2026-11-05):
+
+- D-66: el proyecto pasa a ser el backend de Mocca Go. Los incrementos 012 a 019 (fundaciones, clientes, catálogo y combos, zonas y puntos, pedidos con pago demo, órdenes de cocina, rondas, encuesta y métricas) siguen el flujo SDD y se detienen para revisión tras cada uno (D-04).
+- D-67: cuatro roles — `admin`, `operador` (cocina), `repartidor` y `cliente`. Un admin solo asigna roles de personal (`admin`, `operador`, `repartidor`); `cliente` nace del registro propio (013) y no cambia de rol (`409`). Reemplaza RN-07.
+- D-68: CORS por lista explícita de orígenes en `CORS_ORIGINS`, sin comodín ni credenciales; desactivado por defecto. El frontend Next.js usa el puerto 3001 en local.
+- D-69: la vida del JWT es configurable con `ACCESS_TOKEN_TTL_SECONDS` (60–86400 s, por defecto 900); sigue sin haber refresh.
+- D-69b: la base de desarrollo pasa a `mocca_go` (usuario `mocca_go`). `compose.yaml`, su volumen y la base efímera de pruebas `inventory_test` no cambian. Railway se vuelve a crear, sin datos que migrar.
+- D-70: `issuer` y `audience` del JWT pasan a `mocca-go-api` y `mocca-go-client`; los JWT anteriores dejan de ser válidos.
+- D-71: el seed añade `repartidor` con `SEED_COURIER_PASSWORD` obligatoria. El inventario de ejemplo se reemplaza en el incremento 014.
+- D-72: `ConfigModule` valida el entorno al importar `AppModule`, por lo que las pruebas de duración del JWT sustituyen `ConfigService` con el entorno ya validado y la validación de `CORS_ORIGINS` y `ACCESS_TOKEN_TTL_SECONDS` se prueba de forma unitaria; el comportamiento real de arranque se comprobó además con la API compilada (ver overview 012).

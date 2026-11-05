@@ -31,7 +31,7 @@ No se incluyen inicialmente ventas, facturación, proveedores, múltiples bodega
 - RN-04: una salida no puede dejar saldo negativo. La validación, el cambio de saldo y el movimiento se ejecutan en una misma transacción, protegiendo el saldo también frente a peticiones concurrentes.
 - RN-05: productos inactivos conservan su historial y no admiten nuevos movimientos.
 - RN-06: una segunda ejecución del seed conserva los usuarios y movimientos existentes, no reinicia contraseñas ni borra datos de negocio.
-- RN-07: los roles válidos son `admin` y `operador`; se validan en el servidor. Ninguna petición pública puede conceder privilegios.
+- RN-07: los roles válidos son `admin` y `operador`; se validan en el servidor. Ninguna petición pública puede conceder privilegios. _Reemplazada por RN-12 a RN-15 de la [especificación 012](../012-fundaciones/spec.md) (cuatro roles para Mocca Go); se conserva como historia del taller._
 - RN-08: solo se elimina físicamente un producto sin movimientos; con historial se desactiva (011).
 - RN-09: admin puede cambiar username y contraseña de un usuario; una contraseña nueva revoca sus demás sesiones y reinicia su bloqueo (011).
 - RN-10: solo se elimina físicamente un usuario sin movimientos; nunca el último admin ni el propio actor (011).

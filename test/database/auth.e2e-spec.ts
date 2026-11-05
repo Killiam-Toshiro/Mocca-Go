@@ -175,6 +175,7 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
       await runSeed(context.source, {
         adminPassword: 'Test-only-admin-password',
         operatorPassword: 'Test-only-operator-password',
+        courierPassword: 'Test-only-courier-password',
       });
       const admin = await login('admin', 'Test-only-admin-password');
       const operator = await login('operador', 'Test-only-operator-password');
@@ -422,6 +423,8 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
     });
 
     it('aplicada sobre datos del esquema anterior conserva usuarios, sesiones e inventario y elimina solo el 2FA', async () => {
+      // La última migración es la de roles; se deshace primero.
+      await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       expect(await columns()).toEqual(expect.arrayContaining(TOTP_COLUMNS));
       expect(await proofsTable()).not.toBeNull();
@@ -489,6 +492,8 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
     });
 
     it('down restaura la estructura vacía con sus restricciones y up la vuelve a quitar', async () => {
+      // La última migración es la de roles; se deshace primero.
+      await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       const restored = await context.source.query<
         { totp_secret: string | null; totp_failures: number }[]

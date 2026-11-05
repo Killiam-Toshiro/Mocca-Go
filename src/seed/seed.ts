@@ -24,6 +24,7 @@ export async function runSeed(
   seedCredentials({
     SEED_ADMIN_PASSWORD: credentials.adminPassword,
     SEED_OPERATOR_PASSWORD: credentials.operatorPassword,
+    SEED_COURIER_PASSWORD: credentials.courierPassword,
   });
   return source.transaction(async (manager) => {
     await manager.query('SELECT pg_advisory_xact_lock($1, $2)', [721003, 1]);
@@ -39,6 +40,11 @@ export async function runSeed(
         username: 'operador',
         role: 'operador',
         password: credentials.operatorPassword,
+      },
+      {
+        username: 'repartidor',
+        role: 'repartidor',
+        password: credentials.courierPassword,
       },
     ];
     for (const data of userData) {

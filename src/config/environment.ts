@@ -2,6 +2,7 @@ export interface AppEnvironment {
   NODE_ENV: 'development' | 'test' | 'production';
   PORT: number;
   TRUST_PROXY_HOPS: number;
+  CORS_ORIGINS: string[];
 }
 
 export const MAX_TRUST_PROXY_HOPS = 10;
@@ -28,6 +29,34 @@ export function parseTrustProxyHops(value: unknown): number {
   return hops;
 }
 
+/**
+ * Lista de orígenes permitidos para CORS, separados por comas. Cada entrada
+ * debe ser un origen http(s) exacto (esquema, host y puerto opcional), sin
+ * ruta ni `/` final ni comodines. Vacío o ausente desactiva CORS. El mensaje
+ * de error no repite el valor recibido.
+ */
+export function parseCorsOrigins(value: unknown): string[] {
+  const message =
+    'CORS_ORIGINS debe ser una lista de orígenes http(s) separados por comas.';
+  if (value === undefined || value === '') return [];
+  if (typeof value !== 'string') throw new Error(message);
+  const origins = value.split(',');
+  for (const origin of origins) {
+    let canonical: string;
+    try {
+      const url = new URL(origin);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:')
+        throw new Error(message);
+      canonical = url.origin;
+    } catch {
+      throw new Error(message);
+    }
+    if (canonical !== origin) throw new Error(message);
+  }
+  if (new Set(origins).size !== origins.length) throw new Error(message);
+  return origins;
+}
+
 export function validateEnvironment(
   environment: Record<string, unknown>,
 ): AppEnvironment {
@@ -45,5 +74,6 @@ export function validateEnvironment(
     NODE_ENV: nodeEnv,
     PORT: parsePort(environment.PORT ?? '3000', 'PORT'),
     TRUST_PROXY_HOPS: parseTrustProxyHops(environment.TRUST_PROXY_HOPS ?? '0'),
+    CORS_ORIGINS: parseCorsOrigins(environment.CORS_ORIGINS),
   };
 }

@@ -28,6 +28,7 @@ import { CreateUserDto, ListUsersDto, UpdateUserDto } from './users.dto';
 import { UserView, userView } from './user.view';
 
 export const USER_NOT_FOUND = 'Usuario no encontrado.';
+export const CLIENT_ROLE = 'Un cliente no cambia de rol.';
 const USERNAME_TAKEN = 'El username ya existe.';
 const USER_HAS_MOVEMENTS =
   'El usuario tiene movimientos; no se puede eliminar.';
@@ -225,6 +226,7 @@ export class UsersService {
       const repository = manager.getRepository(User);
       const user = await this.lockUser(manager, id);
       if (!user) throw new NotFoundException(USER_NOT_FOUND);
+      if (user.role === 'cliente') throw new ConflictException(CLIENT_ROLE);
       if (user.role === role) return userView(user);
       if (user.role === 'admin' && (await this.isLastAdmin(manager)))
         throw new ConflictException(

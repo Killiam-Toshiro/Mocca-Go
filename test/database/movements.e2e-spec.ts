@@ -367,6 +367,7 @@ describe('Movimientos HTTP, saldo e historial con PostgreSQL real', () => {
     await runSeed(context.source, {
       adminPassword: 'Seed-test-admin-password',
       operatorPassword: 'Seed-test-operator-password',
+      courierPassword: 'Seed-test-courier-password',
     });
     const history = (await list().expect(200)).body as History;
     expect(history.total).toBe(3);
