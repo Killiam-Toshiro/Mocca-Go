@@ -111,6 +111,7 @@ describe('Contratos de movimientos y proyección auditada', () => {
     expect(Object.keys(view).sort()).toEqual([
       'createdAt',
       'id',
+      'orderId',
       'productId',
       'quantity',
       'reason',

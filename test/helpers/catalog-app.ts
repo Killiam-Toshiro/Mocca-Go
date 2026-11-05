@@ -7,6 +7,9 @@ import { DataSource } from 'typeorm';
 import { AppModule } from '../../src/app.module';
 import { Session } from '../../src/auth/entities/session.entity';
 import { configureApplication } from '../../src/configure-app';
+import { Customer } from '../../src/customers/entities/customer.entity';
+import { DeliveryPoint } from '../../src/delivery/entities/delivery-point.entity';
+import { DeliveryZone } from '../../src/delivery/entities/delivery-zone.entity';
 import { Product } from '../../src/products/entities/products.entity';
 import { hashPassword } from '../../src/seed/password';
 import { User, UserRole } from '../../src/users/entities/user.entity';
@@ -73,26 +76,66 @@ export class CatalogHarness {
     configureApplication(this.app);
     await this.app.listen(0, '127.0.0.1');
     this.server = this.app.getHttpServer() as Server;
-    const passwordHash = await hashPassword('Integration-only-password');
     for (const role of [
       'admin',
       'operador',
       'repartidor',
       'cliente',
     ] as const) {
-      const owner = await this.context.source
-        .getRepository(User)
-        .save({ username: `rol_${role}`, role, passwordHash });
-      const session = await this.context.source
-        .getRepository(Session)
-        .save({ userId: owner.id, expiresAt: new Date(Date.now() + 900_000) });
-      this.tokens.set(
+      const owner = await this.context.source.getRepository(User).save({
+        username: `rol_${role}`,
         role,
-        await this.app
-          .get(JwtService)
-          .signAsync({ sub: owner.id, sid: session.id, typ: 'access' }),
-      );
+        passwordHash: await this.hash(),
+      });
+      this.tokens.set(role, await this.tokenFor(owner.id));
     }
+  }
+
+  private hashed?: string;
+  private async hash(): Promise<string> {
+    this.hashed ??= await hashPassword('Integration-only-password');
+    return this.hashed;
+  }
+
+  private async tokenFor(userId: string): Promise<string> {
+    const session = await this.context.source
+      .getRepository(Session)
+      .save({ userId, expiresAt: new Date(Date.now() + 900_000) });
+    return this.app
+      .get(JwtService)
+      .signAsync({ sub: userId, sid: session.id, typ: 'access' });
+  }
+
+  /** Cliente con su ficha (`customers`) y un token propio. */
+  async customer(label: string): Promise<{ id: string; auth: string }> {
+    const user = await this.context.source.getRepository(User).save({
+      username: `cli_${label}`,
+      role: 'cliente',
+      passwordHash: await this.hash(),
+    });
+    await this.context.source.getRepository(Customer).save({
+      userId: user.id,
+      email: `${label}@example.com`,
+      fullName: `Cliente ${label}`,
+      phone: '+573001112233',
+    });
+    return { id: user.id, auth: `Bearer ${await this.tokenFor(user.id)}` };
+  }
+
+  /** Punto de entrega directo en la base (con su propia zona). */
+  async point(
+    name: string,
+    extra: Partial<DeliveryPoint> = {},
+  ): Promise<DeliveryPoint> {
+    const zone = await this.context.source
+      .getRepository(DeliveryZone)
+      .save({ name: `Zona de ${name}` });
+    return this.context.source.getRepository(DeliveryPoint).save({
+      zoneId: zone.id,
+      name,
+      floors: 3,
+      ...extra,
+    });
   }
 
   async stop(): Promise<void> {

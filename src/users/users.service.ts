@@ -21,6 +21,7 @@ import { Session } from '../auth/entities/session.entity';
 import {
   isConstraintViolation,
   MOVEMENT_USER_FK,
+  ORDER_CUSTOMER_FK,
 } from '../common/database-errors';
 import { Customer } from '../customers/entities/customer.entity';
 import { StockMovement } from '../movements/entities/stock-movement.entity';
@@ -236,7 +237,10 @@ export class UsersService {
         await manager.getRepository(User).delete({ id });
       });
     } catch (error) {
-      if (isConstraintViolation(error, '23503', MOVEMENT_USER_FK))
+      if (
+        isConstraintViolation(error, '23503', MOVEMENT_USER_FK) ||
+        isConstraintViolation(error, '23503', ORDER_CUSTOMER_FK)
+      )
         throw new ConflictException(USER_HAS_MOVEMENTS);
       throw error;
     }

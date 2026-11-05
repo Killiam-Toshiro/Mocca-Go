@@ -7,5 +7,6 @@ import { MovementsService } from './movements.service';
   imports: [AuthModule],
   controllers: [MovementsController],
   providers: [MovementsService],
+  exports: [MovementsService],
 })
 export class MovementsModule {}

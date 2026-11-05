@@ -46,6 +46,9 @@ export class StockMovement {
   @Column({ type: 'varchar', length: 300 })
   reason!: string;
 
+  @Column({ name: 'order_id', type: 'uuid', nullable: true })
+  orderId!: string | null;
+
   @Column({
     name: 'seed_key',
     type: 'varchar',

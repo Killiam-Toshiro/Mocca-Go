@@ -33,11 +33,12 @@ export class PageResponse {
   totalPages!: number;
 }
 
-export type ErrorStatus = 400 | 401 | 403 | 404 | 409 | 429 | 503;
+export type ErrorStatus = 400 | 401 | 402 | 403 | 404 | 409 | 429 | 503;
 
 const DEFAULT_ERRORS: Record<ErrorStatus, string> = {
   400: 'Parámetros inválidos, campos faltantes o campos no permitidos.',
   401: 'JWT ausente, alterado, expirado o de una sesión cerrada.',
+  402: 'El pago fue rechazado.',
   403: 'El rol vigente no tiene permiso para esta operación.',
   404: 'Recurso no encontrado.',
   409: 'La operación entra en conflicto con el estado actual.',

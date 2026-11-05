@@ -126,6 +126,7 @@ describe('Movimientos HTTP, saldo e historial con PostgreSQL real', () => {
     expect(Object.keys(movement).sort()).toEqual([
       'createdAt',
       'id',
+      'orderId',
       'productId',
       'quantity',
       'reason',

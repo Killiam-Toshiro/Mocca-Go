@@ -152,3 +152,13 @@ Decisiones del incremento 015 (Zonas y puntos de entrega; aprobadas por el usuar
 - D-89: los nombres de zonas y puntos son únicos sin distinguir mayúsculas mediante índices únicos sobre `lower(name)`; la unicidad la decide PostgreSQL y el servicio la traduce a `409`.
 - D-90: las carreras entre crear o mover un punto y eliminar su zona se resuelven con bloqueo compartido de la zona al escribir un punto, bloqueo exclusivo al eliminarla y la FK `RESTRICT` como red de seguridad.
 - D-91: el teléfono del personal y el aviso «en camino» (estado y hora estimada en la app, botón del repartidor que abre WhatsApp) se difieren a 016/017; el máximo de 5 pedidos por ronda y una zona por ronda se aplican en 018.
+
+Decisiones del incremento 016 (Pedidos con pago de demostración; aprobadas por el usuario el 2026-11-05):
+
+- D-92: el inventario sigue teniendo una sola fuente de verdad, el historial de movimientos. El pedido no calcula saldos por su cuenta: llama al núcleo de `MovementsService` dentro de su transacción.
+- D-93: el saldo baja al aprobarse el pago, dentro de la misma transacción que crea el pedido; cancelar lo devuelve con movimientos `IN`.
+- D-94: los pagos son simulados con dos tarjetas de prueba (una aprueba y otra rechaza); el número completo se valida en memoria y nunca se persiste ni se registra. Un rechazo es `402` y no deja rastro.
+- D-95: `Idempotency-Key` obligatorio y huella del contenido guardada con el pedido; la unicidad `(customer_id, idempotency_key)` la decide PostgreSQL.
+- D-96: el pedido guarda copias (nombres, precios, costos, punto y zona, componentes de combos) para que el historial no cambie cuando cambie el menú.
+- D-97: los estados se modelan como CHECK y una tabla de eventos; 017 y 018 solo agregan transiciones.
+- D-98: el costo de las líneas es dato interno: se guarda pero no se devuelve en ninguna respuesta de pedidos.

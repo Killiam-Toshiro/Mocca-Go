@@ -80,12 +80,20 @@ const ANY_ROLE = [
   'GET /api/v1/movements',
 ];
 const CLIENT_ONLY = ['GET /api/v1/customers/me', 'PATCH /api/v1/customers/me'];
+// Pedidos: crea solo el cliente; leen y cancelan cliente, admin y operador.
+const ORDERS = [
+  'POST /api/v1/orders',
+  'GET /api/v1/orders',
+  'GET /api/v1/orders/{id}',
+  'POST /api/v1/orders/{id}/cancel',
+];
 const OWN_PASSWORD = ['PATCH /api/v1/auth/password'];
 const PROTECTED = [
   ...ADMIN_ONLY,
   ...STAFF_ONLY,
   ...ANY_ROLE,
   ...CLIENT_ONLY,
+  ...ORDERS,
   ...OWN_PASSWORD,
 ];
 
@@ -114,6 +122,10 @@ const SUCCESS: Record<string, string> = {
   'PUT /api/v1/products/{id}/components': '200',
   'GET /api/v1/menu': '200',
   'GET /api/v1/delivery-zones': '200',
+  'POST /api/v1/orders': '201',
+  'GET /api/v1/orders': '200',
+  'GET /api/v1/orders/{id}': '200',
+  'POST /api/v1/orders/{id}/cancel': '200',
   'GET /api/v1/delivery-zones/all': '200',
   'POST /api/v1/delivery-zones': '201',
   'PATCH /api/v1/delivery-zones/{id}': '200',
@@ -172,12 +184,12 @@ describe('Documentación OpenAPI (Swagger)', () => {
     });
   });
 
-  it('S-02: documenta exactamente las 34 operaciones con el prefijo /api/v1', () => {
+  it('S-02: documenta exactamente las 38 operaciones con el prefijo /api/v1', () => {
     const operations = Object.entries(doc.paths).flatMap(([path, methods]) =>
       Object.keys(methods).map((method) => `${method.toUpperCase()} ${path}`),
     );
     expect(operations.sort()).toEqual([...PUBLIC, ...PROTECTED].sort());
-    expect(operations).toHaveLength(34);
+    expect(operations).toHaveLength(38);
   });
 
   it('cada operación tiene etiqueta del módulo, resumen y respuesta de éxito', () => {
@@ -208,6 +220,7 @@ describe('Documentación OpenAPI (Swagger)', () => {
       ...ADMIN_ONLY,
       ...STAFF_ONLY,
       ...CLIENT_ONLY,
+      ...ORDERS,
       ...OWN_PASSWORD,
     ])
       expect(operation(key).responses['403']).toBeDefined();
@@ -251,6 +264,14 @@ describe('Documentación OpenAPI (Swagger)', () => {
     ])
       expect(operation(key).responses['429']).toBeDefined();
     expect(operation('POST /api/v1/customers').responses['409']).toBeDefined();
+    expect(operation('POST /api/v1/orders').responses['402']).toBeDefined();
+    expect(operation('POST /api/v1/orders').responses['429']).toBeDefined();
+    const headers = (operation('POST /api/v1/orders').parameters ?? []).filter(
+      (parameter) => parameter.in === 'header',
+    );
+    expect(headers.map((parameter) => parameter.name)).toEqual([
+      'Idempotency-Key',
+    ]);
     for (const key of CLIENT_ONLY)
       expect(operation(key).responses['404']).toBeDefined();
 
@@ -449,6 +470,7 @@ describe('Documentación OpenAPI (Swagger)', () => {
     expect(fields('MovementResponse')).toEqual([
       'createdAt',
       'id',
+      'orderId',
       'productId',
       'quantity',
       'reason',

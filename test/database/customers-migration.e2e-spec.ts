@@ -1,3 +1,4 @@
+import { Orders1791244807000 } from '../../src/database/migrations/1791244807000-orders';
 import { Customers1791244804000 } from '../../src/database/migrations/1791244804000-customers';
 import { User } from '../../src/users/entities/user.entity';
 import {
@@ -22,6 +23,11 @@ describe('Migración de clientes (CA-01, CA-02)', () => {
   const revert = async () => {
     const runner = context.source.createQueryRunner();
     try {
+      // Los pedidos dependen de los clientes: se revierten primero.
+      const [{ present }] = await context.source.query<{ present: boolean }[]>(
+        `SELECT to_regclass('"${context.ownedSchema}"."orders"') IS NOT NULL AS present`,
+      );
+      if (present) await new Orders1791244807000().down(runner);
       await new Customers1791244804000().down(runner);
     } finally {
       await runner.release();

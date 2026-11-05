@@ -6716,7 +6716,7 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"orderId\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"IN\"); pm.expect(json.movement.quantity).to.eql(10); pm.expect(json.stock).to.eql(10); });",
                   "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
@@ -6775,7 +6775,7 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"orderId\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"OUT\"); pm.expect(json.movement.quantity).to.eql(4); pm.expect(json.stock).to.eql(6); });",
                   "pm.test(\"Responsable tomado de la sesión (operator)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"operatorId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
@@ -6971,7 +6971,7 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"orderId\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"OUT\"); pm.expect(json.movement.quantity).to.eql(6); pm.expect(json.stock).to.eql(0); });",
                   "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
@@ -7030,7 +7030,7 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"orderId\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"IN\"); pm.expect(json.movement.quantity).to.eql(2147483647); pm.expect(json.stock).to.eql(2147483647); });",
                   "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
@@ -7144,7 +7144,7 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"orderId\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"OUT\"); pm.expect(json.movement.quantity).to.eql(2147483647); pm.expect(json.stock).to.eql(0); });",
                   "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
@@ -8344,7 +8344,7 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"orderId\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"IN\"); pm.expect(json.movement.quantity).to.eql(6); pm.expect(json.stock).to.eql(6); });",
                   "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
@@ -8457,7 +8457,7 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"orderId\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"OUT\"); pm.expect(json.movement.quantity).to.eql(2); pm.expect(json.stock).to.eql(0); });",
                   "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
@@ -8516,7 +8516,7 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"orderId\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"IN\"); pm.expect(json.movement.quantity).to.eql(5); pm.expect(json.stock).to.eql(5); });",
                   "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
@@ -8787,7 +8787,7 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma de página\", () => pm.expect(Object.keys(json).sort()).to.eql([\"data\",\"limit\",\"page\",\"total\",\"totalPages\"]));",
-                  "pm.test(\"Cada movimiento con campos públicos\", () => json.data.forEach(m => pm.expect(Object.keys(m).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"])));",
+                  "pm.test(\"Cada movimiento con campos públicos\", () => json.data.forEach(m => pm.expect(Object.keys(m).sort()).to.eql([\"createdAt\",\"id\",\"orderId\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"])));",
                   "pm.test(\"Orden por fecha descendente\", () => { const t = json.data.map(m => new Date(m.createdAt).getTime()); pm.expect(t).to.eql([...t].sort((a, b) => b - a)); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
                 ]
@@ -14980,6 +14980,1467 @@
       ]
     },
     {
+      "name": "07f Pedidos y pago de demostración (incremento 016)",
+      "item": [
+        {
+          "name": "Preparar claves y correo del comprador QA",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('buyerEmail', 'qa_buyer_' + Math.random().toString(16).slice(2, 10) + '@u.icesi.edu.co');",
+                  "pm.collectionVariables.set('idemKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "pm.collectionVariables.set('idemKey2', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Comprador — POST /customers → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"{{customerPassword}}\",\n  \"fullName\": \"Comprador QA\",\n  \"phone\": \"300 765 4321\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Comprador — POST /auth/login → 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"buyerToken\", pm.response.json().accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"{{customerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /delivery-zones — puntos del campus para el pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const points = pm.response.json().data.flatMap(z => z.points);",
+                  "const a = points.find(p => p.name === \"Edificio A\"); const c = points.find(p => p.name === \"Canchas\");",
+                  "pm.test(\"Edificio A (2 pisos) y Canchas (sin pisos)\", () => { pm.expect(a.floors).to.eql(2); pm.expect(c.floors).to.eql(null); });",
+                  "pm.collectionVariables.set(\"pointAId\", a.id); pm.collectionVariables.set(\"pointFlatId\", c.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/delivery-zones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "delivery-zones"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders sin token → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 2,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4242424242424242\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders — repartidor → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 2,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4242424242424242\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders sin Idempotency-Key → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 2,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4242424242424242\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders con tarjeta rechazada → 402 sin pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 402\", () => pm.response.to.have.status(402));",
+                  "pm.test(\"Pago rechazado\", () => pm.expect(pm.response.json().message).to.eql(\"Pago rechazado.\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 2,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4000000000000002\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders con tarjeta desconocida → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 2,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4111111111111111\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders con piso mayor al del punto → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 3,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4242424242424242\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders con piso en un punto sin pisos → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointFlatId}}\",\n  \"floor\": 2,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4242424242424242\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders con producto repetido → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 2,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4242424242424242\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders con producto inexistente → 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"00000000-0000-4000-8000-000000000000\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 2,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4242424242424242\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders → 201 con total, copia de precios y sin costos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Estado, total y pago\", () => { pm.expect(j.status).to.eql(\"recibido\"); pm.expect(j.total).to.eql(11500); pm.expect(j.payment).to.eql({method:\"tarjeta_demo\", last4:\"4242\", status:\"aprobado\"}); });",
+                  "pm.test(\"Número consecutivo y un evento inicial\", () => { pm.expect(j.number).to.be.at.least(1001); pm.expect(j.events.map(e => e.status)).to.eql([\"recibido\"]); });",
+                  "pm.test(\"Entrega con punto, zona y piso\", () => { pm.expect(j.delivery.pointName).to.eql(\"Edificio A\"); pm.expect(j.delivery.zoneName).to.eql(\"Zona 1\"); pm.expect(j.delivery.floor).to.eql(2); });",
+                  "pm.test(\"Sin costos ni datos de tarjeta\", () => { const t = pm.response.text(); [\"unitCost\",\"\\\"cost\\\"\",\"4242424242424242\"].forEach(w => pm.expect(t).to.not.include(w)); });",
+                  "pm.collectionVariables.set(\"orderId\", j.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 2,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4242424242424242\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders con la misma clave y contenido → 200, el mismo pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Mismo pedido\", () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get(\"orderId\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"{{menuPandId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 2,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4242424242424242\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders con la misma clave y otro contenido → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{menuCapuId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"pointId\": \"{{pointAId}}\",\n  \"floor\": 2,\n  \"deliveryNote\": \"Junto a la entrada\",\n  \"note\": \"Sin azúcar\",\n  \"payment\": {\n    \"method\": \"tarjeta_demo\",\n    \"cardNumber\": \"4242424242424242\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders — el comprador ve su pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Cache-Control no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
+                  "pm.test(\"Solo pedidos propios, el más reciente primero\", () => { const j = pm.response.json(); pm.expect(j.data[0].id).to.eql(pm.collectionVariables.get(\"orderId\")); pm.expect(j.data.every(o => o.customer.name === \"Comprador QA\")).to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders/:id — el comprador",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders/:id — repartidor → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders/:id inexistente → 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/00000000-0000-4000-8000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "00000000-0000-4000-8000-000000000000"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders?status=recibido — operador ve todos con datos del cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Incluye el pedido del comprador\", () => { const o = pm.response.json().data.find(x => x.id === pm.collectionVariables.get(\"orderId\")); pm.expect(o).to.exist; pm.expect(o.customer.phone).to.eql(\"+573007654321\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders?status=recibido",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "recibido"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /orders?status=perdido → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders?status=perdido",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "perdido"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /movements?productId=capuchino — el OUT del pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const m = pm.response.json().data.find(x => x.orderId === pm.collectionVariables.get(\"orderId\")); pm.test(\"OUT ligado al pedido\", () => { pm.expect(m).to.exist; pm.expect(m.quantity).to.eql(2); pm.expect(m.reason).to.match(/^Pedido #\\d+$/); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/movements?productId={{menuCapuId}}&type=OUT&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "movements"
+              ],
+              "query": [
+                {
+                  "key": "productId",
+                  "value": "{{menuCapuId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "OUT"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders/:id/cancel — repartidor → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}",
+                "cancel"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders/:id/cancel — operador sin motivo → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}",
+                "cancel"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders/:id/cancel — el comprador cancela → 200 y reembolso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Cancelado y reembolsado\", () => { pm.expect(j.status).to.eql(\"cancelado\"); pm.expect(j.payment.status).to.eql(\"reembolsado\"); pm.expect(j.events.map(e => e.status)).to.eql([\"recibido\",\"cancelado\"]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}",
+                "cancel"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /orders/:id/cancel — segunda vez → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}",
+                "cancel"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{buyerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /movements — el IN de la cancelación devuelve el saldo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const m = pm.response.json().data.find(x => x.orderId === pm.collectionVariables.get(\"orderId\")); pm.test(\"IN ligado al pedido\", () => { pm.expect(m).to.exist; pm.expect(m.quantity).to.eql(2); pm.expect(m.reason).to.match(/^Cancelación del pedido #\\d+$/); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/movements?productId={{menuCapuId}}&type=IN&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "movements"
+              ],
+              "query": [
+                {
+                  "key": "productId",
+                  "value": "{{menuCapuId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "IN"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{operatorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin — DELETE /users/:id del comprador con pedidos → 409",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const t = pm.collectionVariables.get('buyerToken'); const p = JSON.parse(atob(t.split('.')[1])); pm.collectionVariables.set('buyerUserId', p.sub);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{buyerUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{buyerUserId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "08 OPCIONAL — bloqueo de cuenta por intentos fallidos",
       "item": [
         {
@@ -16065,6 +17526,46 @@
     },
     {
       "key": "qaPointId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "buyerEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "buyerToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "buyerUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idemKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idemKey2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pointAId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pointFlatId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
       "value": "",
       "type": "string"
     }

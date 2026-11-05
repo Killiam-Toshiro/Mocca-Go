@@ -27,6 +27,14 @@ export class MovementResponse {
   reason!: string;
 
   @ApiProperty({
+    type: String,
+    format: 'uuid',
+    nullable: true,
+    description: 'Pedido que originó el movimiento; null si es manual.',
+  })
+  orderId!: string | null;
+
+  @ApiProperty({
     type: MovementUserResponse,
     description: 'Responsable, tomado de la sesión.',
   })
