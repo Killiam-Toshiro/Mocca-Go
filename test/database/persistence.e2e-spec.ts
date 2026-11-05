@@ -44,8 +44,8 @@ describe('PostgreSQL: migración, integridad y persistencia', () => {
     const rows = await context.source.query<{ total: number }[]>(
       `SELECT count(*)::int AS total FROM "${context.ownedSchema}"."schema_migrations"`,
     );
-    expect(rows[0].total).toBe(4);
-    for (let revertido = 0; revertido < 4; revertido++)
+    expect(rows[0].total).toBe(5);
+    for (let revertido = 0; revertido < 5; revertido++)
       await inTestEnvironment(context, () => migrateFromEnvironment('revert'));
     const tables = await context.source.query<{ table_name: string }[]>(
       'SELECT table_name FROM information_schema.tables WHERE table_schema=$1',

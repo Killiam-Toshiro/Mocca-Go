@@ -43,6 +43,7 @@ const PUBLIC = [
   'GET /api/v1/health',
   'GET /api/v1/health/ready',
   'POST /api/v1/auth/login',
+  'POST /api/v1/customers',
 ];
 const ADMIN_ONLY = [
   'POST /api/v1/users',
@@ -64,12 +65,18 @@ const ANY_ROLE = [
   'POST /api/v1/movements',
   'GET /api/v1/movements',
 ];
-const PROTECTED = [...ADMIN_ONLY, ...ANY_ROLE];
+const CLIENT_ONLY = ['GET /api/v1/customers/me', 'PATCH /api/v1/customers/me'];
+const OWN_PASSWORD = ['PATCH /api/v1/auth/password'];
+const PROTECTED = [...ADMIN_ONLY, ...ANY_ROLE, ...CLIENT_ONLY, ...OWN_PASSWORD];
 
 const SUCCESS: Record<string, string> = {
   'GET /api/v1/health': '200',
   'GET /api/v1/health/ready': '200',
   'POST /api/v1/auth/login': '200',
+  'POST /api/v1/customers': '201',
+  'GET /api/v1/customers/me': '200',
+  'PATCH /api/v1/customers/me': '200',
+  'PATCH /api/v1/auth/password': '204',
   'GET /api/v1/auth/me': '200',
   'POST /api/v1/auth/logout': '204',
   'POST /api/v1/users': '201',
@@ -134,12 +141,12 @@ describe('Documentación OpenAPI (Swagger)', () => {
     });
   });
 
-  it('S-02: documenta exactamente las 19 operaciones con el prefijo /api/v1', () => {
+  it('S-02: documenta exactamente las 23 operaciones con el prefijo /api/v1', () => {
     const operations = Object.entries(doc.paths).flatMap(([path, methods]) =>
       Object.keys(methods).map((method) => `${method.toUpperCase()} ${path}`),
     );
     expect(operations.sort()).toEqual([...PUBLIC, ...PROTECTED].sort());
-    expect(operations).toHaveLength(19);
+    expect(operations).toHaveLength(23);
   });
 
   it('cada operación tiene etiqueta del módulo, resumen y respuesta de éxito', () => {
@@ -165,8 +172,8 @@ describe('Documentación OpenAPI (Swagger)', () => {
     for (const key of PUBLIC) expect(operation(key).security).toBeUndefined();
   });
 
-  it('S-03: las rutas solo admin documentan 403 y las de cualquier rol no', () => {
-    for (const key of ADMIN_ONLY)
+  it('S-03: las rutas por rol documentan 403 y las de cualquier rol no', () => {
+    for (const key of [...ADMIN_ONLY, ...CLIENT_ONLY, ...OWN_PASSWORD])
       expect(operation(key).responses['403']).toBeDefined();
     for (const key of ANY_ROLE)
       expect(operation(key).responses['403']).toBeUndefined();
@@ -199,8 +206,13 @@ describe('Documentación OpenAPI (Swagger)', () => {
       'POST /api/v1/auth/login',
       'GET /api/v1/auth/me',
       'POST /api/v1/auth/logout',
+      'PATCH /api/v1/auth/password',
+      'POST /api/v1/customers',
     ])
       expect(operation(key).responses['429']).toBeDefined();
+    expect(operation('POST /api/v1/customers').responses['409']).toBeDefined();
+    for (const key of CLIENT_ONLY)
+      expect(operation(key).responses['404']).toBeDefined();
 
     expect(
       operation('GET /api/v1/health/ready').responses['503'],
@@ -223,10 +235,26 @@ describe('Documentación OpenAPI (Swagger)', () => {
 
   it('S-04: DTOs de entrada con obligatorios, patrones, longitudes y enumeraciones', () => {
     expect(schema('LoginDto')).toMatchObject({
-      required: ['username', 'password'],
+      required: ['password'],
       properties: {
         username: { pattern: '^[a-z0-9][a-z0-9._-]{2,63}$' },
+        email: { format: 'email', maxLength: 254 },
         password: { minLength: 12, maxLength: 128 },
+      },
+    });
+    expect(schema('RegisterCustomerDto')).toMatchObject({
+      required: ['email', 'password', 'fullName', 'phone'],
+      properties: {
+        email: { format: 'email', maxLength: 254 },
+        password: { minLength: 12, maxLength: 128 },
+        fullName: { minLength: 2, maxLength: 100 },
+      },
+    });
+    expect(schema('ChangePasswordDto')).toMatchObject({
+      required: ['currentPassword', 'newPassword'],
+      properties: {
+        currentPassword: { minLength: 12, maxLength: 128 },
+        newPassword: { minLength: 12, maxLength: 128 },
       },
     });
     expect(schema('CreateUserDto').properties!.role.enum).toEqual([
@@ -331,7 +359,10 @@ describe('Documentación OpenAPI (Swagger)', () => {
     ]);
     expect(fields('UserResponse')).toEqual([
       'createdAt',
+      'email',
+      'fullName',
       'id',
+      'phone',
       'role',
       'updatedAt',
       'username',

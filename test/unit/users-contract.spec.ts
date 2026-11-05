@@ -1,6 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { randomUUID } from 'node:crypto';
+import { Customer } from '../../src/customers/entities/customer.entity';
 import { User } from '../../src/users/entities/user.entity';
 import { userView } from '../../src/users/user.view';
 import {
@@ -18,7 +19,7 @@ describe('Contratos y proyección de usuarios', () => {
   };
   const options = { whitelist: true, forbidNonWhitelisted: true };
 
-  it('la proyección permite solo identidad y fechas, incluso si la entidad contiene secretos', () => {
+  it('la proyección permite solo identidad, contacto y fechas, incluso si la entidad contiene secretos', () => {
     const user = Object.assign(new User(), {
       id: randomUUID(),
       username: 'fixture',
@@ -33,7 +34,10 @@ describe('Contratos y proyección de usuarios', () => {
     const response = userView(user);
     expect(Object.keys(response).sort()).toEqual([
       'createdAt',
+      'email',
+      'fullName',
       'id',
+      'phone',
       'role',
       'updatedAt',
       'username',
@@ -41,6 +45,35 @@ describe('Contratos y proyección de usuarios', () => {
     expect(JSON.stringify(response)).not.toMatch(
       /hidden|unexpected|Failures|blocked|Note/,
     );
+  });
+
+  it('la proyección añade correo, nombre y teléfono solo cuando hay perfil de cliente', () => {
+    const user = Object.assign(new User(), {
+      id: randomUUID(),
+      username: 'c0123456789abcdef',
+      role: 'cliente',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    const customer = Object.assign(new Customer(), {
+      userId: user.id,
+      email: 'ana@u.icesi.edu.co',
+      fullName: 'Ana Pérez',
+      phone: '+573001234567',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    expect(userView(user, customer)).toMatchObject({
+      email: 'ana@u.icesi.edu.co',
+      fullName: 'Ana Pérez',
+      phone: '+573001234567',
+    });
+    expect(userView(user)).toMatchObject({
+      email: null,
+      fullName: null,
+      phone: null,
+    });
+    expect(userView(user, null).email).toBeNull();
   });
 
   it.each(['admin', 'operador'])(

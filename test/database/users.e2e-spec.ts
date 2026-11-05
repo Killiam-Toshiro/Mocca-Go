@@ -102,7 +102,10 @@ describe('Administración y roles: HTTP con PostgreSQL real', () => {
   function assertSafe(user: SafeUser) {
     expect(Object.keys(user).sort()).toEqual([
       'createdAt',
+      'email',
+      'fullName',
       'id',
+      'phone',
       'role',
       'updatedAt',
       'username',

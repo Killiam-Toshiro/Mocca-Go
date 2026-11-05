@@ -6,13 +6,15 @@ Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backe
 
 ## Estado actual
 
-**Mocca Go (2026-11-05):** el incremento 012 (fundaciones) amplía los roles a `admin`, `operador` (cocina), `repartidor` y `cliente`, agrega CORS configurable para el frontend Next.js, hace configurable la duración del JWT, renombra la identidad del proyecto y la base de desarrollo a `mocca_go`, y suma un usuario `repartidor` al seed. Ver [especificación 012](specs/012-fundaciones/spec.md) y su [overview](docs/commits/012.md). Los datos de estado de abajo describen la API heredada del taller.
+**Mocca Go (2026-11-05):** el incremento 012 (fundaciones) amplía los roles a `admin`, `operador` (cocina), `repartidor` y `cliente`, agrega CORS configurable para el frontend Next.js, hace configurable la duración del JWT, renombra la identidad del proyecto y la base de desarrollo a `mocca_go`, y suma un usuario `repartidor` al seed. Ver [especificación 012](specs/012-fundaciones/spec.md) y su [overview](docs/commits/012.md).
+
+**Clientes (2026-11-05):** el incremento 013 agrega el registro público de clientes con correo, contraseña, nombre y teléfono (guardado en formato E.164 para avisos futuros por WhatsApp o SMS), el inicio de sesión con correo, el perfil propio y el cambio de contraseña propio para los cuatro roles. Ver [especificación 013](specs/013-clientes/spec.md) y su [overview](docs/commits/013.md). Los datos de estado de abajo describen la API heredada del taller.
 
 Main actualizado/verificado a `635e928` el 2026-10-13. Incluye seed/PostgreSQL, JWT con sesiones revocables, roles, catálogo, movimientos, Swagger, despliegue Railway y CRUD completo/readiness. La colección Postman está versionada; el usuario confirma corridas exitosas locales y desplegadas. El informe está terminado según el usuario, pendiente de compartir para revisión documental.
 
 **Alcance acordado (2026-10-13):** el usuario excluye 2FA de los requisitos de aquí en adelante. La autenticación vigente es usuario/contraseña → JWT, con sesiones persistidas y logout revocable. El enunciado original incluía 2FA; se conserva como antecedente, mientras que el SDD y el seguimiento actual usan el alcance JWT-only aprobado (D-65).
 
-El código incluye 19 operaciones: dos de health, tres de autenticación, seis de usuarios, seis de catálogo y dos de movimientos.
+El código incluye 23 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, seis de catálogo y dos de movimientos.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -56,18 +58,19 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 
 ## Incrementos
 
-| Commit | Alcance                                                            | Estado                                                        |
-| ------ | ------------------------------------------------------------------ | ------------------------------------------------------------- |
-| 1      | Especificación de inventario, rúbrica y flujo de trabajo           | Cerrado; usuario autorizó avanzar                             |
-| 2      | Base NestJS, configuración, validación, health y pruebas iniciales | Ver resultados y estado en el [overview](docs/commits/002.md) |
-| 3      | PostgreSQL, migración inicial, seed y pruebas de persistencia      | Ver resultados y estado en el [overview](docs/commits/003.md) |
-| 4      | JWT, sesiones revocables y guards (TOTP retirado en el 7)          | Ver resultados y estado en el [overview](docs/commits/004.md) |
-| 5      | Crear/listar usuarios, asignar roles y proteger al último admin    | Ver resultados y estado en el [overview](docs/commits/005.md) |
-| 6      | Catálogo: crear, listar, consultar, editar y activar/desactivar    | Ver resultados y estado en el [overview](docs/commits/006.md) |
-| 7      | Retiro del 2FA: login directo con JWT y sesiones revocables        | Ver resultados y estado en el [overview](docs/commits/007.md) |
-| 9      | Documentación OpenAPI con Swagger UI                               | Ver resultados y estado en el [overview](docs/commits/009.md) |
-| 11     | CRUD completo de productos y usuarios, readiness y colección       | Ver resultados y estado en el [overview](docs/commits/011.md) |
-| 12     | Mocca Go: roles ampliados, CORS, duración del JWT e identidad      | Ver resultados y estado en el [overview](docs/commits/012.md) |
+| Commit | Alcance                                                             | Estado                                                        |
+| ------ | ------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 1      | Especificación de inventario, rúbrica y flujo de trabajo            | Cerrado; usuario autorizó avanzar                             |
+| 2      | Base NestJS, configuración, validación, health y pruebas iniciales  | Ver resultados y estado en el [overview](docs/commits/002.md) |
+| 3      | PostgreSQL, migración inicial, seed y pruebas de persistencia       | Ver resultados y estado en el [overview](docs/commits/003.md) |
+| 4      | JWT, sesiones revocables y guards (TOTP retirado en el 7)           | Ver resultados y estado en el [overview](docs/commits/004.md) |
+| 5      | Crear/listar usuarios, asignar roles y proteger al último admin     | Ver resultados y estado en el [overview](docs/commits/005.md) |
+| 6      | Catálogo: crear, listar, consultar, editar y activar/desactivar     | Ver resultados y estado en el [overview](docs/commits/006.md) |
+| 7      | Retiro del 2FA: login directo con JWT y sesiones revocables         | Ver resultados y estado en el [overview](docs/commits/007.md) |
+| 9      | Documentación OpenAPI con Swagger UI                                | Ver resultados y estado en el [overview](docs/commits/009.md) |
+| 11     | CRUD completo de productos y usuarios, readiness y colección        | Ver resultados y estado en el [overview](docs/commits/011.md) |
+| 12     | Mocca Go: roles ampliados, CORS, duración del JWT e identidad       | Ver resultados y estado en el [overview](docs/commits/012.md) |
+| 13     | Clientes: registro, login con correo, perfil y cambio de contraseña | Ver resultados y estado en el [overview](docs/commits/013.md) |
 
 El despliegue ya está verificado. Quedan revisar el informe final cuando se comparta y confirmar la entrega en Intu. Swagger complementa el informe, pero no lo sustituye.
 
@@ -182,13 +185,13 @@ La documentación se genera con `@nestjs/swagger` a partir de los controladores 
 
 ## Colección Postman
 
-`postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json` es autocontenida (sus variables viven en la colección) y recorre casos exitosos y errores de todas las rutas en las carpetas 00 a 10 (más la 07b de roles de Mocca Go). Trae las contraseñas de demostración de `.env.example`; si tu seed usa otras, cámbialas en la pestaña **Variables**. Con migración, seed y API iniciados:
+`postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json` es autocontenida (sus variables viven en la colección) y recorre casos exitosos y errores de todas las rutas en las carpetas 00 a 10 (más la 07b de roles de Mocca Go y la 07c de clientes y cambio de contraseña). Trae las contraseñas de demostración de `.env.example`; si tu seed usa otras, cámbialas en la pestaña **Variables**. Con migración, seed y API iniciados:
 
 ```bash
 postman collection run "postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json"
 ```
 
-También se puede importar en Postman y ejecutar con el Collection Runner. Cada corrida crea usuarios `qa_*` y productos `QA-*`; el límite de 20 peticiones por minuto en `/auth/*` obliga a esperar un minuto entre corridas completas.
+También se puede importar en Postman y ejecutar con el Collection Runner. Cada corrida crea usuarios `qa_*` y productos `QA-*`; el límite de 20 peticiones por minuto en `/auth/*` y de 5 registros por minuto en `POST /customers` obligan a esperar un minuto entre corridas completas.
 
 ## Autenticación: recorrido manual
 
@@ -203,19 +206,39 @@ Invoke-RestMethod -Method Post "$base/auth/logout" -Headers $headers
 # Repetir /auth/me con los mismos headers debe fallar con 401.
 ```
 
-| Ruta                | Entrada                | Resultado                                                   |
-| ------------------- | ---------------------- | ----------------------------------------------------------- |
-| `POST /auth/login`  | `username`, `password` | `200`: `{accessToken, tokenType:'Bearer', expiresIn:900}`   |
-| `GET /auth/me`      | Bearer JWT             | `200`: `{id,username,role}` sin secretos                    |
-| `POST /auth/logout` | Bearer JWT             | `204`: sesión revocada; después el mismo JWT devuelve `401` |
+| Ruta                   | Entrada                                                           | Resultado                                                   |
+| ---------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- |
+| `POST /auth/login`     | `password` y `username` (personal) o `email` (clientes), solo uno | `200`: `{accessToken, tokenType:'Bearer', expiresIn}`       |
+| `GET /auth/me`         | Bearer JWT                                                        | `200`: `{id,username,role}` sin secretos                    |
+| `POST /auth/logout`    | Bearer JWT                                                        | `204`: sesión revocada; después el mismo JWT devuelve `401` |
+| `PATCH /auth/password` | Bearer JWT, `currentPassword`, `newPassword`                      | `204`: contraseña cambiada y demás sesiones revocadas       |
 
 Las rutas son relativas a `/api/v1`. Las antiguas `/auth/2fa/setup`, `/auth/2fa/confirm` y `/auth/verify-2fa` fueron retiradas y devuelven `404`. Se rechazan campos adicionales con `400`; credenciales inválidas, usuario inexistente o cuenta bloqueada con el mismo `401`; exceso de peticiones con `429`. Username canónico y contraseña de 12–128 caracteres. Cinco fallos de contraseña bloquean el login de esa cuenta 15 minutos y un éxito reinicia el contador. El límite por IP/ruta es 20 peticiones/minuto en memoria por proceso.
 
-El JWT es HS256, dura `ACCESS_TOKEN_TTL_SECONDS` (15 minutos por defecto) y no hay refresh. Cada login crea una sesión en PostgreSQL; el guard comprueba JWT y sesión y toma el rol vigente de BD, y `logout` revoca solo esa sesión. Todas las respuestas auth llevan `Cache-Control: no-store`. Sin segundo factor, la contraseña es la única barrera: usa contraseñas propias en cualquier entorno compartido. Un admin puede cambiar la contraseña de un usuario con `PATCH /users/:id`; no hay cambio por el propio usuario, recuperación de contraseña, refresh tokens ni rotación de claves automatizada.
+El JWT es HS256, dura `ACCESS_TOKEN_TTL_SECONDS` (15 minutos por defecto) y no hay refresh. Cada login crea una sesión en PostgreSQL; el guard comprueba JWT y sesión y toma el rol vigente de BD, y `logout` revoca solo esa sesión. Todas las respuestas auth llevan `Cache-Control: no-store`. Sin segundo factor, la contraseña es la única barrera: usa contraseñas propias en cualquier entorno compartido. Cualquier usuario autenticado cambia su propia contraseña con `PATCH /auth/password` (`currentPassword` y `newPassword` de 12–128 caracteres, la nueva distinta de la actual): la actual se verifica con el mismo contador de fallos del login (cinco fallos bloquean la cuenta 15 minutos), una contraseña actual incorrecta responde `403` y un cambio correcto revoca las demás sesiones. Quien olvida su contraseña la recupera con un admin mediante `PATCH /users/:id`; no hay recuperación por correo, refresh tokens ni rotación de claves automatizada.
+
+## Clientes
+
+Los clientes se registran solos; no necesitan a un admin.
+
+| Ruta relativa a `/api/v1` | Acceso    | Entrada                                       | Respuesta                                   |
+| ------------------------- | --------- | --------------------------------------------- | ------------------------------------------- |
+| `POST /customers`         | Público   | JSON `email`, `password`, `fullName`, `phone` | `201`: perfil `{id,email,fullName,phone,…}` |
+| `GET /customers/me`       | `cliente` | Bearer JWT                                    | `200`: perfil propio                        |
+| `PATCH /customers/me`     | `cliente` | JSON `fullName` y/o `phone`                   | `200`: perfil actualizado                   |
+
+El registro no inicia sesión: después se llama a `POST /auth/login` con `email` y `password`. El correo se guarda en minúsculas y es único (`409` si ya existe). La contraseña tiene 12–128 caracteres y el nombre 2–100. El teléfono es obligatorio y se normaliza a E.164: `300 123 4567` queda como `+573001234567`, y también se aceptan números internacionales con `+` (`+34 612 345 678`); fijos, números incompletos y texto reciben `400`. El teléfono no es único y todavía no se usa para enviar mensajes. `POST /customers` admite 5 peticiones por minuto por IP; las respuestas de `/customers` llevan `Cache-Control: no-store` y nunca incluyen contraseña, hash ni el `username` interno que se genera para la cuenta. El correo no se puede cambiar. Un admin puede restablecer la contraseña de un cliente o eliminarlo con las rutas de `/users`, pero no cambiarle el rol.
+
+```powershell
+$base = 'http://localhost:3000/api/v1'
+Invoke-RestMethod -Method Post "$base/customers" -ContentType 'application/json' -Body (@{ email = 'ana@u.icesi.edu.co'; password = '<contraseña_de_12_a_128_caracteres>'; fullName = 'Ana Pérez'; phone = '300 123 4567' } | ConvertTo-Json)
+$session = Invoke-RestMethod -Method Post "$base/auth/login" -ContentType 'application/json' -Body (@{ email = 'ana@u.icesi.edu.co'; password = '<la misma contraseña>' } | ConvertTo-Json)
+Invoke-RestMethod "$base/customers/me" -Headers @{ Authorization = "Bearer $($session.accessToken)" }
+```
 
 ## Administración de usuarios y roles
 
-Después de iniciar sesión como admin, usa el Bearer JWT obtenido. Un operador, repartidor o cliente recibe `403` y una petición sin sesión válida recibe `401` en las seis rutas. No existe registro público (el de clientes llega en el incremento 013).
+Después de iniciar sesión como admin, usa el Bearer JWT obtenido. Un operador, repartidor o cliente recibe `403` y una petición sin sesión válida recibe `401` en las seis rutas. El registro público es solo para clientes (`POST /customers`); el personal lo crea un admin.
 
 | Ruta relativa a `/api/v1` | Parámetros                                                               | Respuesta                                   |
 | ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
@@ -226,7 +249,7 @@ Después de iniciar sesión como admin, usa el Bearer JWT obtenido. Un operador,
 | `DELETE /users/:id`       | UUID v4                                                                  | `204` sin cuerpo                            |
 | `PATCH /users/:id/role`   | UUID v4, JSON `{role}`                                                   | `200`: usuario seguro actualizado           |
 
-Usuario seguro contiene solo `id`, `username`, `role`, `createdAt` y `updatedAt`, con fechas ISO-8601. El listado no devuelve credenciales. La creación ya no emite credencial de enrolamiento: el admin comunica privadamente la contraseña inicial y el nuevo usuario inicia sesión directamente con ella.
+Usuario seguro contiene solo `id`, `username`, `role`, `email`, `fullName`, `phone`, `createdAt` y `updatedAt`, con fechas ISO-8601. `email`, `fullName` y `phone` son los datos de contacto de un cliente (el teléfono en E.164); para el personal valen `null`. En un cliente, `username` es el identificador interno generado. El listado no devuelve credenciales. La creación ya no emite credencial de enrolamiento: el admin comunica privadamente la contraseña inicial y el nuevo usuario inicia sesión directamente con ella.
 
 Username debe ser canónico: 3–64 caracteres, minúsculas ASCII, dígitos y `._-`, empezando por letra/dígito. Password de 12–128 caracteres, sin transformación. Body/query con campos extra, UUID/rol/formato inválido → `400`; username duplicado → `409`; destino inexistente → `404`. No se aceptan campos para editar hash, contraseña o stock en el cambio de rol.
 
@@ -351,6 +374,7 @@ src/
   database/               # Conexión, comandos y migración inicial
   common/                 # Paginación, errores de BD y esquemas OpenAPI
   users/                  # Entidad, administración y roles
+  customers/              # Registro, perfil y teléfono de los clientes
   products/               # Entidad, catálogo (controlador, DTOs, servicio) y stock
   movements/entities/     # Historial con usuario y producto
   seed/                   # Credenciales, hash y carga transaccional

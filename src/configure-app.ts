@@ -38,6 +38,7 @@ export function configureApplication(
   app.use(
     [
       '/api/v1/auth',
+      '/api/v1/customers',
       '/api/v1/users',
       '/api/v1/movements',
       '/api/v1/health/ready',

@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "b8386368-b577-4686-a570-64e19ba12aca",
     "name": "Taller NestJS - Inventario",
-    "description": "# Taller Backend NestJS — API de inventario (JWT)\n\nColección **autocontenida** (sin archivo de entorno): las variables viven dentro de la colección. Cubre health y readiness, login JWT, usuarios/roles, productos, movimientos y, en la carpeta **07**, Swagger y el CRUD completo del incremento 011 (DELETE de productos, GET/PATCH/DELETE de usuarios).\n\n## Cómo usarla\n1. Importa este archivo en Postman (**Import**).\n2. Levanta la API: `npm run db:up && npm run migration:run && npm run seed && npm run start:dev`.\n3. Abre la colección → pestaña **Variables** y pon en `adminPassword` / `operatorPassword` los valores de `SEED_ADMIN_PASSWORD` / `SEED_OPERATOR_PASSWORD` de tu `.env` (en *Current value*). Si tu API no corre en `http://localhost:3000`, cambia `baseUrl`.\n4. Ejecuta con el *Collection Runner* (orden 00 → 10) o petición por petición. Empieza siempre por **01 Sesiones**: guarda los JWT en `adminToken` y `operatorToken`.\n5. Por línea de comandos: `postman collection run \"postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json\"` (o `newman run` con la misma ruta).\n\n## Notas\n- Los JWT duran 15 min; si expiran (401), vuelve a ejecutar *01 Sesiones*.\n- Los usuarios y productos con movimientos no se pueden eliminar, así que cada corrida deja usuarios `qa_*` y productos `QA-*` en la BD. Para una BD limpia: `docker compose down -v` y repetir migración y seed.\n- Límite de 20 peticiones/min por IP y ruta en `/auth/*`: espera ~1 min entre corridas completas.\n- `adminPassword` y `operatorPassword` traen los valores de demostración de `.env.example`; nunca guardes aquí contraseñas reales.\n",
+    "description": "# Taller Backend NestJS \u2014 API de inventario (JWT)\n\nColecci\u00f3n **autocontenida** (sin archivo de entorno): las variables viven dentro de la colecci\u00f3n. Cubre health y readiness, login JWT, usuarios/roles, productos, movimientos y, en la carpeta **07**, Swagger y el CRUD completo del incremento 011 (DELETE de productos, GET/PATCH/DELETE de usuarios).\n\n## C\u00f3mo usarla\n1. Importa este archivo en Postman (**Import**).\n2. Levanta la API: `npm run db:up && npm run migration:run && npm run seed && npm run start:dev`.\n3. Abre la colecci\u00f3n \u2192 pesta\u00f1a **Variables** y pon en `adminPassword` / `operatorPassword` los valores de `SEED_ADMIN_PASSWORD` / `SEED_OPERATOR_PASSWORD` de tu `.env` (en *Current value*). Si tu API no corre en `http://localhost:3000`, cambia `baseUrl`.\n4. Ejecuta con el *Collection Runner* (orden 00 \u2192 10) o petici\u00f3n por petici\u00f3n. Empieza siempre por **01 Sesiones**: guarda los JWT en `adminToken` y `operatorToken`.\n5. Por l\u00ednea de comandos: `postman collection run \"postman/Taller Backend NestJS \u2014 Inventario (JWT).postman_collection.json\"` (o `newman run` con la misma ruta).\n\n## Notas\n- Los JWT duran 15 min; si expiran (401), vuelve a ejecutar *01 Sesiones*.\n- Los usuarios y productos con movimientos no se pueden eliminar, as\u00ed que cada corrida deja usuarios `qa_*` y productos `QA-*` en la BD. Para una BD limpia: `docker compose down -v` y repetir migraci\u00f3n y seed.\n- L\u00edmite de 20 peticiones/min por IP y ruta en `/auth/*`: espera ~1 min entre corridas completas.\n- `adminPassword` y `operatorPassword` traen los valores de demostraci\u00f3n de `.env.example`; nunca guardes aqu\u00ed contrase\u00f1as reales.\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "54517210",
     "_collection_link": "https://go.postman.co/collection/54517210-b8386368-b577-4686-a570-64e19ba12aca?source=collection_link"
@@ -41,12 +41,12 @@
                 "health"
               ]
             },
-            "description": "Comprobación pública de disponibilidad del proceso (no consulta la BD)."
+            "description": "Comprobaci\u00f3n p\u00fablica de disponibilidad del proceso (no consulta la BD)."
           },
           "response": []
         },
         {
-          "name": "GET /health sin prefijo → 404",
+          "name": "GET /health sin prefijo \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -78,7 +78,7 @@
           "response": []
         },
         {
-          "name": "GET ruta inexistente → 404",
+          "name": "GET ruta inexistente \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -109,13 +109,13 @@
           "response": []
         }
       ],
-      "description": "Disponibilidad básica de la API."
+      "description": "Disponibilidad b\u00e1sica de la API."
     },
     {
-      "name": "01 Sesiones (login con usuario y contraseña → JWT)",
+      "name": "01 Sesiones (login con usuario y contrase\u00f1a \u2192 JWT)",
       "item": [
         {
-          "name": "Admin — POST /auth/login",
+          "name": "Admin \u2014 POST /auth/login",
           "event": [
             {
               "listen": "test",
@@ -126,7 +126,7 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Devuelve JWT Bearer de 15 min directamente\", () => { pm.expect(json.tokenType).to.eql(\"Bearer\"); pm.expect(json.expiresIn).to.eql(900); pm.expect(json.accessToken.split(\".\")).to.have.lengthOf(3); });",
-                  "pm.test(\"Solo accessToken, tokenType y expiresIn (sin desafío 2FA)\", () => pm.expect(Object.keys(json).sort()).to.eql([\"accessToken\",\"expiresIn\",\"tokenType\"]));",
+                  "pm.test(\"Solo accessToken, tokenType y expiresIn (sin desaf\u00edo 2FA)\", () => pm.expect(Object.keys(json).sort()).to.eql([\"accessToken\",\"expiresIn\",\"tokenType\"]));",
                   "pm.test(\"Claims del JWT (sub, sid, typ, iss, aud, exp)\", () => { const p = JSON.parse(atob(json.accessToken.split(\".\")[1].replace(/-/g,\"+\").replace(/_/g,\"/\"))); pm.expect(p.typ).to.eql(\"access\"); pm.expect(p.iss).to.eql(\"mocca-go-api\"); pm.expect(p.aud).to.eql(\"mocca-go-client\"); pm.expect(p.exp - p.iat).to.eql(900); pm.expect(p.sub).to.match(/^[0-9a-f-]{36}$/); pm.expect(p.sid).to.match(/^[0-9a-f-]{36}$/); });",
                   "pm.collectionVariables.set(\"adminToken\", json.accessToken);"
                 ]
@@ -167,7 +167,7 @@
           "response": []
         },
         {
-          "name": "Admin — GET /auth/me",
+          "name": "Admin \u2014 GET /auth/me",
           "event": [
             {
               "listen": "test",
@@ -211,7 +211,7 @@
           "response": []
         },
         {
-          "name": "Operador — POST /auth/login",
+          "name": "Operador \u2014 POST /auth/login",
           "event": [
             {
               "listen": "test",
@@ -222,7 +222,7 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Devuelve JWT Bearer de 15 min directamente\", () => { pm.expect(json.tokenType).to.eql(\"Bearer\"); pm.expect(json.expiresIn).to.eql(900); pm.expect(json.accessToken.split(\".\")).to.have.lengthOf(3); });",
-                  "pm.test(\"Solo accessToken, tokenType y expiresIn (sin desafío 2FA)\", () => pm.expect(Object.keys(json).sort()).to.eql([\"accessToken\",\"expiresIn\",\"tokenType\"]));",
+                  "pm.test(\"Solo accessToken, tokenType y expiresIn (sin desaf\u00edo 2FA)\", () => pm.expect(Object.keys(json).sort()).to.eql([\"accessToken\",\"expiresIn\",\"tokenType\"]));",
                   "pm.test(\"Claims del JWT (sub, sid, typ, iss, aud, exp)\", () => { const p = JSON.parse(atob(json.accessToken.split(\".\")[1].replace(/-/g,\"+\").replace(/_/g,\"/\"))); pm.expect(p.typ).to.eql(\"access\"); pm.expect(p.iss).to.eql(\"mocca-go-api\"); pm.expect(p.aud).to.eql(\"mocca-go-client\"); pm.expect(p.exp - p.iat).to.eql(900); pm.expect(p.sub).to.match(/^[0-9a-f-]{36}$/); pm.expect(p.sid).to.match(/^[0-9a-f-]{36}$/); });",
                   "pm.collectionVariables.set(\"operatorToken\", json.accessToken);"
                 ]
@@ -263,7 +263,7 @@
           "response": []
         },
         {
-          "name": "Operador — GET /auth/me",
+          "name": "Operador \u2014 GET /auth/me",
           "event": [
             {
               "listen": "test",
@@ -310,10 +310,10 @@
       "description": "Un solo paso: `POST /auth/login` devuelve el JWT. Quedan guardados en `adminToken` y `operatorToken` (duran 15 min). Los usuarios `admin` y `operador` los crea el seed."
     },
     {
-      "name": "02 Autenticación — casos negativos",
+      "name": "02 Autenticaci\u00f3n \u2014 casos negativos",
       "item": [
         {
-          "name": "GET /auth/me sin token → 401",
+          "name": "GET /auth/me sin token \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -347,7 +347,7 @@
           "response": []
         },
         {
-          "name": "GET /auth/me con esquema Basic → 401",
+          "name": "GET /auth/me con esquema Basic \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -386,7 +386,7 @@
           "response": []
         },
         {
-          "name": "GET /auth/me con Bearer basura → 401",
+          "name": "GET /auth/me con Bearer basura \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -425,7 +425,7 @@
           "response": []
         },
         {
-          "name": "GET /auth/me con JWT alterado → 401",
+          "name": "GET /auth/me con JWT alterado \u2192 401",
           "event": [
             {
               "listen": "prerequest",
@@ -473,7 +473,7 @@
           "response": []
         },
         {
-          "name": "GET /auth/me con un token de 64 hex (no es JWT) → 401",
+          "name": "GET /auth/me con un token de 64 hex (no es JWT) \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -512,7 +512,7 @@
           "response": []
         },
         {
-          "name": "POST /auth/login con body vacío → 400",
+          "name": "POST /auth/login con body vac\u00edo \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -560,7 +560,7 @@
           "response": []
         },
         {
-          "name": "POST /auth/login con campo extra → 400",
+          "name": "POST /auth/login con campo extra \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -608,7 +608,7 @@
           "response": []
         },
         {
-          "name": "POST /auth/login username con mayúsculas → 400",
+          "name": "POST /auth/login username con may\u00fasculas \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -656,7 +656,7 @@
           "response": []
         },
         {
-          "name": "POST /auth/login contraseña de 11 caracteres → 400",
+          "name": "POST /auth/login contrase\u00f1a de 11 caracteres \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -704,7 +704,7 @@
           "response": []
         },
         {
-          "name": "POST /auth/login usuario inexistente → 401",
+          "name": "POST /auth/login usuario inexistente \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -714,7 +714,7 @@
                   "pm.test(\"Status 401\", () => pm.response.to.have.status(401));",
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "pm.test(\"Cuerpo de error Nest (statusCode 401)\", () => { const j = pm.response.json(); pm.expect(j.statusCode).to.eql(401); pm.expect(j).to.have.property(\"message\"); });",
-                  "pm.test(\"Mensaje genérico\", () => pm.expect(pm.response.json().message).to.eql(\"Credenciales inválidas.\"));"
+                  "pm.test(\"Mensaje gen\u00e9rico\", () => pm.expect(pm.response.json().message).to.eql(\"Credenciales inv\u00e1lidas.\"));"
                 ]
               }
             }
@@ -753,7 +753,7 @@
           "response": []
         },
         {
-          "name": "POST /auth/login contraseña errónea de admin → 401 (mismo mensaje)",
+          "name": "POST /auth/login contrase\u00f1a err\u00f3nea de admin \u2192 401 (mismo mensaje)",
           "event": [
             {
               "listen": "test",
@@ -763,7 +763,7 @@
                   "pm.test(\"Status 401\", () => pm.response.to.have.status(401));",
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "pm.test(\"Cuerpo de error Nest (statusCode 401)\", () => { const j = pm.response.json(); pm.expect(j.statusCode).to.eql(401); pm.expect(j).to.have.property(\"message\"); });",
-                  "pm.test(\"Mismo mensaje que usuario inexistente (no enumera usuarios)\", () => pm.expect(pm.response.json().message).to.eql(\"Credenciales inválidas.\"));",
+                  "pm.test(\"Mismo mensaje que usuario inexistente (no enumera usuarios)\", () => pm.expect(pm.response.json().message).to.eql(\"Credenciales inv\u00e1lidas.\"));",
                   "pm.test(\"Sin token en la respuesta\", () => pm.expect(pm.response.text()).to.not.include(\"accessToken\"));"
                 ]
               }
@@ -782,7 +782,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"contraseña-incorrecta-123\"\n}",
+              "raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"contrase\u00f1a-incorrecta-123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -803,7 +803,7 @@
           "response": []
         },
         {
-          "name": "POST /auth/logout sin token → 401",
+          "name": "POST /auth/logout sin token \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -837,7 +837,7 @@
           "response": []
         },
         {
-          "name": "POST /auth/verify-2fa retirada → 404",
+          "name": "POST /auth/verify-2fa retirada \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -884,7 +884,7 @@
           "response": []
         },
         {
-          "name": "POST /auth/2fa/setup retirada → 404",
+          "name": "POST /auth/2fa/setup retirada \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -932,7 +932,7 @@
           "response": []
         },
         {
-          "name": "POST /auth/2fa/confirm retirada → 404",
+          "name": "POST /auth/2fa/confirm retirada \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -980,7 +980,7 @@
           "response": []
         }
       ],
-      "description": "Todos responden con `Cache-Control: no-store` y mensaje genérico. Solo hay 1 intento erróneo para `admin` (el contador se reinicia con el siguiente login correcto)."
+      "description": "Todos responden con `Cache-Control: no-store` y mensaje gen\u00e9rico. Solo hay 1 intento err\u00f3neo para `admin` (el contador se reinicia con el siguiente login correcto)."
     },
     {
       "name": "03 Usuarios y roles (solo admin)",
@@ -1024,12 +1024,12 @@
                 "health"
               ]
             },
-            "description": "Genera `qaUsername` y `qaLockUsername` únicos por corrida."
+            "description": "Genera `qaUsername` y `qaLockUsername` \u00fanicos por corrida."
           },
           "response": []
         },
         {
-          "name": "GET /users sin token → 401",
+          "name": "GET /users sin token \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -1062,7 +1062,7 @@
           "response": []
         },
         {
-          "name": "GET /users como operador → 403",
+          "name": "GET /users como operador \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -1102,7 +1102,7 @@
           "response": []
         },
         {
-          "name": "POST /users sin token → 401",
+          "name": "POST /users sin token \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -1148,7 +1148,7 @@
           "response": []
         },
         {
-          "name": "POST /users como operador → 403 (no puede autoasignarse privilegios)",
+          "name": "POST /users como operador \u2192 403 (no puede autoasignarse privilegios)",
           "event": [
             {
               "listen": "test",
@@ -1202,7 +1202,7 @@
           "response": []
         },
         {
-          "name": "PATCH /users/:id/role como operador → 403",
+          "name": "PATCH /users/:id/role como operador \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -1257,7 +1257,7 @@
           "response": []
         },
         {
-          "name": "POST /users — crear usuario operador (QA)",
+          "name": "POST /users \u2014 crear usuario operador (QA)",
           "event": [
             {
               "listen": "test",
@@ -1267,7 +1267,7 @@
                   "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Usuario seguro: exactamente id, username, role, createdAt, updatedAt\", () => pm.expect(Object.keys(json).sort()).to.eql([\"createdAt\",\"id\",\"role\",\"updatedAt\",\"username\"]));",
+                  "pm.test(\"Usuario seguro: exactamente id, username, role, email, fullName, phone, createdAt, updatedAt\", () => pm.expect(Object.keys(json).sort()).to.eql([\"createdAt\",\"email\",\"fullName\",\"id\",\"phone\",\"role\",\"updatedAt\",\"username\"]));",
                   "pm.test(\"Rol y username\", () => { pm.expect(json.role).to.eql(\"operador\"); pm.expect(json.username).to.eql(pm.collectionVariables.get(\"qaUsername\")); });",
                   "pm.test(\"Sin credencial de enrolamiento ni secretos\", () => pm.expect(pm.response.text()).to.not.match(/enrollment|passwordHash|totp/i));",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });",
@@ -1316,7 +1316,7 @@
           "response": []
         },
         {
-          "name": "POST /users — username duplicado → 409",
+          "name": "POST /users \u2014 username duplicado \u2192 409",
           "event": [
             {
               "listen": "test",
@@ -1371,7 +1371,7 @@
           "response": []
         },
         {
-          "name": "POST /users — body vacío → 400",
+          "name": "POST /users \u2014 body vac\u00edo \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -1425,7 +1425,7 @@
           "response": []
         },
         {
-          "name": "POST /users — username con mayúsculas → 400",
+          "name": "POST /users \u2014 username con may\u00fasculas \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -1479,7 +1479,7 @@
           "response": []
         },
         {
-          "name": "POST /users — username de 2 caracteres → 400",
+          "name": "POST /users \u2014 username de 2 caracteres \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -1533,7 +1533,7 @@
           "response": []
         },
         {
-          "name": "POST /users — username con espacios → 400",
+          "name": "POST /users \u2014 username con espacios \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -1587,7 +1587,7 @@
           "response": []
         },
         {
-          "name": "POST /users — password de 11 caracteres → 400",
+          "name": "POST /users \u2014 password de 11 caracteres \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -1641,7 +1641,7 @@
           "response": []
         },
         {
-          "name": "POST /users — password de 129 caracteres → 400",
+          "name": "POST /users \u2014 password de 129 caracteres \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -1695,7 +1695,7 @@
           "response": []
         },
         {
-          "name": "POST /users — rol inválido → 400",
+          "name": "POST /users \u2014 rol inv\u00e1lido \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -1749,7 +1749,7 @@
           "response": []
         },
         {
-          "name": "POST /users — falta el rol → 400",
+          "name": "POST /users \u2014 falta el rol \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -1803,7 +1803,7 @@
           "response": []
         },
         {
-          "name": "POST /users — campo extra (passwordHash) → 400",
+          "name": "POST /users \u2014 campo extra (passwordHash) \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -1857,7 +1857,7 @@
           "response": []
         },
         {
-          "name": "GET /users — listado por defecto",
+          "name": "GET /users \u2014 listado por defecto",
           "event": [
             {
               "listen": "test",
@@ -1867,9 +1867,9 @@
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Forma de página\", () => pm.expect(Object.keys(json).sort()).to.eql([\"data\",\"limit\",\"page\",\"total\",\"totalPages\"]));",
+                  "pm.test(\"Forma de p\u00e1gina\", () => pm.expect(Object.keys(json).sort()).to.eql([\"data\",\"limit\",\"page\",\"total\",\"totalPages\"]));",
                   "pm.test(\"Defaults page=1 limit=20\", () => { pm.expect(json.page).to.eql(1); pm.expect(json.limit).to.eql(20); });",
-                  "pm.test(\"Usuarios sin secretos\", () => json.data.forEach(u => pm.expect(Object.keys(u).sort()).to.eql([\"createdAt\",\"id\",\"role\",\"updatedAt\",\"username\"])));",
+                  "pm.test(\"Usuarios sin secretos\", () => json.data.forEach(u => pm.expect(Object.keys(u).sort()).to.eql([\"createdAt\",\"email\",\"fullName\",\"id\",\"phone\",\"role\",\"updatedAt\",\"username\"])));",
                   "pm.test(\"Contiene admin y operador (usuarios del seed)\", () => { const n = json.data.map(u => u.username); pm.expect(n).to.include(\"admin\"); pm.expect(n).to.include(\"operador\"); });",
                   "pm.test(\"Orden por username ascendente\", () => { const n = json.data.map(u => u.username); pm.expect(n).to.eql([...n].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))); });",
                   "pm.test(\"totalPages = ceil(total/limit)\", () => pm.expect(json.totalPages).to.eql(Math.ceil(json.total / json.limit)));",
@@ -1954,7 +1954,7 @@
           "response": []
         },
         {
-          "name": "GET /users?page=10000 (fuera de rango) → data vacía",
+          "name": "GET /users?page=10000 (fuera de rango) \u2192 data vac\u00eda",
           "event": [
             {
               "listen": "test",
@@ -1963,7 +1963,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"data vacía\", () => pm.expect(json.data).to.eql([]));"
+                  "pm.test(\"data vac\u00eda\", () => pm.expect(json.data).to.eql([]));"
                 ]
               }
             }
@@ -2000,7 +2000,7 @@
           "response": []
         },
         {
-          "name": "GET /users?page=0 → 400",
+          "name": "GET /users?page=0 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2046,7 +2046,7 @@
           "response": []
         },
         {
-          "name": "GET /users?page=10001 → 400",
+          "name": "GET /users?page=10001 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2092,7 +2092,7 @@
           "response": []
         },
         {
-          "name": "GET /users?limit=101 → 400",
+          "name": "GET /users?limit=101 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2138,7 +2138,7 @@
           "response": []
         },
         {
-          "name": "GET /users?page=01 (cero inicial) → 400",
+          "name": "GET /users?page=01 (cero inicial) \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2184,7 +2184,7 @@
           "response": []
         },
         {
-          "name": "GET /users?page=1.5 → 400",
+          "name": "GET /users?page=1.5 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2230,7 +2230,7 @@
           "response": []
         },
         {
-          "name": "GET /users?page=-1 → 400",
+          "name": "GET /users?page=-1 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2276,7 +2276,7 @@
           "response": []
         },
         {
-          "name": "GET /users?page=abc → 400",
+          "name": "GET /users?page=abc \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2322,7 +2322,7 @@
           "response": []
         },
         {
-          "name": "GET /users?page=1&page=2 (repetido) → 400",
+          "name": "GET /users?page=1&page=2 (repetido) \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2372,7 +2372,7 @@
           "response": []
         },
         {
-          "name": "GET /users?foo=1 (parámetro no permitido) → 400",
+          "name": "GET /users?foo=1 (par\u00e1metro no permitido) \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2418,7 +2418,7 @@
           "response": []
         },
         {
-          "name": "PATCH /users/:id/role — UUID inválido → 400",
+          "name": "PATCH /users/:id/role \u2014 UUID inv\u00e1lido \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2473,7 +2473,7 @@
           "response": []
         },
         {
-          "name": "PATCH /users/:id/role — UUID v1 → 400 (solo v4)",
+          "name": "PATCH /users/:id/role \u2014 UUID v1 \u2192 400 (solo v4)",
           "event": [
             {
               "listen": "test",
@@ -2528,7 +2528,7 @@
           "response": []
         },
         {
-          "name": "PATCH /users/:id/role — usuario inexistente → 404",
+          "name": "PATCH /users/:id/role \u2014 usuario inexistente \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -2584,7 +2584,7 @@
           "response": []
         },
         {
-          "name": "PATCH /users/:id/role — rol inválido → 400",
+          "name": "PATCH /users/:id/role \u2014 rol inv\u00e1lido \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2639,7 +2639,7 @@
           "response": []
         },
         {
-          "name": "PATCH /users/:id/role — campo extra (password) → 400",
+          "name": "PATCH /users/:id/role \u2014 campo extra (password) \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -2694,7 +2694,7 @@
           "response": []
         },
         {
-          "name": "PATCH /users/:id/role — mismo rol es idempotente → 200",
+          "name": "PATCH /users/:id/role \u2014 mismo rol es idempotente \u2192 200",
           "event": [
             {
               "listen": "test",
@@ -2704,7 +2704,7 @@
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Usuario seguro\", () => pm.expect(Object.keys(json).sort()).to.eql([\"createdAt\",\"id\",\"role\",\"updatedAt\",\"username\"]));",
+                  "pm.test(\"Usuario seguro\", () => pm.expect(Object.keys(json).sort()).to.eql([\"createdAt\",\"email\",\"fullName\",\"id\",\"phone\",\"role\",\"updatedAt\",\"username\"]));",
                   "pm.test(\"Sigue siendo operador\", () => pm.expect(json.role).to.eql(\"operador\"));"
                 ]
               }
@@ -2752,13 +2752,13 @@
           "response": []
         }
       ],
-      "description": "Administración exclusiva para `admin`: operador → 403, sin sesión → 401. Los usuarios QA se acumulan en la BD (no hay DELETE todavía); ver la sección «Pendientes»."
+      "description": "Administraci\u00f3n exclusiva para `admin`: operador \u2192 403, sin sesi\u00f3n \u2192 401. Los usuarios QA se acumulan en la BD (no hay DELETE todav\u00eda); ver la secci\u00f3n \u00abPendientes\u00bb."
     },
     {
-      "name": "04 Usuario QA: login directo, rol vigente y último admin",
+      "name": "04 Usuario QA: login directo, rol vigente y \u00faltimo admin",
       "item": [
         {
-          "name": "QA — login con contraseña errónea → 401",
+          "name": "QA \u2014 login con contrase\u00f1a err\u00f3nea \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -2784,7 +2784,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"{{qaUsername}}\",\n  \"password\": \"contraseña-incorrecta-123\"\n}",
+              "raw": "{\n  \"username\": \"{{qaUsername}}\",\n  \"password\": \"contrase\u00f1a-incorrecta-123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2805,7 +2805,7 @@
           "response": []
         },
         {
-          "name": "QA — login correcto (sin pasos previos ni segundo factor)",
+          "name": "QA \u2014 login correcto (sin pasos previos ni segundo factor)",
           "event": [
             {
               "listen": "test",
@@ -2854,7 +2854,7 @@
           "response": []
         },
         {
-          "name": "QA — GET /auth/me → operador",
+          "name": "QA \u2014 GET /auth/me \u2192 operador",
           "event": [
             {
               "listen": "test",
@@ -2895,7 +2895,7 @@
           "response": []
         },
         {
-          "name": "QA operador — GET /products → 200",
+          "name": "QA operador \u2014 GET /products \u2192 200",
           "event": [
             {
               "listen": "test",
@@ -2933,7 +2933,7 @@
           "response": []
         },
         {
-          "name": "QA operador — POST /products → 403",
+          "name": "QA operador \u2014 POST /products \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -2985,7 +2985,7 @@
           "response": []
         },
         {
-          "name": "QA operador — GET /users → 403",
+          "name": "QA operador \u2014 GET /users \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -3080,7 +3080,7 @@
           "response": []
         },
         {
-          "name": "QA con el MISMO JWT ahora es admin: GET /users → 200",
+          "name": "QA con el MISMO JWT ahora es admin: GET /users \u2192 200",
           "event": [
             {
               "listen": "test",
@@ -3114,7 +3114,7 @@
                 "users"
               ]
             },
-            "description": "El rol se toma de la BD en cada petición: no hace falta volver a iniciar sesión."
+            "description": "El rol se toma de la BD en cada petici\u00f3n: no hace falta volver a iniciar sesi\u00f3n."
           },
           "response": []
         },
@@ -3213,14 +3213,14 @@
           "response": []
         },
         {
-          "name": "⚠ Degradar al ÚNICO admin → 409",
+          "name": "\u26a0 Degradar al \u00daNICO admin \u2192 409",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// Seguridad: solo ejecuta la prueba si el seed admin es el ÚNICO admin; si hubiera otro, degradarlo SÍ sería permitido.",
+                  "// Seguridad: solo ejecuta la prueba si el seed admin es el \u00daNICO admin; si hubiera otro, degradarlo S\u00cd ser\u00eda permitido.",
                   "pm.sendRequest({ url: pm.collectionVariables.get('baseUrl') + '/users?limit=100', method: 'GET',",
                   "  header: { Authorization: 'Bearer ' + pm.collectionVariables.get('adminToken') } }, (err, res) => {",
                   "  const admins = err ? 99 : res.json().data.filter(u => u.role === 'admin').length;",
@@ -3279,7 +3279,7 @@
                 "role"
               ]
             },
-            "description": "No se puede degradar al último admin. Se omite automáticamente si existiera otro admin en la BD (en ese caso la degradación sí sería válida y dejaría sin permisos a `admin`)."
+            "description": "No se puede degradar al \u00faltimo admin. Se omite autom\u00e1ticamente si existiera otro admin en la BD (en ese caso la degradaci\u00f3n s\u00ed ser\u00eda v\u00e1lida y dejar\u00eda sin permisos a `admin`)."
           },
           "response": []
         },
@@ -3325,7 +3325,7 @@
           "response": []
         },
         {
-          "name": "Cambiar admin→admin es idempotente → 200",
+          "name": "Cambiar admin\u2192admin es idempotente \u2192 200",
           "event": [
             {
               "listen": "test",
@@ -3381,10 +3381,10 @@
           "response": []
         }
       ],
-      "description": "Un usuario creado por la API inicia sesión de inmediato; el rol vigente de la BD manda en cada petición; el último admin está protegido."
+      "description": "Un usuario creado por la API inicia sesi\u00f3n de inmediato; el rol vigente de la BD manda en cada petici\u00f3n; el \u00faltimo admin est\u00e1 protegido."
     },
     {
-      "name": "05 Productos (catálogo)",
+      "name": "05 Productos (cat\u00e1logo)",
       "item": [
         {
           "name": "Preparar SKU aleatorios",
@@ -3430,7 +3430,7 @@
           "response": []
         },
         {
-          "name": "GET  sin token → 401",
+          "name": "GET  sin token \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -3462,7 +3462,7 @@
           "response": []
         },
         {
-          "name": "POST  sin token → 401",
+          "name": "POST  sin token \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -3508,7 +3508,7 @@
           "response": []
         },
         {
-          "name": "GET /:id sin token → 401",
+          "name": "GET /:id sin token \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -3541,7 +3541,7 @@
           "response": []
         },
         {
-          "name": "PATCH /:id sin token → 401",
+          "name": "PATCH /:id sin token \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -3588,7 +3588,7 @@
           "response": []
         },
         {
-          "name": "PATCH /:id/status sin token → 401",
+          "name": "PATCH /:id/status sin token \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -3636,7 +3636,7 @@
           "response": []
         },
         {
-          "name": "Seed — operador consulta los productos INV-* (lectura permitida)",
+          "name": "Seed \u2014 operador consulta los productos INV-* (lectura permitida)",
           "event": [
             {
               "listen": "test",
@@ -3684,7 +3684,7 @@
           "response": []
         },
         {
-          "name": "POST /products — operador → 403",
+          "name": "POST /products \u2014 operador \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -3737,7 +3737,7 @@
           "response": []
         },
         {
-          "name": "POST /products — admin crea producto (con descripción)",
+          "name": "POST /products \u2014 admin crea producto (con descripci\u00f3n)",
           "event": [
             {
               "listen": "test",
@@ -3746,8 +3746,8 @@
                 "exec": [
                   "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Producto con exactamente los campos públicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
-                  "pm.test(\"Saldo 0, activo, descripción guardada\", () => { pm.expect(json.stock).to.eql(0); pm.expect(json.active).to.eql(true); pm.expect(json.description).to.eql(\"Creado por la colección de Postman\"); pm.expect(json.sku).to.eql(pm.collectionVariables.get(\"qaSku\")); });",
+                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
+                  "pm.test(\"Saldo 0, activo, descripci\u00f3n guardada\", () => { pm.expect(json.stock).to.eql(0); pm.expect(json.active).to.eql(true); pm.expect(json.description).to.eql(\"Creado por la colecci\u00f3n de Postman\"); pm.expect(json.sku).to.eql(pm.collectionVariables.get(\"qaSku\")); });",
                   "pm.test(\"Fechas ISO-8601\", () => { pm.expect(new Date(json.createdAt).toISOString()).to.eql(json.createdAt); });",
                   "pm.collectionVariables.set(\"productId\", json.id); pm.collectionVariables.set(\"productCreatedAt\", json.createdAt);"
                 ]
@@ -3774,7 +3774,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"{{qaSku}}\",\n  \"name\": \"Producto QA Postman\",\n  \"description\": \"Creado por la colección de Postman\"\n}",
+              "raw": "{\n  \"sku\": \"{{qaSku}}\",\n  \"name\": \"Producto QA Postman\",\n  \"description\": \"Creado por la colecci\u00f3n de Postman\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3794,7 +3794,7 @@
           "response": []
         },
         {
-          "name": "POST /products — sin descripción → description null",
+          "name": "POST /products \u2014 sin descripci\u00f3n \u2192 description null",
           "event": [
             {
               "listen": "test",
@@ -3803,7 +3803,7 @@
                 "exec": [
                   "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Producto con exactamente los campos públicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
+                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
                   "pm.test(\"description null\", () => pm.expect(json.description).to.eql(null));",
                   "pm.collectionVariables.set(\"productId2\", json.id);"
                 ]
@@ -3850,7 +3850,7 @@
           "response": []
         },
         {
-          "name": "POST /products — SKU duplicado → 409",
+          "name": "POST /products \u2014 SKU duplicado \u2192 409",
           "event": [
             {
               "listen": "test",
@@ -3904,7 +3904,7 @@
           "response": []
         },
         {
-          "name": "POST /products — body vacío → 400",
+          "name": "POST /products \u2014 body vac\u00edo \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -3958,7 +3958,7 @@
           "response": []
         },
         {
-          "name": "POST /products — SKU en minúsculas → 400 (no se normaliza)",
+          "name": "POST /products \u2014 SKU en min\u00fasculas \u2192 400 (no se normaliza)",
           "event": [
             {
               "listen": "test",
@@ -4012,7 +4012,7 @@
           "response": []
         },
         {
-          "name": "POST /products — SKU con espacio → 400",
+          "name": "POST /products \u2014 SKU con espacio \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4066,7 +4066,7 @@
           "response": []
         },
         {
-          "name": "POST /products — SKU de 49 caracteres → 400",
+          "name": "POST /products \u2014 SKU de 49 caracteres \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4120,7 +4120,7 @@
           "response": []
         },
         {
-          "name": "POST /products — SKU vacío → 400",
+          "name": "POST /products \u2014 SKU vac\u00edo \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4174,7 +4174,7 @@
           "response": []
         },
         {
-          "name": "POST /products — falta name → 400",
+          "name": "POST /products \u2014 falta name \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4228,7 +4228,7 @@
           "response": []
         },
         {
-          "name": "POST /products — name solo espacios → 400",
+          "name": "POST /products \u2014 name solo espacios \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4282,7 +4282,7 @@
           "response": []
         },
         {
-          "name": "POST /products — name de 121 caracteres → 400",
+          "name": "POST /products \u2014 name de 121 caracteres \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4336,7 +4336,7 @@
           "response": []
         },
         {
-          "name": "POST /products — name numérico → 400",
+          "name": "POST /products \u2014 name num\u00e9rico \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4390,7 +4390,7 @@
           "response": []
         },
         {
-          "name": "POST /products — description de 501 caracteres → 400",
+          "name": "POST /products \u2014 description de 501 caracteres \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4444,7 +4444,7 @@
           "response": []
         },
         {
-          "name": "POST /products — description vacía → 400",
+          "name": "POST /products \u2014 description vac\u00eda \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4498,7 +4498,7 @@
           "response": []
         },
         {
-          "name": "POST /products — campo extra stock → 400 (RN-02: el saldo no se edita)",
+          "name": "POST /products \u2014 campo extra stock \u2192 400 (RN-02: el saldo no se edita)",
           "event": [
             {
               "listen": "test",
@@ -4552,7 +4552,7 @@
           "response": []
         },
         {
-          "name": "POST /products — campo extra active → 400",
+          "name": "POST /products \u2014 campo extra active \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4606,7 +4606,7 @@
           "response": []
         },
         {
-          "name": "POST /products — campo extra id → 400",
+          "name": "POST /products \u2014 campo extra id \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4660,7 +4660,7 @@
           "response": []
         },
         {
-          "name": "GET /products — listado por defecto",
+          "name": "GET /products \u2014 listado por defecto",
           "event": [
             {
               "listen": "test",
@@ -4669,9 +4669,9 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Forma de página\", () => pm.expect(Object.keys(json).sort()).to.eql([\"data\",\"limit\",\"page\",\"total\",\"totalPages\"]));",
+                  "pm.test(\"Forma de p\u00e1gina\", () => pm.expect(Object.keys(json).sort()).to.eql([\"data\",\"limit\",\"page\",\"total\",\"totalPages\"]));",
                   "pm.test(\"Defaults 1/20\", () => { pm.expect(json.page).to.eql(1); pm.expect(json.limit).to.eql(20); });",
-                  "pm.test(\"Cada producto con los campos públicos\", () => json.data.forEach(p => pm.expect(Object.keys(p).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"])));",
+                  "pm.test(\"Cada producto con los campos p\u00fablicos\", () => json.data.forEach(p => pm.expect(Object.keys(p).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"])));",
                   "pm.test(\"Orden por SKU ascendente\", () => { const s = json.data.map(p => p.sku); pm.expect(s).to.eql([...s].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))); });"
                 ]
               }
@@ -4712,7 +4712,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Máximo 2 elementos\", () => { pm.expect(json.data.length).to.be.at.most(2); pm.expect(json.limit).to.eql(2); pm.expect(json.totalPages).to.eql(Math.ceil(json.total / 2)); });"
+                  "pm.test(\"M\u00e1ximo 2 elementos\", () => { pm.expect(json.data.length).to.be.at.most(2); pm.expect(json.limit).to.eql(2); pm.expect(json.totalPages).to.eql(Math.ceil(json.total / 2)); });"
                 ]
               }
             }
@@ -4753,7 +4753,7 @@
           "response": []
         },
         {
-          "name": "GET /products?page=10000 → data vacía",
+          "name": "GET /products?page=10000 \u2192 data vac\u00eda",
           "event": [
             {
               "listen": "test",
@@ -4762,7 +4762,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"data vacía\", () => pm.expect(json.data).to.eql([]));"
+                  "pm.test(\"data vac\u00eda\", () => pm.expect(json.data).to.eql([]));"
                 ]
               }
             }
@@ -4799,7 +4799,7 @@
           "response": []
         },
         {
-          "name": "GET /products?search=<sku en minúsculas> (sin distinguir mayúsculas)",
+          "name": "GET /products?search=<sku en min\u00fasculas> (sin distinguir may\u00fasculas)",
           "event": [
             {
               "listen": "prerequest",
@@ -4854,7 +4854,7 @@
           "response": []
         },
         {
-          "name": "GET /products?search=% (comodín tratado como texto) → sin resultados",
+          "name": "GET /products?search=% (comod\u00edn tratado como texto) \u2192 sin resultados",
           "event": [
             {
               "listen": "test",
@@ -4863,7 +4863,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"% no actúa como comodín\", () => { pm.expect(json.data).to.eql([]); pm.expect(json.total).to.eql(0); pm.expect(json.totalPages).to.eql(0); });"
+                  "pm.test(\"% no act\u00faa como comod\u00edn\", () => { pm.expect(json.data).to.eql([]); pm.expect(json.total).to.eql(0); pm.expect(json.totalPages).to.eql(0); });"
                 ]
               }
             }
@@ -4950,7 +4950,7 @@
           "response": []
         },
         {
-          "name": "GET /products?active=yes → 400",
+          "name": "GET /products?active=yes \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -4995,7 +4995,7 @@
           "response": []
         },
         {
-          "name": "GET /products?search=<65 caracteres> → 400",
+          "name": "GET /products?search=<65 caracteres> \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5040,7 +5040,7 @@
           "response": []
         },
         {
-          "name": "GET /products?limit=0 → 400",
+          "name": "GET /products?limit=0 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5085,7 +5085,7 @@
           "response": []
         },
         {
-          "name": "GET /products?page=abc → 400",
+          "name": "GET /products?page=abc \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5130,7 +5130,7 @@
           "response": []
         },
         {
-          "name": "GET /products?orderBy=sku (parámetro no permitido) → 400",
+          "name": "GET /products?orderBy=sku (par\u00e1metro no permitido) \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5175,7 +5175,7 @@
           "response": []
         },
         {
-          "name": "GET /products/:id — admin",
+          "name": "GET /products/:id \u2014 admin",
           "event": [
             {
               "listen": "test",
@@ -5184,7 +5184,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Producto con exactamente los campos públicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
+                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
                   "pm.test(\"Es el producto creado\", () => pm.expect(json.id).to.eql(pm.collectionVariables.get(\"productId\")));"
                 ]
               }
@@ -5217,7 +5217,7 @@
           "response": []
         },
         {
-          "name": "GET /products/:id — operador (lectura permitida)",
+          "name": "GET /products/:id \u2014 operador (lectura permitida)",
           "event": [
             {
               "listen": "test",
@@ -5256,7 +5256,7 @@
           "response": []
         },
         {
-          "name": "GET /products/:id — inexistente → 404",
+          "name": "GET /products/:id \u2014 inexistente \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -5296,7 +5296,7 @@
           "response": []
         },
         {
-          "name": "GET /products/:id — UUID inválido → 400",
+          "name": "GET /products/:id \u2014 UUID inv\u00e1lido \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5336,7 +5336,7 @@
           "response": []
         },
         {
-          "name": "GET /products/:id — UUID v1 → 400",
+          "name": "GET /products/:id \u2014 UUID v1 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5375,7 +5375,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — actualizar nombre y descripción",
+          "name": "PATCH /products/:id \u2014 actualizar nombre y descripci\u00f3n",
           "event": [
             {
               "listen": "test",
@@ -5384,8 +5384,8 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Producto con exactamente los campos públicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
-                  "pm.test(\"Cambios aplicados; SKU y saldo intactos\", () => { pm.expect(json.name).to.eql(\"Producto QA editado\"); pm.expect(json.description).to.eql(\"Descripción editada\"); pm.expect(json.sku).to.eql(pm.collectionVariables.get(\"qaSku\")); pm.expect(json.stock).to.eql(0); });",
+                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
+                  "pm.test(\"Cambios aplicados; SKU y saldo intactos\", () => { pm.expect(json.name).to.eql(\"Producto QA editado\"); pm.expect(json.description).to.eql(\"Descripci\u00f3n editada\"); pm.expect(json.sku).to.eql(pm.collectionVariables.get(\"qaSku\")); pm.expect(json.stock).to.eql(0); });",
                   "pm.test(\"updatedAt avanza\", () => pm.expect(new Date(json.updatedAt).getTime()).to.be.above(new Date(pm.collectionVariables.get(\"productCreatedAt\")).getTime()));",
                   "pm.collectionVariables.set(\"productUpdatedAt\", json.updatedAt);"
                 ]
@@ -5412,7 +5412,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Producto QA editado\",\n  \"description\": \"Descripción editada\"\n}",
+              "raw": "{\n  \"name\": \"Producto QA editado\",\n  \"description\": \"Descripci\u00f3n editada\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5433,7 +5433,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — mismos valores es idempotente (updatedAt no cambia)",
+          "name": "PATCH /products/:id \u2014 mismos valores es idempotente (updatedAt no cambia)",
           "event": [
             {
               "listen": "test",
@@ -5467,7 +5467,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Producto QA editado\",\n  \"description\": \"Descripción editada\"\n}",
+              "raw": "{\n  \"name\": \"Producto QA editado\",\n  \"description\": \"Descripci\u00f3n editada\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5488,7 +5488,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — description:null borra la descripción",
+          "name": "PATCH /products/:id \u2014 description:null borra la descripci\u00f3n",
           "event": [
             {
               "listen": "test",
@@ -5543,7 +5543,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — body vacío → 400",
+          "name": "PATCH /products/:id \u2014 body vac\u00edo \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5597,7 +5597,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — sku inmutable → 400",
+          "name": "PATCH /products/:id \u2014 sku inmutable \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5651,7 +5651,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — stock no editable → 400",
+          "name": "PATCH /products/:id \u2014 stock no editable \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5705,7 +5705,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — active no va aquí → 400",
+          "name": "PATCH /products/:id \u2014 active no va aqu\u00ed \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5759,7 +5759,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — name null → 400",
+          "name": "PATCH /products/:id \u2014 name null \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5813,7 +5813,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — name solo espacios → 400",
+          "name": "PATCH /products/:id \u2014 name solo espacios \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5867,7 +5867,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — inexistente → 404",
+          "name": "PATCH /products/:id \u2014 inexistente \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -5921,7 +5921,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — UUID inválido → 400",
+          "name": "PATCH /products/:id \u2014 UUID inv\u00e1lido \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -5975,7 +5975,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id — operador → 403",
+          "name": "PATCH /products/:id \u2014 operador \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -6029,7 +6029,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id/status — desactivar",
+          "name": "PATCH /products/:id/status \u2014 desactivar",
           "event": [
             {
               "listen": "test",
@@ -6038,7 +6038,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Producto con exactamente los campos públicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
+                  "pm.test(\"Producto con exactamente los campos p\u00fablicos\", () => pm.expect(Object.keys(json).sort()).to.eql([\"active\",\"createdAt\",\"description\",\"id\",\"name\",\"sku\",\"stock\",\"updatedAt\"]));",
                   "pm.test(\"active false, saldo conservado\", () => { pm.expect(json.active).to.eql(false); pm.expect(json.stock).to.eql(0); });",
                   "pm.collectionVariables.set(\"productStatusAt\", json.updatedAt);"
                 ]
@@ -6087,7 +6087,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id/status — repetir es idempotente",
+          "name": "PATCH /products/:id/status \u2014 repetir es idempotente",
           "event": [
             {
               "listen": "test",
@@ -6152,7 +6152,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Solo inactivos y está el QA\", () => { json.data.forEach(p => pm.expect(p.active).to.eql(false)); pm.expect(json.data.map(p => p.id)).to.include(pm.collectionVariables.get(\"productId\")); });"
+                  "pm.test(\"Solo inactivos y est\u00e1 el QA\", () => { json.data.forEach(p => pm.expect(p.active).to.eql(false)); pm.expect(json.data.map(p => p.id)).to.include(pm.collectionVariables.get(\"productId\")); });"
                 ]
               }
             }
@@ -6193,7 +6193,7 @@
           "response": []
         },
         {
-          "name": "PATCH /products/:id/status — reactivar",
+          "name": "PATCH /products/:id/status \u2014 reactivar",
           "event": [
             {
               "listen": "test",
@@ -6249,7 +6249,7 @@
           "response": []
         },
         {
-          "name": "PATCH status — active como string → 400",
+          "name": "PATCH status \u2014 active como string \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -6304,7 +6304,7 @@
           "response": []
         },
         {
-          "name": "PATCH status — active numérico → 400",
+          "name": "PATCH status \u2014 active num\u00e9rico \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -6359,7 +6359,7 @@
           "response": []
         },
         {
-          "name": "PATCH status — falta active → 400",
+          "name": "PATCH status \u2014 falta active \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -6414,7 +6414,7 @@
           "response": []
         },
         {
-          "name": "PATCH status — campo extra → 400",
+          "name": "PATCH status \u2014 campo extra \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -6469,7 +6469,7 @@
           "response": []
         },
         {
-          "name": "PATCH status — inexistente → 404",
+          "name": "PATCH status \u2014 inexistente \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -6524,7 +6524,7 @@
           "response": []
         },
         {
-          "name": "PATCH status — operador → 403",
+          "name": "PATCH status \u2014 operador \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -6579,13 +6579,13 @@
           "response": []
         }
       ],
-      "description": "Lectura: admin y operador. Escritura (POST, PATCH, PATCH status): solo admin. SKU en mayúsculas e inmutable; el saldo solo cambia por movimientos. Crea productos `QA-*` que permanecen en la BD."
+      "description": "Lectura: admin y operador. Escritura (POST, PATCH, PATCH status): solo admin. SKU en may\u00fasculas e inmutable; el saldo solo cambia por movimientos. Crea productos `QA-*` que permanecen en la BD."
     },
     {
       "name": "06 Movimientos de inventario",
       "item": [
         {
-          "name": "GET /movements sin token → 401",
+          "name": "GET /movements sin token \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -6617,7 +6617,7 @@
           "response": []
         },
         {
-          "name": "POST /movements sin token → 401",
+          "name": "POST /movements sin token \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -6663,7 +6663,7 @@
           "response": []
         },
         {
-          "name": "GET /products/:id — el saldo es 0",
+          "name": "GET /products/:id \u2014 el saldo es 0",
           "event": [
             {
               "listen": "test",
@@ -6704,7 +6704,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — ENTRADA de 10 (admin)",
+          "name": "POST /movements \u2014 ENTRADA de 10 (admin)",
           "event": [
             {
               "listen": "test",
@@ -6715,9 +6715,9 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos p\u00fablicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"IN\"); pm.expect(json.movement.quantity).to.eql(10); pm.expect(json.stock).to.eql(10); });",
-                  "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
+                  "pm.test(\"Responsable tomado de la sesi\u00f3n (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
                 ]
               }
@@ -6763,7 +6763,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — SALIDA de 4 (operador)",
+          "name": "POST /movements \u2014 SALIDA de 4 (operador)",
           "event": [
             {
               "listen": "test",
@@ -6774,9 +6774,9 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos p\u00fablicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"OUT\"); pm.expect(json.movement.quantity).to.eql(4); pm.expect(json.stock).to.eql(6); });",
-                  "pm.test(\"Responsable tomado de la sesión (operator)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"operatorId\")); });",
+                  "pm.test(\"Responsable tomado de la sesi\u00f3n (operator)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"operatorId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
                 ]
               }
@@ -6822,7 +6822,7 @@
           "response": []
         },
         {
-          "name": "GET /products/:id — el saldo es 6",
+          "name": "GET /products/:id \u2014 el saldo es 6",
           "event": [
             {
               "listen": "test",
@@ -6863,7 +6863,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — salida de 7 con saldo 6 → 409",
+          "name": "POST /movements \u2014 salida de 7 con saldo 6 \u2192 409",
           "event": [
             {
               "listen": "test",
@@ -6918,7 +6918,7 @@
           "response": []
         },
         {
-          "name": "GET /products/:id — el saldo es 6",
+          "name": "GET /products/:id \u2014 el saldo es 6",
           "event": [
             {
               "listen": "test",
@@ -6959,7 +6959,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — salida exacta de 6 (saldo queda en 0)",
+          "name": "POST /movements \u2014 salida exacta de 6 (saldo queda en 0)",
           "event": [
             {
               "listen": "test",
@@ -6970,9 +6970,9 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos p\u00fablicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"OUT\"); pm.expect(json.movement.quantity).to.eql(6); pm.expect(json.stock).to.eql(0); });",
-                  "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
+                  "pm.test(\"Responsable tomado de la sesi\u00f3n (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
                 ]
               }
@@ -7018,7 +7018,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — entrada de 2147483647 (máximo entero)",
+          "name": "POST /movements \u2014 entrada de 2147483647 (m\u00e1ximo entero)",
           "event": [
             {
               "listen": "test",
@@ -7029,9 +7029,9 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos p\u00fablicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"IN\"); pm.expect(json.movement.quantity).to.eql(2147483647); pm.expect(json.stock).to.eql(2147483647); });",
-                  "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
+                  "pm.test(\"Responsable tomado de la sesi\u00f3n (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
                 ]
               }
@@ -7077,7 +7077,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — entrada que excede el máximo → 409",
+          "name": "POST /movements \u2014 entrada que excede el m\u00e1ximo \u2192 409",
           "event": [
             {
               "listen": "test",
@@ -7132,7 +7132,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — salida de 2147483647 (vuelve a 0)",
+          "name": "POST /movements \u2014 salida de 2147483647 (vuelve a 0)",
           "event": [
             {
               "listen": "test",
@@ -7143,9 +7143,9 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos p\u00fablicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"OUT\"); pm.expect(json.movement.quantity).to.eql(2147483647); pm.expect(json.stock).to.eql(0); });",
-                  "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
+                  "pm.test(\"Responsable tomado de la sesi\u00f3n (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
                 ]
               }
@@ -7191,7 +7191,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — producto inexistente → 404",
+          "name": "POST /movements \u2014 producto inexistente \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -7246,7 +7246,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — body vacío → 400",
+          "name": "POST /movements \u2014 body vac\u00edo \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7301,7 +7301,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — productId inválido → 400",
+          "name": "POST /movements \u2014 productId inv\u00e1lido \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7356,7 +7356,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — productId UUID v1 → 400",
+          "name": "POST /movements \u2014 productId UUID v1 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7411,7 +7411,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — type en minúsculas → 400",
+          "name": "POST /movements \u2014 type en min\u00fasculas \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7466,7 +7466,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — type desconocido → 400",
+          "name": "POST /movements \u2014 type desconocido \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7521,7 +7521,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — quantity 0 → 400",
+          "name": "POST /movements \u2014 quantity 0 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7576,7 +7576,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — quantity negativa → 400",
+          "name": "POST /movements \u2014 quantity negativa \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7631,7 +7631,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — quantity decimal → 400",
+          "name": "POST /movements \u2014 quantity decimal \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7686,7 +7686,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — quantity como string → 400",
+          "name": "POST /movements \u2014 quantity como string \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7741,7 +7741,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — quantity booleana → 400",
+          "name": "POST /movements \u2014 quantity booleana \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7796,7 +7796,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — quantity null → 400",
+          "name": "POST /movements \u2014 quantity null \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7851,7 +7851,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — quantity 2147483648 (fuera de rango) → 400",
+          "name": "POST /movements \u2014 quantity 2147483648 (fuera de rango) \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7906,7 +7906,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — falta reason → 400",
+          "name": "POST /movements \u2014 falta reason \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -7961,7 +7961,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — reason vacío → 400",
+          "name": "POST /movements \u2014 reason vac\u00edo \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -8016,7 +8016,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — reason solo espacios → 400",
+          "name": "POST /movements \u2014 reason solo espacios \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -8071,7 +8071,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — reason de 301 caracteres → 400",
+          "name": "POST /movements \u2014 reason de 301 caracteres \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -8126,7 +8126,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — campo extra userId (el responsable sale de la sesión) → 400",
+          "name": "POST /movements \u2014 campo extra userId (el responsable sale de la sesi\u00f3n) \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -8181,7 +8181,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — campo extra stock → 400",
+          "name": "POST /movements \u2014 campo extra stock \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -8236,7 +8236,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — campo extra createdAt → 400",
+          "name": "POST /movements \u2014 campo extra createdAt \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -8291,7 +8291,7 @@
           "response": []
         },
         {
-          "name": "GET /products/:id — el saldo es 0",
+          "name": "GET /products/:id \u2014 el saldo es 0",
           "event": [
             {
               "listen": "test",
@@ -8343,9 +8343,9 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos p\u00fablicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"IN\"); pm.expect(json.movement.quantity).to.eql(6); pm.expect(json.stock).to.eql(6); });",
-                  "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
+                  "pm.test(\"Responsable tomado de la sesi\u00f3n (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
                 ]
               }
@@ -8391,7 +8391,7 @@
           "response": []
         },
         {
-          "name": "Concurrencia — dos salidas simultáneas de 4 con saldo 6",
+          "name": "Concurrencia \u2014 dos salidas simult\u00e1neas de 4 con saldo 6",
           "event": [
             {
               "listen": "test",
@@ -8407,7 +8407,7 @@
                   "  body: { mode: 'raw', raw: JSON.stringify({ productId: pid, type: 'OUT', quantity: 4, reason: 'Concurrencia Postman' }) }",
                   "}, (err, res) => resolve(err ? 0 : res.code)));",
                   "Promise.all([send(), send()]).then(codes => {",
-                  "  pm.test('Dos salidas simultáneas de 4 con saldo 6: una 201 y una 409', () => pm.expect(codes.slice().sort()).to.eql([201, 409]));",
+                  "  pm.test('Dos salidas simult\u00e1neas de 4 con saldo 6: una 201 y una 409', () => pm.expect(codes.slice().sort()).to.eql([201, 409]));",
                   "  pm.sendRequest({ url: base + '/products/' + pid, method: 'GET', header: { Authorization: 'Bearer ' + token } }, (e, r) => {",
                   "    pm.test('Saldo final 2 (RN-04: el saldo nunca queda negativo)', () => pm.expect(r.json().stock).to.eql(2));",
                   "  });",
@@ -8456,9 +8456,9 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos p\u00fablicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"OUT\"); pm.expect(json.movement.quantity).to.eql(2); pm.expect(json.stock).to.eql(0); });",
-                  "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
+                  "pm.test(\"Responsable tomado de la sesi\u00f3n (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
                 ]
               }
@@ -8515,9 +8515,9 @@
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
                   "pm.test(\"Forma {movement, stock}\", () => pm.expect(Object.keys(json).sort()).to.eql([\"movement\",\"stock\"]));",
-                  "pm.test(\"Movimiento con campos públicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
+                  "pm.test(\"Movimiento con campos p\u00fablicos\", () => pm.expect(Object.keys(json.movement).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"]));",
                   "pm.test(\"Tipo, cantidad y saldo resultante\", () => { pm.expect(json.movement.type).to.eql(\"IN\"); pm.expect(json.movement.quantity).to.eql(5); pm.expect(json.stock).to.eql(5); });",
-                  "pm.test(\"Responsable tomado de la sesión (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
+                  "pm.test(\"Responsable tomado de la sesi\u00f3n (admin)\", () => { pm.expect(Object.keys(json.movement.user).sort()).to.eql([\"id\",\"username\"]); pm.expect(json.movement.user.id).to.eql(pm.collectionVariables.get(\"adminId\")); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
                 ]
               }
@@ -8619,7 +8619,7 @@
           "response": []
         },
         {
-          "name": "POST /movements — producto inactivo → 409 (RN-05)",
+          "name": "POST /movements \u2014 producto inactivo \u2192 409 (RN-05)",
           "event": [
             {
               "listen": "test",
@@ -8775,7 +8775,7 @@
           "response": []
         },
         {
-          "name": "GET /movements — listado por defecto",
+          "name": "GET /movements \u2014 listado por defecto",
           "event": [
             {
               "listen": "test",
@@ -8785,8 +8785,8 @@
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Forma de página\", () => pm.expect(Object.keys(json).sort()).to.eql([\"data\",\"limit\",\"page\",\"total\",\"totalPages\"]));",
-                  "pm.test(\"Cada movimiento con campos públicos\", () => json.data.forEach(m => pm.expect(Object.keys(m).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"])));",
+                  "pm.test(\"Forma de p\u00e1gina\", () => pm.expect(Object.keys(json).sort()).to.eql([\"data\",\"limit\",\"page\",\"total\",\"totalPages\"]));",
+                  "pm.test(\"Cada movimiento con campos p\u00fablicos\", () => json.data.forEach(m => pm.expect(Object.keys(m).sort()).to.eql([\"createdAt\",\"id\",\"productId\",\"quantity\",\"reason\",\"type\",\"user\"])));",
                   "pm.test(\"Orden por fecha descendente\", () => { const t = json.data.map(m => new Date(m.createdAt).getTime()); pm.expect(t).to.eql([...t].sort((a, b) => b - a)); });",
                   "pm.test(\"Sin secretos ni detalles internos\", () => { const t = pm.response.text().toLowerCase(); [\"passwordhash\",\"totpsecret\",\"seedkey\",\"select \",\"constraint\",\"pg_\",\"stack\"].forEach(w => pm.expect(t).to.not.include(w)); });"
                 ]
@@ -8819,7 +8819,7 @@
           "response": []
         },
         {
-          "name": "GET /movements — operador también consulta el historial",
+          "name": "GET /movements \u2014 operador tambi\u00e9n consulta el historial",
           "event": [
             {
               "listen": "test",
@@ -9012,7 +9012,7 @@
           "response": []
         },
         {
-          "name": "GET /movements?productId=<seed INV-001> — historial del seed",
+          "name": "GET /movements?productId=<seed INV-001> \u2014 historial del seed",
           "event": [
             {
               "listen": "test",
@@ -9021,7 +9021,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"El seed dejó al menos una ENTRADA inicial\", () => { pm.expect(json.total).to.be.at.least(1); pm.expect(json.data.map(m => m.type)).to.include(\"IN\"); });"
+                  "pm.test(\"El seed dej\u00f3 al menos una ENTRADA inicial\", () => { pm.expect(json.total).to.be.at.least(1); pm.expect(json.data.map(m => m.type)).to.include(\"IN\"); });"
                 ]
               }
             }
@@ -9062,7 +9062,7 @@
           "response": []
         },
         {
-          "name": "GET /movements?productId=<UUID inexistente> → lista vacía",
+          "name": "GET /movements?productId=<UUID inexistente> \u2192 lista vac\u00eda",
           "event": [
             {
               "listen": "test",
@@ -9071,7 +9071,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"Vacía, totalPages 0\", () => { pm.expect(json.data).to.eql([]); pm.expect(json.total).to.eql(0); pm.expect(json.totalPages).to.eql(0); });"
+                  "pm.test(\"Vac\u00eda, totalPages 0\", () => { pm.expect(json.data).to.eql([]); pm.expect(json.total).to.eql(0); pm.expect(json.totalPages).to.eql(0); });"
                 ]
               }
             }
@@ -9108,7 +9108,7 @@
           "response": []
         },
         {
-          "name": "GET /movements?page=10000 → data vacía",
+          "name": "GET /movements?page=10000 \u2192 data vac\u00eda",
           "event": [
             {
               "listen": "test",
@@ -9117,7 +9117,7 @@
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test(\"data vacía\", () => pm.expect(json.data).to.eql([]));"
+                  "pm.test(\"data vac\u00eda\", () => pm.expect(json.data).to.eql([]));"
                 ]
               }
             }
@@ -9154,7 +9154,7 @@
           "response": []
         },
         {
-          "name": "GET /movements?type=XX → 400",
+          "name": "GET /movements?type=XX \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -9200,7 +9200,7 @@
           "response": []
         },
         {
-          "name": "GET /movements?type=in (minúsculas) → 400",
+          "name": "GET /movements?type=in (min\u00fasculas) \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -9246,7 +9246,7 @@
           "response": []
         },
         {
-          "name": "GET /movements?productId=abc → 400",
+          "name": "GET /movements?productId=abc \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -9292,7 +9292,7 @@
           "response": []
         },
         {
-          "name": "GET /movements?limit=101 → 400",
+          "name": "GET /movements?limit=101 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -9338,7 +9338,7 @@
           "response": []
         },
         {
-          "name": "GET /movements?page=0 → 400",
+          "name": "GET /movements?page=0 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -9384,7 +9384,7 @@
           "response": []
         },
         {
-          "name": "GET /movements?foo=1 → 400",
+          "name": "GET /movements?foo=1 \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -9430,7 +9430,7 @@
           "response": []
         },
         {
-          "name": "PATCH /movements/:id → 404 (los movimientos son inmutables)",
+          "name": "PATCH /movements/:id \u2192 404 (los movimientos son inmutables)",
           "event": [
             {
               "listen": "test",
@@ -9483,7 +9483,7 @@
           "response": []
         },
         {
-          "name": "PUT /movements/:id → 404",
+          "name": "PUT /movements/:id \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -9536,7 +9536,7 @@
           "response": []
         },
         {
-          "name": "DELETE /movements/:id → 404 (RN-03: no se eliminan)",
+          "name": "DELETE /movements/:id \u2192 404 (RN-03: no se eliminan)",
           "event": [
             {
               "listen": "test",
@@ -9588,7 +9588,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Swagger UI responde 200\", () => pm.response.to.have.status(200));\npm.test(\"es una página HTML de Swagger\", () => pm.expect(pm.response.headers.get(\"Content-Type\") || \"\").to.include(\"text/html\"));"
+                  "pm.test(\"Swagger UI responde 200\", () => pm.response.to.have.status(200));\npm.test(\"es una p\u00e1gina HTML de Swagger\", () => pm.expect(pm.response.headers.get(\"Content-Type\") || \"\").to.include(\"text/html\"));"
                 ]
               }
             }
@@ -9605,7 +9605,7 @@
                 "{{swaggerUrl}}"
               ]
             },
-            "description": "Requisito del taller: «Agregar Swagger en los endpoints». Se asume el montaje estándar `SwaggerModule.setup('api/docs', app, document)`; cambia `swaggerUrl` en el entorno si usas otra ruta."
+            "description": "Requisito del taller: \u00abAgregar Swagger en los endpoints\u00bb. Se asume el montaje est\u00e1ndar `SwaggerModule.setup('api/docs', app, document)`; cambia `swaggerUrl` en el entorno si usas otra ruta."
           },
           "response": []
         },
@@ -9692,7 +9692,7 @@
           "response": []
         },
         {
-          "name": "DELETE /products/:id sin historial — operador → 403",
+          "name": "DELETE /products/:id sin historial \u2014 operador \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -9731,7 +9731,7 @@
           "response": []
         },
         {
-          "name": "DELETE /products/:id — admin elimina un producto sin movimientos",
+          "name": "DELETE /products/:id \u2014 admin elimina un producto sin movimientos",
           "event": [
             {
               "listen": "test",
@@ -9770,7 +9770,7 @@
           "response": []
         },
         {
-          "name": "GET /products/:id tras DELETE → 404",
+          "name": "GET /products/:id tras DELETE \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -9809,7 +9809,7 @@
           "response": []
         },
         {
-          "name": "DELETE /products/:id con historial de movimientos → 409",
+          "name": "DELETE /products/:id con historial de movimientos \u2192 409",
           "event": [
             {
               "listen": "test",
@@ -9850,7 +9850,7 @@
           "response": []
         },
         {
-          "name": "GET /users/:id — admin consulta un usuario",
+          "name": "GET /users/:id \u2014 admin consulta un usuario",
           "event": [
             {
               "listen": "test",
@@ -9858,7 +9858,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"200\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"usuario seguro sin secretos\", () => pm.expect(Object.keys(pm.response.json()).sort()).to.eql([\"createdAt\",\"id\",\"role\",\"updatedAt\",\"username\"]));"
+                  "pm.test(\"usuario seguro sin secretos\", () => pm.expect(Object.keys(pm.response.json()).sort()).to.eql([\"createdAt\",\"email\",\"fullName\",\"id\",\"phone\",\"role\",\"updatedAt\",\"username\"]));"
                 ]
               }
             }
@@ -9890,7 +9890,7 @@
           "response": []
         },
         {
-          "name": "GET /users/:id — inexistente → 404",
+          "name": "GET /users/:id \u2014 inexistente \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -9930,7 +9930,7 @@
           "response": []
         },
         {
-          "name": "PATCH /users/:id — admin actualiza username",
+          "name": "PATCH /users/:id \u2014 admin actualiza username",
           "event": [
             {
               "listen": "test",
@@ -9983,7 +9983,7 @@
           "response": []
         },
         {
-          "name": "PATCH /users/:id — username ocupado → 409",
+          "name": "PATCH /users/:id \u2014 username ocupado \u2192 409",
           "event": [
             {
               "listen": "test",
@@ -10037,7 +10037,7 @@
           "response": []
         },
         {
-          "name": "PATCH /users/:id — body vacío → 400",
+          "name": "PATCH /users/:id \u2014 body vac\u00edo \u2192 400",
           "event": [
             {
               "listen": "test",
@@ -10090,7 +10090,7 @@
           "response": []
         },
         {
-          "name": "PATCH /users/:id — campo role no permitido → 400 (el rol va en /role)",
+          "name": "PATCH /users/:id \u2014 campo role no permitido \u2192 400 (el rol va en /role)",
           "event": [
             {
               "listen": "test",
@@ -10205,7 +10205,7 @@
           "response": []
         },
         {
-          "name": "Usuario desechable — login (su JWT debe dejar de servir al eliminarlo)",
+          "name": "Usuario desechable \u2014 login (su JWT debe dejar de servir al eliminarlo)",
           "event": [
             {
               "listen": "test",
@@ -10252,7 +10252,7 @@
           "response": []
         },
         {
-          "name": "DELETE /users/:id — operador → 403",
+          "name": "DELETE /users/:id \u2014 operador \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -10291,14 +10291,14 @@
           "response": []
         },
         {
-          "name": "DELETE /users/:id — no se puede eliminar al último admin → 409",
+          "name": "DELETE /users/:id \u2014 no se puede eliminar al \u00faltimo admin \u2192 409",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"409: el admin no puede eliminarse (último admin o su propio usuario)\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"409: el admin no puede eliminarse (\u00faltimo admin o su propio usuario)\", () => pm.response.to.have.status(409));",
                   "pm.test(\"Cache-Control: no-store\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));"
                 ]
               }
@@ -10327,12 +10327,12 @@
                 "{{adminId}}"
               ]
             },
-            "description": "Hoy responde 404 porque la ruta no existe. Cuando exista, debe proteger al último admin / único admin con 2FA."
+            "description": "Hoy responde 404 porque la ruta no existe. Cuando exista, debe proteger al \u00faltimo admin / \u00fanico admin con 2FA."
           },
           "response": []
         },
         {
-          "name": "DELETE /users/:id — admin elimina un usuario y revoca sus sesiones",
+          "name": "DELETE /users/:id \u2014 admin elimina un usuario y revoca sus sesiones",
           "event": [
             {
               "listen": "test",
@@ -10371,7 +10371,7 @@
           "response": []
         },
         {
-          "name": "El JWT del usuario eliminado ya no sirve (/auth/me → 401)",
+          "name": "El JWT del usuario eliminado ya no sirve (/auth/me \u2192 401)",
           "event": [
             {
               "listen": "test",
@@ -10410,7 +10410,7 @@
           "response": []
         },
         {
-          "name": "GET /users/:id del usuario eliminado → 404",
+          "name": "GET /users/:id del usuario eliminado \u2192 404",
           "event": [
             {
               "listen": "test",
@@ -10449,7 +10449,7 @@
           "response": []
         },
         {
-          "name": "GET /health/ready — comprueba la conexión a PostgreSQL",
+          "name": "GET /health/ready \u2014 comprueba la conexi\u00f3n a PostgreSQL",
           "event": [
             {
               "listen": "test",
@@ -10484,14 +10484,14 @@
           "response": []
         }
       ],
-      "description": "Rutas del incremento 011 (`specs/011-crud-completion`): eliminar productos sin movimientos, consultar/editar/eliminar usuarios y readiness, además de Swagger. El borrado de usuarios usa un usuario desechable `qa_del_*` para que la carpeta 09 pueda cerrar la sesión del usuario QA."
+      "description": "Rutas del incremento 011 (`specs/011-crud-completion`): eliminar productos sin movimientos, consultar/editar/eliminar usuarios y readiness, adem\u00e1s de Swagger. El borrado de usuarios usa un usuario desechable `qa_del_*` para que la carpeta 09 pueda cerrar la sesi\u00f3n del usuario QA."
     },
     {
-      "name": "07b Roles de Mocca Go — repartidor y rol cliente",
-      "description": "Incremento 012: cuatro roles. El repartidor del seed inicia sesión, lee el catálogo y recibe 403 en usuarios, movimientos y escrituras. El rol cliente no se asigna desde POST /users.",
+      "name": "07b Roles de Mocca Go \u2014 repartidor y rol cliente",
+      "description": "Incremento 012: cuatro roles. El repartidor del seed inicia sesi\u00f3n, lee el cat\u00e1logo y recibe 403 en usuarios, movimientos y escrituras. El rol cliente no se asigna desde POST /users.",
       "item": [
         {
-          "name": "Repartidor — POST /auth/login",
+          "name": "Repartidor \u2014 POST /auth/login",
           "event": [
             {
               "listen": "test",
@@ -10540,7 +10540,7 @@
           "response": []
         },
         {
-          "name": "Repartidor — GET /auth/me",
+          "name": "Repartidor \u2014 GET /auth/me",
           "event": [
             {
               "listen": "test",
@@ -10580,7 +10580,7 @@
           "response": []
         },
         {
-          "name": "Repartidor — GET /products → 200 (lee el catálogo)",
+          "name": "Repartidor \u2014 GET /products \u2192 200 (lee el cat\u00e1logo)",
           "event": [
             {
               "listen": "test",
@@ -10618,7 +10618,7 @@
           "response": []
         },
         {
-          "name": "Repartidor — POST /products → 403",
+          "name": "Repartidor \u2014 POST /products \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -10670,7 +10670,7 @@
           "response": []
         },
         {
-          "name": "Repartidor — GET /users → 403",
+          "name": "Repartidor \u2014 GET /users \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -10708,7 +10708,7 @@
           "response": []
         },
         {
-          "name": "Repartidor — GET /movements → 403",
+          "name": "Repartidor \u2014 GET /movements \u2192 403",
           "event": [
             {
               "listen": "test",
@@ -10746,7 +10746,7 @@
           "response": []
         },
         {
-          "name": "Admin — POST /users con rol repartidor → 201",
+          "name": "Admin \u2014 POST /users con rol repartidor \u2192 201",
           "event": [
             {
               "listen": "prerequest",
@@ -10810,7 +10810,7 @@
           "response": []
         },
         {
-          "name": "Admin — POST /users con rol cliente → 400 (nace del registro propio)",
+          "name": "Admin \u2014 POST /users con rol cliente \u2192 400 (nace del registro propio)",
           "event": [
             {
               "listen": "test",
@@ -10862,7 +10862,7 @@
           "response": []
         },
         {
-          "name": "Admin — DELETE /users/:id del repartidor QA → 204",
+          "name": "Admin \u2014 DELETE /users/:id del repartidor QA \u2192 204",
           "event": [
             {
               "listen": "test",
@@ -10903,7 +10903,949 @@
       ]
     },
     {
-      "name": "08 OPCIONAL — bloqueo de cuenta por intentos fallidos",
+      "name": "07c Clientes y cambio de contrase\u00f1a propio (incremento 013)",
+      "description": "Registro p\u00fablico con correo, contrase\u00f1a, nombre y tel\u00e9fono (E.164); login con correo; perfil propio; cambio de contrase\u00f1a de cualquier rol. El registro admite 5 peticiones por minuto por IP: esta carpeta usa 4, as\u00ed que no la repitas antes de que pase un minuto.",
+      "item": [
+        {
+          "name": "Cliente \u2014 POST /customers \u2192 201",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('customerEmail', 'qa_' + Math.random().toString(16).slice(2, 10) + '@u.icesi.edu.co');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Tel\u00e9fono normalizado a E.164\", () => pm.expect(json.phone).to.eql(\"+573001234567\"));",
+                  "pm.test(\"Sin contrase\u00f1a ni datos internos\", () => { pm.expect(json).to.not.have.property(\"password\"); pm.expect(json).to.not.have.property(\"passwordHash\"); pm.expect(json).to.not.have.property(\"username\"); });",
+                  "pm.collectionVariables.set(\"customerId\", json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\",\n  \"fullName\": \"Cliente QA\",\n  \"phone\": \"300 123 4567\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 POST /customers con el mismo correo \u2192 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\",\n  \"fullName\": \"Cliente QA\",\n  \"phone\": \"300 123 4567\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 POST /customers con tel\u00e9fono inv\u00e1lido \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"otro_{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\",\n  \"fullName\": \"Cliente QA\",\n  \"phone\": \"12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 POST /customers con role \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\",\n  \"fullName\": \"Cliente QA\",\n  \"phone\": \"300 123 4567\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 POST /auth/login con correo \u2192 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"JWT Bearer\", () => { pm.expect(json.tokenType).to.eql(\"Bearer\"); pm.expect(json.accessToken).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"customerToken\", json.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 POST /auth/login con username y email \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 GET /customers/me \u2192 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Perfil propio\", () => { const json = pm.response.json(); pm.expect(json.email).to.eql(pm.collectionVariables.get(\"customerEmail\")); pm.expect(json.fullName).to.eql(\"Cliente QA\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customers/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 PATCH /customers/me \u2192 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Cambios guardados\", () => { const json = pm.response.json(); pm.expect(json.fullName).to.eql(\"Cliente QA Editado\"); pm.expect(json.phone).to.eql(\"+34612345678\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Cliente QA Editado\",\n  \"phone\": \"+34 612 345 678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 PATCH /customers/me con email \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"otro@u.icesi.edu.co\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Repartidor \u2014 GET /customers/me \u2192 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{courierToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customers/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 GET /users \u2192 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 GET /products \u2192 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 PATCH /auth/password con actual incorrecta \u2192 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"clave-equivocada-1\",\n  \"newPassword\": \"{{customerNewPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 PATCH /auth/password con nueva igual a la actual \u2192 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{customerPassword}}\",\n  \"newPassword\": \"{{customerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 PATCH /auth/password \u2192 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));",
+                  "pm.test(\"Sin cuerpo\", () => pm.expect(pm.response.text()).to.eql(\"\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{customerPassword}}\",\n  \"newPassword\": \"{{customerNewPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 POST /auth/login con la contrase\u00f1a anterior \u2192 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cliente \u2014 POST /auth/login con la contrase\u00f1a nueva \u2192 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"customerToken\", pm.response.json().accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerNewPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin \u2014 GET /users/:id del cliente \u2192 trae correo, nombre y tel\u00e9fono",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Datos de contacto del cliente\", () => { const json = pm.response.json(); pm.expect(json.role).to.eql(\"cliente\"); pm.expect(json.email).to.eql(pm.collectionVariables.get(\"customerEmail\")); pm.expect(json.fullName).to.eql(\"Cliente QA Editado\"); pm.expect(json.phone).to.eql(\"+34612345678\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{customerId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin \u2014 PATCH /users/:id/role del cliente \u2192 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{customerId}}/role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{customerId}}",
+                "role"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"operador\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin \u2014 DELETE /users/:id del cliente QA \u2192 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{customerId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "08 OPCIONAL \u2014 bloqueo de cuenta por intentos fallidos",
       "item": [
         {
           "name": "Crear usuario desechable (qa_lock_*)",
@@ -10961,7 +11903,7 @@
           "response": []
         },
         {
-          "name": "Login correcto del usuario desechable → 200",
+          "name": "Login correcto del usuario desechable \u2192 200",
           "event": [
             {
               "listen": "test",
@@ -11009,7 +11951,7 @@
           "response": []
         },
         {
-          "name": "Intento fallido 1/5 de contraseña → 401",
+          "name": "Intento fallido 1/5 de contrase\u00f1a \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11035,7 +11977,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"{{qaLockUsername}}\",\n  \"password\": \"contraseña-incorrecta-123\"\n}",
+              "raw": "{\n  \"username\": \"{{qaLockUsername}}\",\n  \"password\": \"contrase\u00f1a-incorrecta-123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -11056,7 +11998,7 @@
           "response": []
         },
         {
-          "name": "Intento fallido 2/5 de contraseña → 401",
+          "name": "Intento fallido 2/5 de contrase\u00f1a \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11082,7 +12024,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"{{qaLockUsername}}\",\n  \"password\": \"contraseña-incorrecta-123\"\n}",
+              "raw": "{\n  \"username\": \"{{qaLockUsername}}\",\n  \"password\": \"contrase\u00f1a-incorrecta-123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -11103,7 +12045,7 @@
           "response": []
         },
         {
-          "name": "Intento fallido 3/5 de contraseña → 401",
+          "name": "Intento fallido 3/5 de contrase\u00f1a \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11129,7 +12071,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"{{qaLockUsername}}\",\n  \"password\": \"contraseña-incorrecta-123\"\n}",
+              "raw": "{\n  \"username\": \"{{qaLockUsername}}\",\n  \"password\": \"contrase\u00f1a-incorrecta-123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -11150,7 +12092,7 @@
           "response": []
         },
         {
-          "name": "Intento fallido 4/5 de contraseña → 401",
+          "name": "Intento fallido 4/5 de contrase\u00f1a \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11176,7 +12118,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"{{qaLockUsername}}\",\n  \"password\": \"contraseña-incorrecta-123\"\n}",
+              "raw": "{\n  \"username\": \"{{qaLockUsername}}\",\n  \"password\": \"contrase\u00f1a-incorrecta-123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -11197,7 +12139,7 @@
           "response": []
         },
         {
-          "name": "Intento fallido 5/5 de contraseña → 401",
+          "name": "Intento fallido 5/5 de contrase\u00f1a \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11223,7 +12165,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"{{qaLockUsername}}\",\n  \"password\": \"contraseña-incorrecta-123\"\n}",
+              "raw": "{\n  \"username\": \"{{qaLockUsername}}\",\n  \"password\": \"contrase\u00f1a-incorrecta-123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -11244,7 +12186,7 @@
           "response": []
         },
         {
-          "name": "Tras 5 fallos la cuenta queda bloqueada: ni la contraseña correcta entra → 401",
+          "name": "Tras 5 fallos la cuenta queda bloqueada: ni la contrase\u00f1a correcta entra \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11288,18 +12230,18 @@
                 "login"
               ]
             },
-            "description": "Bloqueo de 15 minutos tras 5 fallos de contraseña (spec 007-jwt-only-auth). La cuenta es desechable."
+            "description": "Bloqueo de 15 minutos tras 5 fallos de contrase\u00f1a (spec 007-jwt-only-auth). La cuenta es desechable."
           },
           "response": []
         }
       ],
-      "description": "Usuario desechable `qa_lock_*`; no afecta a admin/operador. Se ejecuta ANTES del logout porque necesita la sesión admin."
+      "description": "Usuario desechable `qa_lock_*`; no afecta a admin/operador. Se ejecuta ANTES del logout porque necesita la sesi\u00f3n admin."
     },
     {
-      "name": "09 Cierre de sesión (logout revoca el JWT)",
+      "name": "09 Cierre de sesi\u00f3n (logout revoca el JWT)",
       "item": [
         {
-          "name": "Usuario QA — POST /auth/logout → 204",
+          "name": "Usuario QA \u2014 POST /auth/logout \u2192 204",
           "event": [
             {
               "listen": "test",
@@ -11339,7 +12281,7 @@
           "response": []
         },
         {
-          "name": "Usuario QA — el JWT revocado ya no sirve (/auth/me → 401)",
+          "name": "Usuario QA \u2014 el JWT revocado ya no sirve (/auth/me \u2192 401)",
           "event": [
             {
               "listen": "test",
@@ -11380,7 +12322,7 @@
           "response": []
         },
         {
-          "name": "Operador — POST /auth/logout → 204",
+          "name": "Operador \u2014 POST /auth/logout \u2192 204",
           "event": [
             {
               "listen": "test",
@@ -11420,7 +12362,7 @@
           "response": []
         },
         {
-          "name": "Operador — /auth/me con el JWT revocado → 401",
+          "name": "Operador \u2014 /auth/me con el JWT revocado \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11459,7 +12401,7 @@
           "response": []
         },
         {
-          "name": "Operador — GET /products con el JWT revocado → 401",
+          "name": "Operador \u2014 GET /products con el JWT revocado \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11497,7 +12439,7 @@
           "response": []
         },
         {
-          "name": "Operador — POST /movements con el JWT revocado → 401",
+          "name": "Operador \u2014 POST /movements con el JWT revocado \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11549,7 +12491,7 @@
           "response": []
         },
         {
-          "name": "Admin — POST /auth/logout → 204",
+          "name": "Admin \u2014 POST /auth/logout \u2192 204",
           "event": [
             {
               "listen": "test",
@@ -11589,7 +12531,7 @@
           "response": []
         },
         {
-          "name": "Admin — GET /auth/me con el JWT revocado → 401",
+          "name": "Admin \u2014 GET /auth/me con el JWT revocado \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11628,7 +12570,7 @@
           "response": []
         },
         {
-          "name": "Admin — GET /users con el JWT revocado → 401",
+          "name": "Admin \u2014 GET /users con el JWT revocado \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11666,7 +12608,7 @@
           "response": []
         },
         {
-          "name": "Admin — segundo logout con el mismo JWT → 401",
+          "name": "Admin \u2014 segundo logout con el mismo JWT \u2192 401",
           "event": [
             {
               "listen": "test",
@@ -11705,13 +12647,13 @@
           "response": []
         }
       ],
-      "description": "Tras esta carpeta vuelve a ejecutar «01 Sesiones» si quieres seguir probando."
+      "description": "Tras esta carpeta vuelve a ejecutar \u00ab01 Sesiones\u00bb si quieres seguir probando."
     },
     {
-      "name": "10 OPCIONAL — límite de peticiones (429)",
+      "name": "10 OPCIONAL \u2014 l\u00edmite de peticiones (429)",
       "item": [
         {
-          "name": "Ráfaga de 30 logins en paralelo → algún 429",
+          "name": "R\u00e1faga de 30 logins en paralelo \u2192 alg\u00fan 429",
           "event": [
             {
               "listen": "test",
@@ -11726,8 +12668,8 @@
                   "  body: { mode: 'raw', raw: JSON.stringify({ username: 'rate_limit_user', password: 'una-clave-de-12-chars' }) }",
                   "}, (err, res) => resolve(err ? 0 : res.code)));",
                   "Promise.all(Array.from({ length: 30 }, send)).then(codes => {",
-                  "  pm.test('Más de 20 peticiones/min por IP y ruta → aparece 429', () => pm.expect(codes).to.include(429));",
-                  "  pm.test('Antes del límite responde 401 (credenciales inválidas)', () => pm.expect(codes).to.include(401));",
+                  "  pm.test('M\u00e1s de 20 peticiones/min por IP y ruta \u2192 aparece 429', () => pm.expect(codes).to.include(429));",
+                  "  pm.test('Antes del l\u00edmite responde 401 (credenciales inv\u00e1lidas)', () => pm.expect(codes).to.include(401));",
                   "});",
                   ""
                 ]
@@ -11749,12 +12691,12 @@
                 "health"
               ]
             },
-            "description": "Límite: 20 peticiones por minuto, por IP y por ruta de /auth/*. Ejecutarla bloquea /auth/login ~60 s: espera antes de volver a iniciar sesión."
+            "description": "L\u00edmite: 20 peticiones por minuto, por IP y por ruta de /auth/*. Ejecutarla bloquea /auth/login ~60 s: espera antes de volver a iniciar sesi\u00f3n."
           },
           "response": []
         }
       ],
-      "description": "Ejecútala siempre al final y espera un minuto antes de otra corrida completa."
+      "description": "Ejec\u00fatala siempre al final y espera un minuto antes de otra corrida completa."
     }
   ],
   "event": [
@@ -11762,7 +12704,7 @@
       "listen": "prerequest",
       "script": {
         "exec": [
-          "// Desde la 2.ª iteración, espera 61 s antes de la primera petición\r",
+          "// Desde la 2.\u00aa iteraci\u00f3n, espera 61 s antes de la primera petici\u00f3n\r",
           "if (pm.info.iteration > 0 && pm.info.requestName === 'GET /health') {\r",
           "  setTimeout(() => {}, 61000);\r",
           "}"
@@ -11923,6 +12865,31 @@
     },
     {
       "key": "qaCourierId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customerEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customerPassword",
+      "value": "cliente-clave-123",
+      "type": "string"
+    },
+    {
+      "key": "customerNewPassword",
+      "value": "cliente-clave-456",
+      "type": "string"
+    },
+    {
+      "key": "customerToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customerId",
       "value": "",
       "type": "string"
     }

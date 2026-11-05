@@ -124,3 +124,13 @@ Decisiones del incremento 012 (Mocca Go; aprobadas por el usuario el 2026-11-05)
 - D-70: `issuer` y `audience` del JWT pasan a `mocca-go-api` y `mocca-go-client`; los JWT anteriores dejan de ser válidos.
 - D-71: el seed añade `repartidor` con `SEED_COURIER_PASSWORD` obligatoria. El inventario de ejemplo se reemplaza en el incremento 014.
 - D-72: `ConfigModule` valida el entorno al importar `AppModule`, por lo que las pruebas de duración del JWT sustituyen `ConfigService` con el entorno ya validado y la validación de `CORS_ORIGINS` y `ACCESS_TOKEN_TTL_SECONDS` se prueba de forma unitaria; el comportamiento real de arranque se comprobó además con la API compilada (ver overview 012).
+
+Decisiones del incremento 013 (Clientes; aprobadas por el usuario el 2026-11-05):
+
+- D-73: el cliente es un `users` con rol `cliente` más una fila 1 a 1 en `customers` (correo, nombre, teléfono). Login, sesiones, bloqueo por intentos y guards se reutilizan; el `username` del cliente es interno y generado.
+- D-74: registro público `POST /customers`, limitado a 5 por minuto por IP, que no inicia sesión. El `409` por correo duplicado revela que el correo existe; se acepta en la demo.
+- D-75: `POST /auth/login` acepta `email` (clientes) o `username` (personal), exactamente uno. Todos los fallos son un `401` idéntico.
+- D-76: el teléfono es obligatorio, no único y se guarda en E.164; acepta celulares colombianos e internacionales. El envío de WhatsApp o SMS queda para un incremento posterior.
+- D-77: `PATCH /auth/password` permite a cualquier rol cambiar su propia contraseña: verifica la actual con el contador de fallos del login, exige una nueva distinta y revoca las demás sesiones. Una contraseña actual incorrecta responde `403` para no confundirla con una sesión vencida. Complementa D-61.
+- D-78: sin verificación de correo ni de teléfono; el origen de adquisición queda fuera de alcance.
+- D-79: las respuestas de usuario (`GET /users`, `GET /users/:id`, `POST` y `PATCH /users/:id`, solo admin) añaden `email`, `fullName` y `phone`; son `null` en el personal. Los datos se leen de `customers` con una consulta aparte por página (sin relación nueva en la entidad `User`). Corrección pedida por el usuario tras probar el listado (2026-11-05).

@@ -10,6 +10,7 @@ import {
 import {
   DataSource,
   EntityManager,
+  In,
   IsNull,
   MoreThan,
   Not,
@@ -21,6 +22,7 @@ import {
   isConstraintViolation,
   MOVEMENT_USER_FK,
 } from '../common/database-errors';
+import { Customer } from '../customers/entities/customer.entity';
 import { StockMovement } from '../movements/entities/stock-movement.entity';
 import { hashPassword } from '../seed/password';
 import { User, UserRole } from './entities/user.entity';
@@ -77,6 +79,15 @@ export class UsersService {
       .getOne();
   }
 
+  /** Vista de un usuario con los datos de contacto si es cliente. */
+  private async viewOf(manager: EntityManager, user: User): Promise<UserView> {
+    const customer =
+      user.role === 'cliente'
+        ? await manager.getRepository(Customer).findOneBy({ userId: user.id })
+        : null;
+    return userView(user, customer);
+  }
+
   private async isLastAdmin(manager: EntityManager): Promise<boolean> {
     return (await manager.getRepository(User).countBy({ role: 'admin' })) <= 1;
   }
@@ -124,8 +135,17 @@ export class UsersService {
         skip: (page - 1) * limit,
         take: limit,
       });
+      const customers = new Map(
+        (
+          await manager.getRepository(Customer).findBy({
+            userId: In(
+              users.filter((u) => u.role === 'cliente').map((u) => u.id),
+            ),
+          })
+        ).map((customer) => [customer.userId, customer]),
+      );
       return {
-        data: users.map(userView),
+        data: users.map((user) => userView(user, customers.get(user.id))),
         page,
         limit,
         total,
@@ -138,7 +158,7 @@ export class UsersService {
     return this.adminTransaction(actor, 'read', async (manager) => {
       const user = await manager.getRepository(User).findOneBy({ id });
       if (!user) throw new NotFoundException(USER_NOT_FOUND);
-      return userView(user);
+      return this.viewOf(manager, user);
     });
   }
 
@@ -182,9 +202,10 @@ export class UsersService {
               { revokedAt: new Date() },
             );
         }
-        if (Object.keys(changes).length === 0) return userView(user);
+        if (Object.keys(changes).length === 0)
+          return this.viewOf(manager, user);
         await repository.update({ id }, changes);
-        return userView(await repository.findOneByOrFail({ id }));
+        return this.viewOf(manager, await repository.findOneByOrFail({ id }));
       });
     } catch (error) {
       if (isDuplicateUsername(error))
