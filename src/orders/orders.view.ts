@@ -39,6 +39,8 @@ export interface OrderView {
   customer: { name: string; phone: string };
   cancelReason: string | null;
   failureReason: string | null;
+  /** Respuesta de la encuesta; `null` mientras el cliente no la envíe. */
+  survey: { rating: number; comment: string | null; createdAt: Date } | null;
   events: { status: OrderStatus; at: Date }[];
   createdAt: Date;
   updatedAt: Date;
@@ -50,6 +52,7 @@ export const ORDER_RELATIONS = {
   items: { components: true },
   events: true,
   round: { courier: true },
+  survey: true,
 } as const;
 
 const bySku = (a: { sku: string }, b: { sku: string }) =>
@@ -115,6 +118,13 @@ export function orderView(order: Order): OrderView {
     },
     cancelReason: order.cancelReason,
     failureReason: order.failureReason,
+    survey: order.survey
+      ? {
+          rating: order.survey.rating,
+          comment: order.survey.comment,
+          createdAt: order.survey.createdAt,
+        }
+      : null,
     events: [...(order.events ?? [])]
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
       .map((event) => ({ status: event.status, at: event.createdAt })),

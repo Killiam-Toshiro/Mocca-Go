@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { MovementsModule } from '../movements/movements.module';
+import { SurveysModule } from '../surveys/surveys.module';
 import { KitchenController } from './kitchen.controller';
 import { KitchenService } from './kitchen.service';
 import {
@@ -12,7 +13,7 @@ import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 
 @Module({
-  imports: [AuthModule, MovementsModule],
+  imports: [AuthModule, MovementsModule, SurveysModule],
   controllers: [OrdersController, KitchenController],
   providers: [
     OrdersService,

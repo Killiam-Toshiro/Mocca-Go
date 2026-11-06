@@ -5,10 +5,12 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Customer } from '../../customers/entities/customer.entity';
+import { OrderSurvey } from '../../surveys/entities/order-survey.entity';
 import { DispatchRound } from '../../dispatch/entities/dispatch-round.entity';
 import { OrderEvent } from './order-event.entity';
 import { OrderItem } from './order-item.entity';
@@ -107,6 +109,9 @@ export class Order {
 
   @Column({ name: 'cancelled_by', type: 'uuid', nullable: true })
   cancelledBy!: string | null;
+
+  @OneToOne(() => OrderSurvey, (survey) => survey.order)
+  survey?: OrderSurvey | null;
 
   @Column({ name: 'round_id', type: 'uuid', nullable: true })
   roundId!: string | null;

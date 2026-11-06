@@ -1,3 +1,4 @@
+import { Surveys1791244809000 } from '../../src/database/migrations/1791244809000-surveys';
 import { Orders1791244807000 } from '../../src/database/migrations/1791244807000-orders';
 import { Customer } from '../../src/customers/entities/customer.entity';
 import { DeliveryPoint } from '../../src/delivery/entities/delivery-point.entity';
@@ -56,7 +57,7 @@ describe('Migración de pedidos (CA-01, CA-02)', () => {
     (
       await context.source.query<{ table_name: string }[]>(
         `SELECT table_name FROM information_schema.tables
-         WHERE table_schema = $1 AND table_name LIKE 'order%' ORDER BY 1`,
+         WHERE table_schema = $1 AND table_name LIKE 'order%' AND table_name <> 'order_surveys' ORDER BY 1`,
         [context.ownedSchema],
       )
     ).map((row) => row.table_name);
@@ -71,6 +72,11 @@ describe('Migración de pedidos (CA-01, CA-02)', () => {
   const revert = async () => {
     const runner = context.source.createQueryRunner();
     try {
+      // Si un intento anterior abortó en pedidos, las encuestas ya se revirtieron.
+      const [{ present }] = await context.source.query<{ present: boolean }[]>(
+        `SELECT to_regclass('"${context.ownedSchema}"."order_surveys"') IS NOT NULL AS present`,
+      );
+      if (present) await new Surveys1791244809000().down(runner);
       await new Orders1791244807000().down(runner);
     } finally {
       await runner.release();

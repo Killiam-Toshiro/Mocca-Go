@@ -10,7 +10,9 @@ import { MovementsModule } from './movements/movements.module';
 import { CustomersModule } from './customers/customers.module';
 import { DeliveryModule } from './delivery/delivery.module';
 import { DispatchModule } from './dispatch/dispatch.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { OrdersModule } from './orders/orders.module';
+import { SurveysModule } from './surveys/surveys.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { OrdersModule } from './orders/orders.module';
     DeliveryModule,
     OrdersModule,
     DispatchModule,
+    SurveysModule,
+    MetricsModule,
   ],
 })
 export class AppModule {}

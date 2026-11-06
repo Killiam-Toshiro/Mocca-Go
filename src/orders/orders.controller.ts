@@ -37,6 +37,9 @@ import {
   StreamResponse,
 } from './notifications/order-notifications.service';
 import { OrdersService } from './orders.service';
+import { CreateSurveyDto } from '../surveys/surveys.dto';
+import { SurveyResponse } from '../surveys/surveys.responses';
+import { SurveysService } from '../surveys/surveys.service';
 
 /** Lo único que se usa de la respuesta HTTP: fijar el código (201 o 200). */
 interface StatusSetter {
@@ -57,6 +60,7 @@ const ORDER_ID = ApiParam({
 export class OrdersController {
   constructor(
     private readonly orders: OrdersService,
+    private readonly surveys: SurveysService,
     private readonly notifications: OrderNotificationsService,
   ) {}
 
@@ -156,6 +160,29 @@ export class OrdersController {
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ) {
     return this.orders.findOne(request.identity!, id);
+  }
+
+  @Post(':id/survey')
+  @Roles('cliente')
+  @ORDER_ID
+  @ApiOperation({
+    summary: 'Responder la encuesta de un pedido entregado (solo cliente)',
+    description:
+      'Calificación de 1 a 5 y comentario opcional. Una sola respuesta por pedido; no se edita.',
+  })
+  @ApiCreatedResponse({ type: SurveyResponse })
+  @ApiErrors(
+    400,
+    403,
+    [404, 'Pedido no encontrado (o es de otro cliente).'],
+    [409, 'El pedido no está `entregado` o ya tiene respuesta.'],
+  )
+  survey(
+    @Req() request: AuthRequest,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() body: CreateSurveyDto,
+  ) {
+    return this.surveys.create(request.identity!, id, body);
   }
 
   @Post(':id/cancel')

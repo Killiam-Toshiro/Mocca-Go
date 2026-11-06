@@ -1,3 +1,4 @@
+import { Surveys1791244809000 } from '../../src/database/migrations/1791244809000-surveys';
 import { Dispatch1791244808000 } from '../../src/database/migrations/1791244808000-dispatch';
 import { Orders1791244807000 } from '../../src/database/migrations/1791244807000-orders';
 import { DeliveryZonesPoints1791244806000 } from '../../src/database/migrations/1791244806000-delivery-zones-points';
@@ -35,6 +36,7 @@ describe('Migración de zonas y puntos (CA-01, CA-02)', () => {
         `SELECT to_regclass('"${context.ownedSchema}"."orders"') IS NOT NULL AS present`,
       );
       if (present) {
+        await new Surveys1791244809000().down(runner);
         await new Dispatch1791244808000().down(runner);
         await new Orders1791244807000().down(runner);
       }

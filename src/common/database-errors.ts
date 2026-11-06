@@ -40,3 +40,5 @@ export const ORDER_COMPONENT_PRODUCT_FK =
   'order_item_components_product_id_fkey';
 export const ROUND_COURIER_FK = 'dispatch_rounds_courier_id_fkey';
 export const ORDER_ROUND_FK = 'orders_round_id_fkey';
+export const SURVEY_CUSTOMER_FK = 'order_surveys_customer_id_fkey';
+export const SURVEY_ORDER_KEY = 'order_surveys_order_key';
