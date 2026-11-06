@@ -171,3 +171,13 @@ Decisiones del incremento 017 (Órdenes de cocina y notificaciones en tiempo rea
 - D-102: el aviso solo lleva número, estado, hora e id del pedido; el cliente solo recibe los de sus pedidos, la cocina todos. Al abrir el canal y tras cada reconexión de la escucha el servidor envía `ready` para que el frontend vuelva a consultar.
 - D-103: transiciones solo hacia adelante (`recibido → en_preparacion → listo`) con bloqueo de la fila del pedido; sin asignación a un operador, solo se registra quién hizo cada cambio.
 - D-104: un usuario tiene como máximo 5 canales abiertos y cada latido (25 s) verifica que su sesión siga vigente.
+
+Decisiones del incremento 018 (Rondas de despacho y entrega; aprobadas por el usuario el 2026-11-05):
+
+- D-105: el repartidor arma su propia ronda, con la sugerencia del sistema (zona del pedido `listo` más antiguo y hasta 5 de sus pedidos) o con una ruta propia de una sola zona; crear la ronda es salir (los pedidos pasan a `en_camino` al instante).
+- D-106: máximo 5 pedidos por ronda y 2 rondas activas por repartidor (10 pedidos en reparto); la hora estimada de llegada es una constante de 15 minutos desde la salida.
+- D-107: dos repartidores nunca toman el mismo pedido: la sugerencia usa `FOR UPDATE SKIP LOCKED`, la ruta propia bloquea por id, y el límite de rondas se verifica con la fila del repartidor bloqueada.
+- D-108: el personal tiene `phone` y `fullName` en `users` (mismo formato E.164 que los clientes); son obligatorios para el rol `repartidor`. El cliente ve nombre, teléfono y enlace de WhatsApp del repartidor solo mientras su pedido está `en_camino`.
+- D-109: `no_entregado` es un estado final con motivo obligatorio que no devuelve inventario ni reembolsa; su tratamiento se decide en un incremento posterior.
+- D-110: la ronda se cierra sola cuando ningún pedido sigue `en_camino`; entregar bloquea primero el pedido y luego la ronda para evitar interbloqueos.
+- D-111: el repartidor tiene su propio canal en tiempo real (`GET /dispatch/stream`) con los avisos de todos los pedidos; `admin` y `operador` consultan rondas pero no las modifican. Eliminar un usuario con historial de pedidos o rondas responde `409`.

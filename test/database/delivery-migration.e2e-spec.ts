@@ -1,3 +1,4 @@
+import { Dispatch1791244808000 } from '../../src/database/migrations/1791244808000-dispatch';
 import { Orders1791244807000 } from '../../src/database/migrations/1791244807000-orders';
 import { DeliveryZonesPoints1791244806000 } from '../../src/database/migrations/1791244806000-delivery-zones-points';
 import {
@@ -29,11 +30,14 @@ describe('Migración de zonas y puntos (CA-01, CA-02)', () => {
   const revert = async () => {
     const runner = context.source.createQueryRunner();
     try {
-      // Los pedidos dependen de los puntos: se revierten primero.
+      // El despacho y los pedidos dependen de los puntos: se revierten primero.
       const [{ present }] = await context.source.query<{ present: boolean }[]>(
         `SELECT to_regclass('"${context.ownedSchema}"."orders"') IS NOT NULL AS present`,
       );
-      if (present) await new Orders1791244807000().down(runner);
+      if (present) {
+        await new Dispatch1791244808000().down(runner);
+        await new Orders1791244807000().down(runner);
+      }
       await new DeliveryZonesPoints1791244806000().down(runner);
     } finally {
       await runner.release();

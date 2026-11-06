@@ -28,11 +28,14 @@ export interface OrderBody {
     zoneName: string;
     floor: number | null;
     deliveryNote: string | null;
+    etaAt?: string | null;
+    courier?: { fullName: string; phone: string; whatsappUrl: string } | null;
   };
   note: string | null;
   payment: { method: string; last4: string; status: string };
   customer: { name: string; phone: string };
   cancelReason: string | null;
+  failureReason?: string | null;
   events: { status: string; at: string }[];
 }
 
@@ -109,4 +112,33 @@ export function validBody(f: Fixture, extra: object = {}): object {
     payment: { method: 'tarjeta_demo', cardNumber: APPROVED },
     ...extra,
   };
+}
+
+/**
+ * Crea pedidos en los puntos dados y los deja `listo` (directo en la base: la
+ * cocina ya tiene sus propias pruebas). Devuelve los pedidos en orden de creación.
+ */
+export async function readyOrders(
+  harness: CatalogHarness,
+  who: Customer,
+  f: Fixture,
+  points: { id: string; floors: number | null }[],
+): Promise<OrderBody[]> {
+  const orders: OrderBody[] = [];
+  for (const point of points) {
+    const response = await placeOrder(
+      harness,
+      who,
+      validBody(f, {
+        pointId: point.id,
+        floor: point.floors ? 1 : undefined,
+      }),
+    ).expect(201);
+    orders.push(response.body as OrderBody);
+  }
+  await harness.context.source.query(
+    `UPDATE "${harness.context.ownedSchema}"."orders" SET status = 'listo' WHERE id = ANY($1::uuid[])`,
+    [orders.map((order) => order.id)],
+  );
+  return orders;
 }

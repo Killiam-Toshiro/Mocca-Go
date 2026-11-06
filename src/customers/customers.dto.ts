@@ -9,15 +9,15 @@ import {
 } from 'class-validator';
 import { normalizePhone } from './phone';
 
-const PHONE_MESSAGE =
+export const PHONE_MESSAGE =
   'phone debe ser un celular colombiano o un número internacional válido.';
 
-const trimmed = ({ value }: { value: unknown }): unknown =>
+export const trimmed = ({ value }: { value: unknown }): unknown =>
   typeof value === 'string' ? value.trim() : value;
 const lowerEmail = ({ value }: { value: unknown }): unknown =>
   typeof value === 'string' ? value.trim().toLowerCase() : value;
 /** Un teléfono no interpretable pasa a `null` y falla `@IsString`. */
-const phoneToE164 = ({ value }: { value: unknown }): unknown =>
+export const phoneToE164 = ({ value }: { value: unknown }): unknown =>
   typeof value === 'string' ? normalizePhone(value) : value;
 
 export class RegisterCustomerDto {

@@ -95,6 +95,9 @@ export class CatalogHarness {
         username: `rol_${role}`,
         role,
         passwordHash: await this.hash(),
+        ...(role === 'repartidor'
+          ? { phone: '+573001234500', fullName: 'Carlos Repartidor' }
+          : {}),
       });
       this.tokens.set(role, await this.tokenFor(owner.id));
     }
@@ -127,6 +130,23 @@ export class CatalogHarness {
       email: `${label}@example.com`,
       fullName: `Cliente ${label}`,
       phone: '+573001112233',
+    });
+    return { id: user.id, auth: `Bearer ${await this.tokenFor(user.id)}` };
+  }
+
+  /** Otro repartidor con su contacto (el de `as('repartidor')` ya existe). */
+  async courier(
+    label: string,
+    contact: { phone: string | null; fullName: string | null } = {
+      phone: '+573009998877',
+      fullName: `Repartidor ${label}`,
+    },
+  ): Promise<{ id: string; auth: string }> {
+    const user = await this.context.source.getRepository(User).save({
+      username: `rep_${label}`,
+      role: 'repartidor',
+      passwordHash: await this.hash(),
+      ...contact,
     });
     return { id: user.id, auth: `Bearer ${await this.tokenFor(user.id)}` };
   }

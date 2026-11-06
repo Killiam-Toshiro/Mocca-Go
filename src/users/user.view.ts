@@ -5,7 +5,7 @@ export interface UserView {
   id: string;
   username: string;
   role: UserRole;
-  /** Datos de contacto: solo los clientes los tienen; el personal, `null`. */
+  /** Datos de contacto: los clientes los traen de su ficha; el personal, de su cuenta (puede ser `null`). */
   email: string | null;
   fullName: string | null;
   phone: string | null;
@@ -19,8 +19,8 @@ export function userView(user: User, customer?: Customer | null): UserView {
     username: user.username,
     role: user.role,
     email: customer?.email ?? null,
-    fullName: customer?.fullName ?? null,
-    phone: customer?.phone ?? null,
+    fullName: customer?.fullName ?? user.fullName ?? null,
+    phone: customer?.phone ?? user.phone ?? null,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

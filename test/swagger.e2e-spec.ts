@@ -94,6 +94,15 @@ const KITCHEN = [
   'POST /api/v1/kitchen/orders/{id}/ready',
   'GET /api/v1/kitchen/stream',
 ];
+const DISPATCH = [
+  'GET /api/v1/dispatch/queue',
+  'POST /api/v1/dispatch/rounds',
+  'GET /api/v1/dispatch/rounds',
+  'GET /api/v1/dispatch/rounds/{id}',
+  'POST /api/v1/dispatch/orders/{id}/deliver',
+  'POST /api/v1/dispatch/orders/{id}/fail',
+  'GET /api/v1/dispatch/stream',
+];
 const OWN_PASSWORD = ['PATCH /api/v1/auth/password'];
 const PROTECTED = [
   ...ADMIN_ONLY,
@@ -102,6 +111,7 @@ const PROTECTED = [
   ...CLIENT_ONLY,
   ...ORDERS,
   ...KITCHEN,
+  ...DISPATCH,
   ...OWN_PASSWORD,
 ];
 
@@ -192,12 +202,12 @@ describe('Documentación OpenAPI (Swagger)', () => {
     });
   });
 
-  it('S-02: documenta exactamente las 43 operaciones con el prefijo /api/v1', () => {
+  it('S-02: documenta exactamente las 50 operaciones con el prefijo /api/v1', () => {
     const operations = Object.entries(doc.paths).flatMap(([path, methods]) =>
       Object.keys(methods).map((method) => `${method.toUpperCase()} ${path}`),
     );
     expect(operations.sort()).toEqual([...PUBLIC, ...PROTECTED].sort());
-    expect(operations).toHaveLength(43);
+    expect(operations).toHaveLength(50);
   });
 
   it('cada operación tiene etiqueta del módulo, resumen y respuesta de éxito', () => {
@@ -230,6 +240,7 @@ describe('Documentación OpenAPI (Swagger)', () => {
       ...CLIENT_ONLY,
       ...ORDERS,
       ...KITCHEN,
+      ...DISPATCH,
       ...OWN_PASSWORD,
     ])
       expect(operation(key).responses['403']).toBeDefined();
@@ -241,6 +252,7 @@ describe('Documentación OpenAPI (Swagger)', () => {
     for (const key of [
       'GET /api/v1/orders/stream',
       'GET /api/v1/kitchen/stream',
+      'GET /api/v1/dispatch/stream',
     ]) {
       const op = operation(key);
       expect(op.responses['200'].content).toHaveProperty('text/event-stream');
@@ -256,6 +268,13 @@ describe('Documentación OpenAPI (Swagger)', () => {
       expect(operation(key).responses['200']).toBeDefined();
     }
     expect(operation('GET /api/v1/kitchen/orders').tags).toEqual(['kitchen']);
+    for (const key of [
+      'POST /api/v1/dispatch/rounds',
+      'POST /api/v1/dispatch/orders/{id}/deliver',
+      'POST /api/v1/dispatch/orders/{id}/fail',
+    ])
+      expect(operation(key).responses['409']).toBeDefined();
+    expect(operation('GET /api/v1/dispatch/queue').tags).toEqual(['dispatch']);
   });
 
   it('documenta los conflictos, inexistentes y el límite de peticiones', () => {
@@ -403,8 +422,21 @@ describe('Documentación OpenAPI (Swagger)', () => {
       },
     });
     expect(schema('UpdateUserDto').required).toBeUndefined();
+    expect(schema('CreateRoundDto').required).toBeUndefined();
+    expect(schema('CreateRoundDto').properties!.orderIds).toMatchObject({
+      type: 'array',
+      minItems: 1,
+      maxItems: 5,
+    });
+    expect(schema('FailOrderDto').required).toEqual(['reason']);
+    expect(schema('FailOrderDto').properties!.reason).toMatchObject({
+      minLength: 1,
+      maxLength: 200,
+    });
     expect(Object.keys(schema('UpdateUserDto').properties!).sort()).toEqual([
+      'fullName',
       'password',
+      'phone',
       'username',
     ]);
     expect(schema('SetProductStatusDto')).toMatchObject({

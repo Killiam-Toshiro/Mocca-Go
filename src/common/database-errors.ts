@@ -38,3 +38,5 @@ export const ORDER_EVENT_USER_FK = 'order_events_user_id_fkey';
 export const ORDER_ITEM_PRODUCT_FK = 'order_items_product_id_fkey';
 export const ORDER_COMPONENT_PRODUCT_FK =
   'order_item_components_product_id_fkey';
+export const ROUND_COURIER_FK = 'dispatch_rounds_courier_id_fkey';
+export const ORDER_ROUND_FK = 'orders_round_id_fkey';

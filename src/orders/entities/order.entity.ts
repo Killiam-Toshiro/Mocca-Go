@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Customer } from '../../customers/entities/customer.entity';
+import { DispatchRound } from '../../dispatch/entities/dispatch-round.entity';
 import { OrderEvent } from './order-event.entity';
 import { OrderItem } from './order-item.entity';
 
@@ -18,6 +19,7 @@ export type OrderStatus =
   | 'listo'
   | 'en_camino'
   | 'entregado'
+  | 'no_entregado'
   | 'cancelado';
 export const ORDER_STATUSES: readonly OrderStatus[] = [
   'recibido',
@@ -25,6 +27,7 @@ export const ORDER_STATUSES: readonly OrderStatus[] = [
   'listo',
   'en_camino',
   'entregado',
+  'no_entregado',
   'cancelado',
 ];
 export type PaymentStatus = 'aprobado' | 'reembolsado';
@@ -104,6 +107,21 @@ export class Order {
 
   @Column({ name: 'cancelled_by', type: 'uuid', nullable: true })
   cancelledBy!: string | null;
+
+  @Column({ name: 'round_id', type: 'uuid', nullable: true })
+  roundId!: string | null;
+
+  @ManyToOne(() => DispatchRound, { nullable: true })
+  @JoinColumn({ name: 'round_id' })
+  round?: DispatchRound | null;
+
+  @Column({
+    name: 'failure_reason',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
+  failureReason!: string | null;
 
   @OneToMany(() => OrderItem, (item) => item.order)
   items?: OrderItem[];

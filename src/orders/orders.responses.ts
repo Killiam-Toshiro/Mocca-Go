@@ -52,6 +52,20 @@ export class OrderItemResponse {
   components!: OrderComponentResponse[];
 }
 
+export class OrderCourierResponse {
+  @ApiProperty({ example: 'Carlos Gómez' })
+  fullName!: string;
+
+  @ApiProperty({ example: '+573001234500' })
+  phone!: string;
+
+  @ApiProperty({
+    example: 'https://wa.me/573001234500',
+    description: 'Enlace para escribirle por WhatsApp.',
+  })
+  whatsappUrl!: string;
+}
+
 export class OrderDeliveryResponse {
   @ApiProperty({ format: 'uuid' })
   pointId!: string;
@@ -67,6 +81,22 @@ export class OrderDeliveryResponse {
 
   @ApiProperty({ type: String, nullable: true })
   deliveryNote!: string | null;
+
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    nullable: true,
+    description:
+      'Hora estimada de llegada; solo mientras el pedido va `en_camino`.',
+  })
+  etaAt!: Date | null;
+
+  @ApiProperty({
+    type: OrderCourierResponse,
+    nullable: true,
+    description: 'Repartidor; solo mientras el pedido va `en_camino`.',
+  })
+  courier!: OrderCourierResponse | null;
 }
 
 export class OrderPaymentResponse {
@@ -126,6 +156,13 @@ export class OrderResponse {
 
   @ApiProperty({ type: String, nullable: true })
   cancelReason!: string | null;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description: 'Motivo, solo en pedidos `no_entregado`.',
+  })
+  failureReason!: string | null;
 
   @ApiProperty({ type: [OrderEventResponse] })
   events!: OrderEventResponse[];

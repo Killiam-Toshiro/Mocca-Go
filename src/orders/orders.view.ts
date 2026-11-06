@@ -1,3 +1,4 @@
+import { whatsappUrl } from '../dispatch/dispatch.calc';
 import { Order, OrderStatus, PaymentStatus } from './entities/order.entity';
 
 export interface OrderItemView {
@@ -28,11 +29,16 @@ export interface OrderView {
     zoneName: string;
     floor: number | null;
     deliveryNote: string | null;
+    /** Hora estimada de llegada; solo mientras el pedido está `en_camino`. */
+    etaAt: Date | null;
+    /** Repartidor; solo mientras el pedido está `en_camino`. */
+    courier: { fullName: string; phone: string; whatsappUrl: string } | null;
   };
   note: string | null;
   payment: { method: string; last4: string; status: PaymentStatus };
   customer: { name: string; phone: string };
   cancelReason: string | null;
+  failureReason: string | null;
   events: { status: OrderStatus; at: Date }[];
   createdAt: Date;
   updatedAt: Date;
@@ -43,6 +49,7 @@ export const ORDER_RELATIONS = {
   customer: true,
   items: { components: true },
   events: true,
+  round: { courier: true },
 } as const;
 
 const bySku = (a: { sku: string }, b: { sku: string }) =>
@@ -53,6 +60,13 @@ const bySku = (a: { sku: string }, b: { sku: string }) =>
  * (D-98); la tarjeta se reduce a sus últimos cuatro dígitos.
  */
 export function orderView(order: Order): OrderView {
+  // El repartidor y la hora estimada son del cliente solo mientras va en camino (RN-92).
+  const courier =
+    order.status === 'en_camino' &&
+    order.round?.courier?.phone &&
+    order.round.courier.fullName
+      ? order.round.courier
+      : null;
   return {
     id: order.id,
     number: order.number,
@@ -79,6 +93,15 @@ export function orderView(order: Order): OrderView {
       zoneName: order.zoneName,
       floor: order.floor,
       deliveryNote: order.deliveryNote,
+      etaAt: courier && order.round ? order.round.etaAt : null,
+      courier:
+        courier && courier.phone && courier.fullName
+          ? {
+              fullName: courier.fullName,
+              phone: courier.phone,
+              whatsappUrl: whatsappUrl(courier.phone),
+            }
+          : null,
     },
     note: order.note,
     payment: {
@@ -91,6 +114,7 @@ export function orderView(order: Order): OrderView {
       phone: order.customer?.phone ?? '',
     },
     cancelReason: order.cancelReason,
+    failureReason: order.failureReason,
     events: [...(order.events ?? [])]
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
       .map((event) => ({ status: event.status, at: event.createdAt })),

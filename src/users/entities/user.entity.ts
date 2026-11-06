@@ -42,6 +42,13 @@ export class User {
   @Column({ type: 'varchar', length: 16, default: 'operador' })
   role!: UserRole;
 
+  /** Contacto del personal (E.164); obligatorio para el repartidor. Los clientes lo guardan en `customers`. */
+  @Column({ type: 'varchar', length: 16, nullable: true })
+  phone!: string | null;
+
+  @Column({ name: 'full_name', type: 'varchar', length: 80, nullable: true })
+  fullName!: string | null;
+
   @Column({
     name: 'login_failures',
     type: 'integer',

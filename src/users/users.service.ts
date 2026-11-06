@@ -22,6 +22,8 @@ import {
   isConstraintViolation,
   MOVEMENT_USER_FK,
   ORDER_CUSTOMER_FK,
+  ORDER_EVENT_USER_FK,
+  ROUND_COURIER_FK,
 } from '../common/database-errors';
 import { Customer } from '../customers/entities/customer.entity';
 import { StockMovement } from '../movements/entities/stock-movement.entity';
@@ -35,6 +37,10 @@ export const CLIENT_ROLE = 'Un cliente no cambia de rol.';
 const USERNAME_TAKEN = 'El username ya existe.';
 const USER_HAS_MOVEMENTS =
   'El usuario tiene movimientos; no se puede eliminar.';
+const COURIER_CONTACT =
+  'Un repartidor necesita teléfono y nombre de contacto (phone y fullName).';
+const CUSTOMER_CONTACT =
+  'Los datos de contacto de un cliente los edita él mismo en /customers/me.';
 
 function isDuplicateUsername(error: unknown): boolean {
   return isConstraintViolation(error, '23505', 'users_username_key');
@@ -97,9 +103,13 @@ export class UsersService {
     const passwordHash = await hashPassword(input.password);
     try {
       return await this.adminTransaction(actor, 'write', async (manager) => {
-        const user = await manager
-          .getRepository(User)
-          .save({ username: input.username, role: input.role, passwordHash });
+        const user = await manager.getRepository(User).save({
+          username: input.username,
+          role: input.role,
+          passwordHash,
+          phone: input.phone ?? null,
+          fullName: input.fullName ?? null,
+        });
         return userView(user);
       });
     } catch (error) {
@@ -129,6 +139,8 @@ export class UsersService {
           id: true,
           username: true,
           role: true,
+          phone: true,
+          fullName: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -173,7 +185,12 @@ export class UsersService {
     id: string,
     input: UpdateUserDto,
   ): Promise<UserView> {
-    if (input.username === undefined && input.password === undefined)
+    if (
+      input.username === undefined &&
+      input.password === undefined &&
+      input.phone === undefined &&
+      input.fullName === undefined
+    )
       throw new BadRequestException('Indica al menos un campo para editar.');
     const passwordHash =
       input.password === undefined
@@ -187,9 +204,22 @@ export class UsersService {
         const changes: Partial<
           Pick<
             User,
-            'username' | 'passwordHash' | 'loginFailures' | 'blockedUntil'
+            | 'username'
+            | 'passwordHash'
+            | 'loginFailures'
+            | 'blockedUntil'
+            | 'phone'
+            | 'fullName'
           >
         > = {};
+        if (input.phone !== undefined || input.fullName !== undefined) {
+          if (user.role === 'cliente')
+            throw new BadRequestException(CUSTOMER_CONTACT);
+          if (input.phone !== undefined && input.phone !== user.phone)
+            changes.phone = input.phone;
+          if (input.fullName !== undefined && input.fullName !== user.fullName)
+            changes.fullName = input.fullName;
+        }
         if (input.username !== undefined && input.username !== user.username)
           changes.username = input.username;
         if (passwordHash !== undefined) {
@@ -239,7 +269,9 @@ export class UsersService {
     } catch (error) {
       if (
         isConstraintViolation(error, '23503', MOVEMENT_USER_FK) ||
-        isConstraintViolation(error, '23503', ORDER_CUSTOMER_FK)
+        isConstraintViolation(error, '23503', ORDER_CUSTOMER_FK) ||
+        isConstraintViolation(error, '23503', ORDER_EVENT_USER_FK) ||
+        isConstraintViolation(error, '23503', ROUND_COURIER_FK)
       )
         throw new ConflictException(USER_HAS_MOVEMENTS);
       throw error;
@@ -253,6 +285,8 @@ export class UsersService {
       if (!user) throw new NotFoundException(USER_NOT_FOUND);
       if (user.role === 'cliente') throw new ConflictException(CLIENT_ROLE);
       if (user.role === role) return userView(user);
+      if (role === 'repartidor' && (!user.phone || !user.fullName))
+        throw new BadRequestException(COURIER_CONTACT);
       if (user.role === 'admin' && (await this.isLastAdmin(manager)))
         throw new ConflictException(
           'No se puede degradar al último administrador.',

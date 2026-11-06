@@ -20,6 +20,8 @@ import { OrderItem } from '../orders/entities/order-item.entity';
 import { OrderItemComponent } from '../orders/entities/order-item-component.entity';
 import { OrderEvent } from '../orders/entities/order-event.entity';
 import { Customer } from '../customers/entities/customer.entity';
+import { Dispatch1791244808000 } from './migrations/1791244808000-dispatch';
+import { DispatchRound } from '../dispatch/entities/dispatch-round.entity';
 
 export function databaseOptions(
   config: DatabaseEnvironment,
@@ -46,6 +48,7 @@ export function databaseOptions(
       OrderItem,
       OrderItemComponent,
       OrderEvent,
+      DispatchRound,
     ],
     migrations: [
       InitialInventory1791244800000,
@@ -56,6 +59,7 @@ export function databaseOptions(
       CatalogAndCombos1791244805000,
       DeliveryZonesPoints1791244806000,
       Orders1791244807000,
+      Dispatch1791244808000,
     ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',

@@ -20,7 +20,7 @@ Main actualizado/verificado a `635e928` el 2026-10-13. Incluye seed/PostgreSQL, 
 
 **Alcance acordado (2026-10-13):** el usuario excluye 2FA de los requisitos de aquí en adelante. La autenticación vigente es usuario/contraseña → JWT, con sesiones persistidas y logout revocable. El enunciado original incluía 2FA; se conserva como antecedente, mientras que el SDD y el seguimiento actual usan el alcance JWT-only aprobado (D-65).
 
-El código incluye 43 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, ocho de catálogo, una de menú público, dos de movimientos, ocho de zonas y puntos de entrega, cinco de pedidos y cuatro de cocina.
+El código incluye 50 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, ocho de catálogo, una de menú público, dos de movimientos, ocho de zonas y puntos de entrega, cinco de pedidos, cuatro de cocina y siete de despacho.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -80,7 +80,8 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 14     | Catálogo ampliado y combos: categorías, precio, «agotado» y menú    | Cerrado; ver el [overview](docs/commits/014.md)               |
 | 15     | Zonas y puntos de entrega del campus y consulta pública             | Cerrado; ver el [overview](docs/commits/015.md)               |
 | 16     | Pedidos con pago de demostración y descuento de saldo               | Cerrado; ver el [overview](docs/commits/016.md)               |
-| 17     | Cocina (cola y transiciones) y avisos en tiempo real (SSE)          | En revisión; ver el [overview](docs/commits/017.md)           |
+| 17     | Cocina (cola y transiciones) y avisos en tiempo real (SSE)          | Cerrado; ver el [overview](docs/commits/017.md)               |
+| 18     | Despacho: rondas del repartidor, entrega y «no entregado»           | En revisión; ver el [overview](docs/commits/018.md)           |
 
 El despliegue ya está verificado. Quedan revisar el informe final cuando se comparta y confirmar la entrega en Intu. Swagger complementa el informe, pero no lo sustituye.
 
@@ -358,7 +359,7 @@ Solo un `cliente` crea pedidos. El cuerpo lleva las líneas (`productId` y canti
 | `GET /orders/:id`         | Igual                                              | `200`; el pedido de otro cliente responde `404`                                             |
 | `POST /orders/:id/cancel` | `cliente`, `admin`, `operador`                     | `200`; el cliente solo en `recibido`; admin y operador hasta `en_preparacion`, con `reason` |
 
-**Pago de demostración:** la tarjeta `4242424242424242` aprueba y `4000000000000002` rechaza (`402`, sin pedido ni cambios de saldo); cualquier otro número responde `400`. El número completo nunca se guarda: solo los últimos cuatro dígitos. `POST /orders` admite 10 peticiones por minuto por IP. Las respuestas de pedidos no incluyen costos. El `repartidor` no accede a estas rutas todavía.
+**Pago de demostración:** la tarjeta `4242424242424242` aprueba y `4000000000000002` rechaza (`402`, sin pedido ni cambios de saldo); cualquier otro número responde `400`. El número completo nunca se guarda: solo los últimos cuatro dígitos. `POST /orders` admite 10 peticiones por minuto por IP. Las respuestas de pedidos no incluyen costos. El `repartidor` no accede a estas rutas.
 
 **Inventario:** cada producto simple del pedido genera un movimiento `OUT` con la razón «Pedido #1001» y el cliente como autor; `GET /movements` muestra `orderId` (`null` en los manuales). Un cliente con pedidos no se puede eliminar (`409`).
 
@@ -379,6 +380,26 @@ La cocina la operan `operador` y `admin`. Un pedido avanza solo hacia adelante: 
 **Cómo usarlo desde el frontend:** `EventSource` no permite enviar `Authorization`, así que se lee con `fetch` en flujo (con `Authorization: Bearer …`). Al abrir el canal y tras cada reconexión llega un evento `ready`: ahí el frontend vuelve a consultar `GET /orders` (o la cola) y desde entonces aplica los eventos `order`. Cada 25 segundos llega un comentario de latido; el servidor cierra el canal si la sesión se revoca. Máximo 5 canales abiertos por usuario y 30 aperturas por minuto por IP (`429`).
 
 **Operación:** cada instancia de la API abre una conexión adicional a PostgreSQL (fuera del pool) para escuchar. Si esa conexión se cae, se reconecta sola y los canales reciben otro `ready`.
+
+## Despacho y entrega
+
+El repartidor arma sus propias rondas. Una ronda es una salida a repartir: hasta **5 pedidos `listo` de una sola zona**. Al crearla los pedidos pasan a `en_camino` con una hora estimada de llegada de 15 minutos (constante). Un repartidor puede tener como máximo **2 rondas activas** (10 pedidos en reparto).
+
+| Ruta                                | Acceso                            | Resultado                                                                                                                                             |
+| ----------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /dispatch/queue`               | `repartidor`, `operador`, `admin` | Pedidos `listo` por zona; la zona del pedido más antiguo va primero y se marca como sugerida                                                          |
+| `POST /dispatch/rounds`             | `repartidor`                      | Crea la ronda y sale. Sin cuerpo toma la sugerencia (zona del `listo` más antiguo y hasta 5 pedidos); con `orderIds` arma una ruta propia de una zona |
+| `GET /dispatch/rounds`              | `repartidor`, `operador`, `admin` | El repartidor ve las suyas (por defecto las activas); admin y operador ven todas; filtro `status`                                                     |
+| `GET /dispatch/rounds/:id`          | `repartidor`, `operador`, `admin` | Detalle con pedidos y datos del cliente; el repartidor solo ve las suyas (`404` en las ajenas)                                                        |
+| `POST /dispatch/orders/:id/deliver` | `repartidor`                      | `en_camino → entregado`                                                                                                                               |
+| `POST /dispatch/orders/:id/fail`    | `repartidor`                      | `en_camino → no_entregado` con `reason` obligatorio (1 a 200 caracteres); no mueve inventario ni pago                                                 |
+| `GET /dispatch/stream`              | `repartidor`                      | Canal SSE con todos los cambios de estado (mismo formato y límites que el de la cocina)                                                               |
+
+**Concurrencia:** la sugerencia salta los pedidos que otro repartidor está tomando en ese instante (`FOR UPDATE SKIP LOCKED`), por lo que dos repartidores reciben grupos distintos; con pedidos concretos, el que ya no esté `listo` da `409`. Ningún pedido puede quedar en dos rondas.
+
+**Cierre:** cuando ningún pedido de la ronda sigue `en_camino`, la ronda pasa a `finalizada`. `entregado` y `no_entregado` son estados finales; qué hacer con los `no_entregado` se define en un incremento posterior.
+
+**Lo que ve el cliente:** mientras su pedido está `en_camino`, `delivery.courier` trae `{fullName, phone, whatsappUrl}` (`https://wa.me/<teléfono sin +>`) y `delivery.etaAt` la hora estimada; en cualquier otro estado ambos son `null`. Por eso crear un usuario `repartidor` exige `phone` y `fullName` (`POST /users`), y cambiar a alguien a ese rol exige que ya los tenga. El seed del repartidor de demostración trae valores de ejemplo.
 
 ## Pruebas y verificaciones
 

@@ -93,6 +93,9 @@ describe('Roles de Mocca Go: HTTP con PostgreSQL real', () => {
           username: `nuevo_${role}`,
           password,
           role,
+          ...(role === 'repartidor'
+            ? { phone: '+573001234567', fullName: 'Repartidor Nuevo' }
+            : {}),
         }).expect(201);
         expect((response.body as SafeUser).role).toBe(role);
       },
@@ -112,6 +115,11 @@ describe('Roles de Mocca Go: HTTP con PostgreSQL real', () => {
 
   describe('cambio de rol (CA-05 a CA-08)', () => {
     it('el admin cambia a personal a repartidor', async () => {
+      // El repartidor debe tener teléfono y nombre completo (RN-93).
+      await context.source.getRepository(User).update(accounts.operador.id, {
+        phone: '+573001234567',
+        fullName: 'Operador Reasignado',
+      });
       const response = await changeRole(accounts.operador.id, {
         role: 'repartidor',
       }).expect(200);
@@ -153,6 +161,10 @@ describe('Roles de Mocca Go: HTTP con PostgreSQL real', () => {
     });
 
     it('conserva la protección del último administrador', async () => {
+      await context.source.getRepository(User).update(accounts.admin.id, {
+        phone: '+573001234567',
+        fullName: 'Administrador Único',
+      });
       const response = await changeRole(accounts.admin.id, {
         role: 'repartidor',
       }).expect(409);

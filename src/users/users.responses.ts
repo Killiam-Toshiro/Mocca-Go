@@ -26,7 +26,8 @@ export class UserResponse {
     type: String,
     nullable: true,
     example: null,
-    description: 'Solo clientes; el personal devuelve `null`.',
+    description:
+      'Clientes: su nombre. Personal: el que le asignó el admin (obligatorio para repartidores) o `null`.',
   })
   fullName!: string | null;
 
@@ -35,7 +36,7 @@ export class UserResponse {
     nullable: true,
     example: null,
     description:
-      'Solo clientes, en formato E.164; el personal devuelve `null`.',
+      'Formato E.164. Clientes: su teléfono. Personal: el que le asignó el admin (obligatorio para repartidores) o `null`.',
   })
   phone!: string | null;
 

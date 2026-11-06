@@ -20,5 +20,6 @@ import { OrdersService } from './orders.service';
     OrderNotificationsService,
     { provide: STREAM_OPTIONS, useValue: DEFAULT_STREAM_OPTIONS },
   ],
+  exports: [OrderNotificationsService],
 })
 export class OrdersModule {}

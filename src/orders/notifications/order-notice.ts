@@ -18,7 +18,7 @@ export interface OrderEnvelope {
   notice: OrderNotice;
 }
 
-export type StreamScope = 'customer' | 'kitchen';
+export type StreamScope = 'customer' | 'kitchen' | 'dispatch';
 
 export const READY_FRAME = 'event: ready\ndata: {}\n\n';
 export const HEARTBEAT_FRAME = ': keep-alive\n\n';
@@ -66,13 +66,13 @@ export function decodeEnvelope(
   };
 }
 
-/** RN-73: la cocina recibe todo; un cliente, solo lo de sus propios pedidos. */
+/** RN-73: la cocina y el repartidor reciben todo; un cliente, solo lo de sus propios pedidos. */
 export function isRecipient(
   scope: StreamScope,
   userId: string,
   envelope: OrderEnvelope,
 ): boolean {
-  return scope === 'kitchen' || envelope.customerId === userId;
+  return scope !== 'customer' || envelope.customerId === userId;
 }
 
 /** Cuadro SSE con nombre de evento y datos en JSON. */

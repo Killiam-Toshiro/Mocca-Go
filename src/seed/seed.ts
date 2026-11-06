@@ -25,6 +25,10 @@ interface SeedCombo {
 }
 
 // Menú inicial de Mocca Go; los precios y costos (COP) son datos de partida.
+/** Contacto del repartidor de demostración (datos de ejemplo, no reales). */
+const COURIER_DEMO_PHONE = '+573001234500';
+const COURIER_DEMO_NAME = 'Repartidor Demo';
+
 const products: SeedProduct[] = [
   {
     sku: 'CAF-AMER',
@@ -329,6 +333,15 @@ export async function runSeed(
         result.usersCreated++;
       }
     }
+    // El repartidor de demostración necesita contacto para poder despachar.
+    await users
+      .createQueryBuilder()
+      .update(User)
+      .set({ phone: COURIER_DEMO_PHONE, fullName: COURIER_DEMO_NAME })
+      .where('username = :username AND phone IS NULL AND full_name IS NULL', {
+        username: 'repartidor',
+      })
+      .execute();
     const admin = await users.findOneByOrFail({ username: 'admin' });
     const catalogue = manager.getRepository(Product);
     const movements = manager.getRepository(StockMovement);

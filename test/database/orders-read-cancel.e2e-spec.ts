@@ -38,12 +38,31 @@ describe('Pedidos: lectura y cancelación (CA-20 a CA-24, CA-26)', () => {
   const create = async (who: Customer, extra: object = {}) =>
     (await placeOrder(harness, who, validBody(f, extra)).expect(201))
       .body as OrderBody;
-  const setStatus = (id: string, status: OrderStatus) =>
-    harness.context.source.query(
-      `UPDATE "${harness.context.ownedSchema}"."orders"
-       SET status = $2, cancelled_by = NULL, payment_status = 'aprobado' WHERE id = $1`,
-      [id, status],
+  /** Los estados de reparto exigen una ronda (RN-84): se crea una de apoyo. */
+  const setStatus = async (id: string, status: OrderStatus) => {
+    const schema = harness.context.ownedSchema;
+    let roundId: string | null = null;
+    if (['en_camino', 'entregado', 'no_entregado'].includes(status)) {
+      const [round] = await harness.context.source.query<{ id: string }[]>(
+        `INSERT INTO "${schema}"."dispatch_rounds"
+           (courier_id, zone_id, zone_name, status, started_at, eta_at)
+         SELECT (SELECT id FROM "${schema}"."users" WHERE role = 'repartidor' LIMIT 1),
+                p.zone_id, o.zone_name, 'activa', now(), now() + interval '15 minutes'
+           FROM "${schema}"."orders" o JOIN "${schema}"."delivery_points" p ON p.id = o.point_id
+          WHERE o.id = $1
+         RETURNING id`,
+        [id],
+      );
+      roundId = round.id;
+    }
+    await harness.context.source.query(
+      `UPDATE "${schema}"."orders"
+       SET status = $2::varchar, cancelled_by = NULL, payment_status = 'aprobado', round_id = $3,
+           failure_reason = CASE WHEN $2::varchar = 'no_entregado' THEN 'Sin respuesta' ELSE NULL END
+       WHERE id = $1`,
+      [id, status, roundId],
     );
+  };
   const cancel = (auth: string, id: string, body: object = {}) =>
     request(harness.server)
       .post(`/api/v1/orders/${id}/cancel`)
