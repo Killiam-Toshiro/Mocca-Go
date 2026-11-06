@@ -32,6 +32,7 @@ export interface OrderBody {
     courier?: { fullName: string; phone: string; whatsappUrl: string } | null;
   };
   note: string | null;
+  survey?: { rating: number; comment: string | null; createdAt: string } | null;
   payment: { method: string; last4: string; status: string };
   customer: { name: string; phone: string };
   cancelReason: string | null;
@@ -141,4 +142,71 @@ export async function readyOrders(
     [orders.map((order) => order.id)],
   );
   return orders;
+}
+
+export interface Forced {
+  status: string;
+  /** Cuándo se creó (si se omite, queda la hora real). */
+  createdAt?: Date;
+  /** Hora de cada evento de estado que se quiera registrar. */
+  events?: Partial<Record<string, Date>>;
+  paymentStatus?: 'aprobado' | 'reembolsado';
+  failureReason?: string;
+}
+
+/**
+ * Deja un pedido en el estado y con la historia indicados, directo en la base
+ * (las pruebas de cocina y despacho ya cubren las transiciones reales). Los
+ * estados de reparto reciben una ronda de apoyo.
+ */
+export async function forceOrder(
+  harness: CatalogHarness,
+  orderId: string,
+  who: Customer,
+  forced: Forced,
+): Promise<void> {
+  const schema = harness.context.ownedSchema;
+  const source = harness.context.source;
+  let roundId: string | null = null;
+  if (['en_camino', 'entregado', 'no_entregado'].includes(forced.status)) {
+    const [round] = await source.query<{ id: string }[]>(
+      `INSERT INTO "${schema}"."dispatch_rounds"
+         (courier_id, zone_id, zone_name, status, started_at, eta_at, finished_at)
+       SELECT (SELECT id FROM "${schema}"."users" WHERE role = 'repartidor' LIMIT 1),
+              p.zone_id, o.zone_name, 'finalizada'::varchar, now() - interval '1 hour', now() - interval '45 minutes', now() - interval '30 minutes'
+         FROM "${schema}"."orders" o JOIN "${schema}"."delivery_points" p ON p.id = o.point_id
+        WHERE o.id = $1
+       RETURNING id`,
+      [orderId],
+    );
+    roundId = round.id;
+  }
+  await source.query(
+    `UPDATE "${schema}"."orders"
+        SET status = $2::varchar, round_id = $3, payment_status = $4::varchar,
+            failure_reason = $5, created_at = COALESCE($6::timestamptz, created_at),
+            cancelled_by = CASE WHEN $2::varchar = 'cancelado' THEN $7::uuid END,
+            cancel_reason = CASE WHEN $2::varchar = 'cancelado' THEN 'Cancelado en la prueba' END
+      WHERE id = $1`,
+    [
+      orderId,
+      forced.status,
+      roundId,
+      forced.paymentStatus ??
+        (forced.status === 'cancelado' ? 'reembolsado' : 'aprobado'),
+      forced.failureReason ??
+        (forced.status === 'no_entregado' ? 'No contestó' : null),
+      forced.createdAt ?? null,
+      who.id,
+    ],
+  );
+  await source.query(
+    `DELETE FROM "${schema}"."order_events" WHERE order_id = $1`,
+    [orderId],
+  );
+  for (const [status, at] of Object.entries(forced.events ?? {}))
+    await source.query(
+      `INSERT INTO "${schema}"."order_events" (order_id, status, user_id, created_at) VALUES ($1, $2, $3, $4)`,
+      [orderId, status, who.id, at],
+    );
 }

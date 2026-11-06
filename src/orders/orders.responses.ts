@@ -126,6 +126,21 @@ export class OrderEventResponse {
   at!: Date;
 }
 
+export class OrderSurveyResponse {
+  @ApiProperty({ type: 'integer', minimum: 1, maximum: 5, example: 5 })
+  rating!: number;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    example: 'Llegó caliente y rápido',
+  })
+  comment!: string | null;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  createdAt!: Date;
+}
+
 export class OrderResponse {
   @ApiProperty({ format: 'uuid' })
   id!: string;
@@ -163,6 +178,14 @@ export class OrderResponse {
     description: 'Motivo, solo en pedidos `no_entregado`.',
   })
   failureReason!: string | null;
+
+  @ApiProperty({
+    type: () => OrderSurveyResponse,
+    nullable: true,
+    description:
+      'Encuesta del cliente; `null` mientras no la responda. Con el pedido `entregado` y `survey` en `null`, el front pide la calificación.',
+  })
+  survey!: OrderSurveyResponse | null;
 
   @ApiProperty({ type: [OrderEventResponse] })
   events!: OrderEventResponse[];

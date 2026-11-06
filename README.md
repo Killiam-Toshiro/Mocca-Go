@@ -20,7 +20,7 @@ Main actualizado/verificado a `635e928` el 2026-10-13. Incluye seed/PostgreSQL, 
 
 **Alcance acordado (2026-10-13):** el usuario excluye 2FA de los requisitos de aquí en adelante. La autenticación vigente es usuario/contraseña → JWT, con sesiones persistidas y logout revocable. El enunciado original incluía 2FA; se conserva como antecedente, mientras que el SDD y el seguimiento actual usan el alcance JWT-only aprobado (D-65).
 
-El código incluye 50 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, ocho de catálogo, una de menú público, dos de movimientos, ocho de zonas y puntos de entrega, cinco de pedidos, cuatro de cocina y siete de despacho.
+El código incluye 53 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, ocho de catálogo, una de menú público, dos de movimientos, ocho de zonas y puntos de entrega, seis de pedidos, cuatro de cocina, siete de despacho, una de encuestas y una de métricas.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -81,7 +81,8 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 15     | Zonas y puntos de entrega del campus y consulta pública             | Cerrado; ver el [overview](docs/commits/015.md)               |
 | 16     | Pedidos con pago de demostración y descuento de saldo               | Cerrado; ver el [overview](docs/commits/016.md)               |
 | 17     | Cocina (cola y transiciones) y avisos en tiempo real (SSE)          | Cerrado; ver el [overview](docs/commits/017.md)               |
-| 18     | Despacho: rondas del repartidor, entrega y «no entregado»           | En revisión; ver el [overview](docs/commits/018.md)           |
+| 18     | Despacho: rondas del repartidor, entrega y «no entregado»           | Cerrado; ver el [overview](docs/commits/018.md)               |
+| 19     | Encuesta de satisfacción y métricas del negocio                     | En revisión; ver el [overview](docs/commits/019.md)           |
 
 El despliegue ya está verificado. Quedan revisar el informe final cuando se comparta y confirmar la entrega en Intu. Swagger complementa el informe, pero no lo sustituye.
 
@@ -400,6 +401,23 @@ El repartidor arma sus propias rondas. Una ronda es una salida a repartir: hasta
 **Cierre:** cuando ningún pedido de la ronda sigue `en_camino`, la ronda pasa a `finalizada`. `entregado` y `no_entregado` son estados finales; qué hacer con los `no_entregado` se define en un incremento posterior.
 
 **Lo que ve el cliente:** mientras su pedido está `en_camino`, `delivery.courier` trae `{fullName, phone, whatsappUrl}` (`https://wa.me/<teléfono sin +>`) y `delivery.etaAt` la hora estimada; en cualquier otro estado ambos son `null`. Por eso crear un usuario `repartidor` exige `phone` y `fullName` (`POST /users`), y cambiar a alguien a ese rol exige que ya los tenga. El seed del repartidor de demostración trae valores de ejemplo.
+
+## Encuesta y métricas
+
+**Encuesta.** Cuando su pedido está `entregado`, el cliente lo califica una sola vez con `POST /orders/:id/survey` (`rating` de 1 a 5 y `comment` opcional de hasta 300 caracteres). No se edita ni se borra. `404` si el pedido es ajeno o no existe; `409` si aún no está entregado o ya fue respondido. La respuesta aparece en el pedido (`survey`, `null` si no existe) y el admin las lista con `GET /surveys` (paginado, filtros `rating`, `from`, `to`).
+
+**Métricas** (`GET /metrics`, solo `admin`). Parámetros: `from` y `to` (`YYYY-MM-DD`, hora de Colombia; por defecto los últimos 30 días, máximo 366) y `zoneId` opcional (`404` si no existe).
+
+| Sección        | Contenido                                                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sales`        | Pedidos, ingresos, ticket promedio y serie diaria (con ceros)                                                                                     |
+| `margin`       | Ingresos, costo variable (el guardado en cada línea), margen y proporción de costo; total y por categoría                                         |
+| `delivery`     | Entregados, porcentaje a tiempo (reparto ≤ 15 min), tiempo total (promedio, mediana, p90), minutos por etapa (cocina, espera, reparto) y por zona |
+| `satisfaction` | Respuestas, promedio, tasa de respuesta y distribución 1 a 5                                                                                      |
+| `retention`    | Clientes con compra, clientes que repitieron y tasa de recompra                                                                                   |
+| `outcomes`     | Pedidos del periodo por resultado: `entregado`, `no_entregado`, `cancelado` y `enCurso`                                                           |
+
+Una venta es un pedido con pago `aprobado` (cuenta `no_entregado`; la cancelación reembolsa y no cuenta). Ambas rutas responden con `Cache-Control: no-store`.
 
 ## Pruebas y verificaciones
 

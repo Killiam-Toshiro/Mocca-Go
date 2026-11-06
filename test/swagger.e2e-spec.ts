@@ -103,6 +103,11 @@ const DISPATCH = [
   'POST /api/v1/dispatch/orders/{id}/fail',
   'GET /api/v1/dispatch/stream',
 ];
+const INSIGHTS = [
+  'POST /api/v1/orders/{id}/survey',
+  'GET /api/v1/surveys',
+  'GET /api/v1/metrics',
+];
 const OWN_PASSWORD = ['PATCH /api/v1/auth/password'];
 const PROTECTED = [
   ...ADMIN_ONLY,
@@ -112,6 +117,7 @@ const PROTECTED = [
   ...ORDERS,
   ...KITCHEN,
   ...DISPATCH,
+  ...INSIGHTS,
   ...OWN_PASSWORD,
 ];
 
@@ -202,12 +208,12 @@ describe('Documentación OpenAPI (Swagger)', () => {
     });
   });
 
-  it('S-02: documenta exactamente las 50 operaciones con el prefijo /api/v1', () => {
+  it('S-02: documenta exactamente las 53 operaciones con el prefijo /api/v1', () => {
     const operations = Object.entries(doc.paths).flatMap(([path, methods]) =>
       Object.keys(methods).map((method) => `${method.toUpperCase()} ${path}`),
     );
     expect(operations.sort()).toEqual([...PUBLIC, ...PROTECTED].sort());
-    expect(operations).toHaveLength(50);
+    expect(operations).toHaveLength(53);
   });
 
   it('cada operación tiene etiqueta del módulo, resumen y respuesta de éxito', () => {
@@ -241,6 +247,7 @@ describe('Documentación OpenAPI (Swagger)', () => {
       ...ORDERS,
       ...KITCHEN,
       ...DISPATCH,
+      ...INSIGHTS,
       ...OWN_PASSWORD,
     ])
       expect(operation(key).responses['403']).toBeDefined();
@@ -275,6 +282,11 @@ describe('Documentación OpenAPI (Swagger)', () => {
     ])
       expect(operation(key).responses['409']).toBeDefined();
     expect(operation('GET /api/v1/dispatch/queue').tags).toEqual(['dispatch']);
+    expect(
+      operation('POST /api/v1/orders/{id}/survey').responses['409'],
+    ).toBeDefined();
+    expect(operation('GET /api/v1/metrics').responses['404']).toBeDefined();
+    expect(operation('GET /api/v1/surveys').tags).toEqual(['surveys']);
   });
 
   it('documenta los conflictos, inexistentes y el límite de peticiones', () => {
@@ -427,6 +439,15 @@ describe('Documentación OpenAPI (Swagger)', () => {
       type: 'array',
       minItems: 1,
       maxItems: 5,
+    });
+    expect(schema('CreateSurveyDto').required).toEqual(['rating']);
+    expect(schema('CreateSurveyDto').properties!.rating).toMatchObject({
+      minimum: 1,
+      maximum: 5,
+    });
+    expect(schema('CreateSurveyDto').properties!.comment).toMatchObject({
+      minLength: 1,
+      maxLength: 300,
     });
     expect(schema('FailOrderDto').required).toEqual(['reason']);
     expect(schema('FailOrderDto').properties!.reason).toMatchObject({

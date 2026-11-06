@@ -423,7 +423,8 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
     });
 
     it('aplicada sobre datos del esquema anterior conserva usuarios, sesiones e inventario y elimina solo el 2FA', async () => {
-      // Las últimas migraciones son despacho, pedidos, zonas, catálogo, clientes y roles; se deshacen primero.
+      // Las últimas migraciones son encuestas, despacho, pedidos, zonas, catálogo, clientes y roles; se deshacen primero.
+      await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       await context.source.undoLastMigration();
@@ -501,7 +502,8 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
     });
 
     it('down restaura la estructura vacía con sus restricciones y up la vuelve a quitar', async () => {
-      // Las últimas migraciones son despacho, pedidos, zonas, catálogo, clientes y roles; se deshacen primero.
+      // Las últimas migraciones son encuestas, despacho, pedidos, zonas, catálogo, clientes y roles; se deshacen primero.
+      await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       await context.source.undoLastMigration();

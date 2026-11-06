@@ -181,3 +181,12 @@ Decisiones del incremento 018 (Rondas de despacho y entrega; aprobadas por el us
 - D-109: `no_entregado` es un estado final con motivo obligatorio que no devuelve inventario ni reembolsa; su tratamiento se decide en un incremento posterior.
 - D-110: la ronda se cierra sola cuando ningún pedido sigue `en_camino`; entregar bloquea primero el pedido y luego la ronda para evitar interbloqueos.
 - D-111: el repartidor tiene su propio canal en tiempo real (`GET /dispatch/stream`) con los avisos de todos los pedidos; `admin` y `operador` consultan rondas pero no las modifican. Eliminar un usuario con historial de pedidos o rondas responde `409`.
+
+Decisiones del incremento 019 (Encuesta de satisfacción y métricas; aprobadas por el usuario el 2026-11-05):
+
+- D-112: la encuesta es una calificación de 1 a 5 con comentario opcional (hasta 300 caracteres); cada pedido `entregado` admite una sola respuesta, del cliente dueño, y no se edita ni se borra. La unicidad la garantiza la base (`UNIQUE(order_id)`) y el servicio bloquea el pedido.
+- D-113: la respuesta se ve dentro del pedido (`survey`, `null` si no existe) para cliente, admin y operador; el admin además la lista en `GET /surveys` con filtros y paginación.
+- D-114: las métricas son una sola ruta, `GET /metrics`, solo para el admin, con rango `from`/`to` (por defecto 30 días, máximo 366) y filtro opcional por zona; todas las secciones salen de una transacción `REPEATABLE READ`.
+- D-115: una venta es un pedido con pago `aprobado` (incluye `no_entregado`; la cancelación reembolsa y deja de contar). El costo variable usa el costo guardado en cada línea del pedido, no el actual del producto.
+- D-116: los tiempos salen de los eventos del pedido; «a tiempo» mide el reparto (`en_camino` → `entregado`) contra 15 minutos, y se reportan también cocina y espera.
+- D-117: los días se cuentan en hora de Colombia (UTC−5 fijo). Las respuestas de `/metrics` y `/surveys` no se guardan en caché. Eliminar un cliente con encuestas responde `409`.

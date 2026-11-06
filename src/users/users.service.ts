@@ -24,6 +24,7 @@ import {
   ORDER_CUSTOMER_FK,
   ORDER_EVENT_USER_FK,
   ROUND_COURIER_FK,
+  SURVEY_CUSTOMER_FK,
 } from '../common/database-errors';
 import { Customer } from '../customers/entities/customer.entity';
 import { StockMovement } from '../movements/entities/stock-movement.entity';
@@ -271,7 +272,8 @@ export class UsersService {
         isConstraintViolation(error, '23503', MOVEMENT_USER_FK) ||
         isConstraintViolation(error, '23503', ORDER_CUSTOMER_FK) ||
         isConstraintViolation(error, '23503', ORDER_EVENT_USER_FK) ||
-        isConstraintViolation(error, '23503', ROUND_COURIER_FK)
+        isConstraintViolation(error, '23503', ROUND_COURIER_FK) ||
+        isConstraintViolation(error, '23503', SURVEY_CUSTOMER_FK)
       )
         throw new ConflictException(USER_HAS_MOVEMENTS);
       throw error;
