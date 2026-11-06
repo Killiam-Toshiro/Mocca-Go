@@ -1,16 +1,26 @@
-# Taller Backend NestJS — API de inventario
+# Mocca Go — Backend
 
-Backend académico para administrar productos, existencias y movimientos de inventario con NestJS y PostgreSQL. El proyecto se desarrolla mediante **Spec-Driven Design con archivos versionados**: especificar, planificar, implementar, verificar y actualizar la documentación en cada commit.
+Backend de **Mocca Go** (café y snacks a domicilio en el campus de Icesi) con NestJS y PostgreSQL. Parte de la API de inventario del taller (productos, existencias y movimientos) y la evoluciona hacia clientes, pedidos, cocina y despacho en los incrementos 012 a 019. El proyecto se desarrolla mediante **Spec-Driven Design con archivos versionados**: especificar, planificar, implementar, verificar y actualizar la documentación en cada commit.
 
 Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backend-NestJS).
 
 ## Estado actual
 
+**Mocca Go (2026-11-05):** el incremento 012 (fundaciones) amplía los roles a `admin`, `operador` (cocina), `repartidor` y `cliente`, agrega CORS configurable para el frontend Next.js, hace configurable la duración del JWT, renombra la identidad del proyecto y la base de desarrollo a `mocca_go`, y suma un usuario `repartidor` al seed. Ver [especificación 012](specs/012-fundaciones/spec.md) y su [overview](docs/commits/012.md).
+
+**Clientes (2026-11-05):** el incremento 013 agrega el registro público de clientes con correo, contraseña, nombre y teléfono (guardado en formato E.164 para avisos futuros por WhatsApp o SMS), el inicio de sesión con correo, el perfil propio y el cambio de contraseña propio para los cuatro roles. Ver [especificación 013](specs/013-clientes/spec.md) y su [overview](docs/commits/013.md). Los datos de estado de abajo describen la API heredada del taller.
+
+**Pedidos (2026-11-05):** el incremento 016 permite que un cliente compre del menú: elige el punto de entrega, el piso y una indicación, paga con una tarjeta de demostración (una aprueba y otra rechaza) y el pedido queda `recibido`. El saldo baja en la misma operación con movimientos `OUT` ligados al pedido (los combos descuentan sus componentes) y cancelar lo devuelve con movimientos `IN`. Ver [especificación 016](specs/016-pedidos/spec.md) y su [overview](docs/commits/016.md).
+
+**Zonas y puntos de entrega (2026-11-05):** el incremento 015 agrega los puntos fijos del campus donde se entrega (edificios, Biblioteca, Canchas, Coliseo…) agrupados en cuatro zonas de despacho, con su administración (solo `admin`) y la consulta pública `GET /delivery-zones`, sin sesión. El seed carga 4 zonas y 17 puntos con sus pisos e indicaciones. Ver [especificación 015](specs/015-zonas-puntos/spec.md) y su [overview](docs/commits/015.md).
+
+**Catálogo y combos (2026-11-05):** el incremento 014 convierte el catálogo en el menú de Mocca Go: seis categorías (`cafe`, `bebida`, `panaderia`, `pasteleria`, `snack`, `combo`), precio y costo en pesos COP, el interruptor «agotado» para la cocina, combos formados por productos simples (con costo, saldo y disponibilidad calculados) y el menú público `GET /menu`, sin sesión. El inventario de ejemplo del taller (teclado, mouse, monitor) se reemplaza por 20 productos y 3 combos. `GET /products` pasa a ser solo para `admin` y `operador`. Ver [especificación 014](specs/014-catalogo-combos/spec.md) y su [overview](docs/commits/014.md).
+
 Main actualizado/verificado a `635e928` el 2026-10-13. Incluye seed/PostgreSQL, JWT con sesiones revocables, roles, catálogo, movimientos, Swagger, despliegue Railway y CRUD completo/readiness. La colección Postman está versionada; el usuario confirma corridas exitosas locales y desplegadas. El informe está terminado según el usuario, pendiente de compartir para revisión documental.
 
 **Alcance acordado (2026-10-13):** el usuario excluye 2FA de los requisitos de aquí en adelante. La autenticación vigente es usuario/contraseña → JWT, con sesiones persistidas y logout revocable. El enunciado original incluía 2FA; se conserva como antecedente, mientras que el SDD y el seguimiento actual usan el alcance JWT-only aprobado (D-65).
 
-El código incluye 19 operaciones: dos de health, tres de autenticación, seis de usuarios, seis de catálogo y dos de movimientos.
+El código incluye 50 operaciones: dos de health, cuatro de autenticación, seis de usuarios, tres de clientes, ocho de catálogo, una de menú público, dos de movimientos, ocho de zonas y puntos de entrega, cinco de pedidos, cuatro de cocina y siete de despacho.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -54,17 +64,24 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 
 ## Incrementos
 
-| Commit | Alcance                                                            | Estado                                                        |
-| ------ | ------------------------------------------------------------------ | ------------------------------------------------------------- |
-| 1      | Especificación de inventario, rúbrica y flujo de trabajo           | Cerrado; usuario autorizó avanzar                             |
-| 2      | Base NestJS, configuración, validación, health y pruebas iniciales | Ver resultados y estado en el [overview](docs/commits/002.md) |
-| 3      | PostgreSQL, migración inicial, seed y pruebas de persistencia      | Ver resultados y estado en el [overview](docs/commits/003.md) |
-| 4      | JWT, sesiones revocables y guards (TOTP retirado en el 7)          | Ver resultados y estado en el [overview](docs/commits/004.md) |
-| 5      | Crear/listar usuarios, asignar roles y proteger al último admin    | Ver resultados y estado en el [overview](docs/commits/005.md) |
-| 6      | Catálogo: crear, listar, consultar, editar y activar/desactivar    | Ver resultados y estado en el [overview](docs/commits/006.md) |
-| 7      | Retiro del 2FA: login directo con JWT y sesiones revocables        | Ver resultados y estado en el [overview](docs/commits/007.md) |
-| 9      | Documentación OpenAPI con Swagger UI                               | Ver resultados y estado en el [overview](docs/commits/009.md) |
-| 11     | CRUD completo de productos y usuarios, readiness y colección       | Ver resultados y estado en el [overview](docs/commits/011.md) |
+| Commit | Alcance                                                             | Estado                                                        |
+| ------ | ------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 1      | Especificación de inventario, rúbrica y flujo de trabajo            | Cerrado; usuario autorizó avanzar                             |
+| 2      | Base NestJS, configuración, validación, health y pruebas iniciales  | Ver resultados y estado en el [overview](docs/commits/002.md) |
+| 3      | PostgreSQL, migración inicial, seed y pruebas de persistencia       | Ver resultados y estado en el [overview](docs/commits/003.md) |
+| 4      | JWT, sesiones revocables y guards (TOTP retirado en el 7)           | Ver resultados y estado en el [overview](docs/commits/004.md) |
+| 5      | Crear/listar usuarios, asignar roles y proteger al último admin     | Ver resultados y estado en el [overview](docs/commits/005.md) |
+| 6      | Catálogo: crear, listar, consultar, editar y activar/desactivar     | Ver resultados y estado en el [overview](docs/commits/006.md) |
+| 7      | Retiro del 2FA: login directo con JWT y sesiones revocables         | Ver resultados y estado en el [overview](docs/commits/007.md) |
+| 9      | Documentación OpenAPI con Swagger UI                                | Ver resultados y estado en el [overview](docs/commits/009.md) |
+| 11     | CRUD completo de productos y usuarios, readiness y colección        | Ver resultados y estado en el [overview](docs/commits/011.md) |
+| 12     | Mocca Go: roles ampliados, CORS, duración del JWT e identidad       | Cerrado (`f200fab`); ver el [overview](docs/commits/012.md)   |
+| 13     | Clientes: registro, login con correo, perfil y cambio de contraseña | Cerrado (`f200fab`); ver el [overview](docs/commits/013.md)   |
+| 14     | Catálogo ampliado y combos: categorías, precio, «agotado» y menú    | Cerrado; ver el [overview](docs/commits/014.md)               |
+| 15     | Zonas y puntos de entrega del campus y consulta pública             | Cerrado; ver el [overview](docs/commits/015.md)               |
+| 16     | Pedidos con pago de demostración y descuento de saldo               | Cerrado; ver el [overview](docs/commits/016.md)               |
+| 17     | Cocina (cola y transiciones) y avisos en tiempo real (SSE)          | Cerrado; ver el [overview](docs/commits/017.md)               |
+| 18     | Despacho: rondas del repartidor, entrega y «no entregado»           | En revisión; ver el [overview](docs/commits/018.md)           |
 
 El despliegue ya está verificado. Quedan revisar el informe final cuando se comparta y confirmar la entrega en Intu. Swagger complementa el informe, pero no lo sustituye.
 
@@ -96,19 +113,24 @@ node -e "const fs = require('node:fs'), c = require('node:crypto'); fs.appendFil
 
 Ejecuta ese comando una sola vez al configurar tu entorno. Conserva la clave: cambiarla invalida los JWT emitidos; la rotación requiere un procedimiento que aún no se implementa. Si tu `.env` antiguo aún contiene `TOTP_ENCRYPTION_KEY`, la variable se ignora y puedes borrarla.
 
-| Variable           | Por defecto         | Regla                                                                   |
-| ------------------ | ------------------- | ----------------------------------------------------------------------- |
-| `NODE_ENV`         | `development`       | `development`, `test` o `production`                                    |
-| `PORT`             | `3000`              | Entero entre 1 y 65535, escrito solo con dígitos                        |
-| `DB_HOST`          | `127.0.0.1`         | Host de PostgreSQL                                                      |
-| `DB_PORT`          | `5433`              | Entero entre 1 y 65535                                                  |
-| `DB_NAME`          | `inventory`         | Identificador en minúsculas; en test debe terminar en `_test`           |
-| `DB_USERNAME`      | `inventory`         | Usuario de PostgreSQL                                                   |
-| `DB_PASSWORD`      | Sin valor en código | Obligatoria; `.env.example` contiene una clave de demostración local    |
-| `DB_SCHEMA`        | `public`            | Identificador en minúsculas, máximo 63 caracteres                       |
-| `DB_SSL`           | `false`             | `true` o `false`; con `true` se verifica el certificado                 |
-| `JWT_SECRET`       | Sin valor           | Al menos 32 bytes; firma los JWT (HS256)                                |
-| `TRUST_PROXY_HOPS` | `0`                 | Entero de 0 a 10: proxies de confianza; `1` en Railway (ver despliegue) |
+| Variable                   | Por defecto         | Regla                                                                                                                     |
+| -------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                 | `development`       | `development`, `test` o `production`                                                                                      |
+| `PORT`                     | `3000`              | Entero entre 1 y 65535, escrito solo con dígitos                                                                          |
+| `DB_HOST`                  | `127.0.0.1`         | Host de PostgreSQL                                                                                                        |
+| `DB_PORT`                  | `5433`              | Entero entre 1 y 65535                                                                                                    |
+| `DB_NAME`                  | `mocca_go`          | Identificador en minúsculas; en test debe terminar en `_test`                                                             |
+| `DB_USERNAME`              | `mocca_go`          | Usuario de PostgreSQL                                                                                                     |
+| `DB_PASSWORD`              | Sin valor en código | Obligatoria; `.env.example` contiene una clave de demostración local                                                      |
+| `DB_SCHEMA`                | `public`            | Identificador en minúsculas, máximo 63 caracteres                                                                         |
+| `DB_SSL`                   | `false`             | `true` o `false`; con `true` se verifica el certificado                                                                   |
+| `JWT_SECRET`               | Sin valor           | Al menos 32 bytes; firma los JWT (HS256)                                                                                  |
+| `TRUST_PROXY_HOPS`         | `0`                 | Entero de 0 a 10: proxies de confianza; `1` en Railway (ver despliegue)                                                   |
+| `ACCESS_TOKEN_TTL_SECONDS` | `900`               | Entero de 60 a 86400: vida del JWT y de su sesión en segundos                                                             |
+| `CORS_ORIGINS`             | vacío               | Orígenes del frontend separados por comas (`http://localhost:3001`); sin comodín, ruta ni `/` final. Vacío desactiva CORS |
+| `SEED_COURIER_PASSWORD`    | Sin valor           | Obligatoria para el seed; 12 a 128 caracteres                                                                             |
+
+**Cambio de nombre de la base (012):** el nombre, usuario y contraseña de ejemplo de desarrollo pasan de `inventory` a `mocca_go`. PostgreSQL solo crea la base al inicializar un volumen vacío, así que si ya tenías el volumen `inventory_data` ejecuta una vez `docker compose down -v` (borra los datos de desarrollo) después de actualizar tu `.env`, y repite los pasos siguientes. `compose.yaml` no cambia.
 
 Preparar la base y cargar los registros iniciales:
 
@@ -118,13 +140,15 @@ npm run migration:run
 npm run seed
 ```
 
-Los comandos de migración y seed compilan el proyecto antes de ejecutarse. El seed requiere `SEED_ADMIN_PASSWORD` y `SEED_OPERATOR_PASSWORD` de 12 a 128 caracteres, declaradas en `.env` o en el proceso. Crea `admin`, `operador`, tres productos y entradas iniciales con saldos 20, 30 y 10. Las contraseñas se guardan con scrypt y salt aleatoria.
+Los comandos de migración y seed compilan el proyecto antes de ejecutarse. El seed requiere `SEED_ADMIN_PASSWORD`, `SEED_OPERATOR_PASSWORD` y `SEED_COURIER_PASSWORD` de 12 a 128 caracteres, declaradas en `.env` o en el proceso. Crea `admin`, `operador`, `repartidor`, el menú de Mocca Go (20 productos simples con su saldo inicial por movimientos de entrada y 3 combos: Clásico, Estudio y Dulce) y ninguna fila del inventario de ejemplo del taller (`INV-*`). Las contraseñas se guardan con scrypt y salt aleatoria.
 
 Repetir `npm run seed` conserva contraseñas, roles, catálogo, saldos e historial existentes y no aplica de nuevo las entradas ya identificadas. Si existe un producto activo sin su entrada inicial, se añade esa entrada a su saldo previo; si está inactivo, se rechaza la carga completa. Todo el seed es una transacción. Para iniciar sesión usa el recorrido siguiente: basta usuario y contraseña.
 
+**Menú nuevo (014):** el historial de movimientos es inmutable, así que los productos `INV-001` a `INV-003` de una base ya sembrada no se pueden borrar por la API. Para quedarte solo con el menú de Mocca Go recrea la base de desarrollo: `docker compose down -v`, `npm run db:up`, `npm run migration:run` y `npm run seed` (borra los datos de desarrollo).
+
 Desarrollo tiene un volumen persistente en Docker. `docker compose stop postgres` detiene ese servicio conservando los datos, y `npm run db:up` lo vuelve a iniciar. No es necesario borrar volúmenes para repetir el seed.
 
-`npm run migration:revert` revierte la última migración: la del incremento 7 restaura la estructura 2FA vacía (los secretos TOTP eliminados no se recuperan); la de autenticación elimina sesiones; la inicial elimina inventario/usuarios. Ambas reversiones **eliminan datos** y se prueban solo sobre bases descartables. La aplicación no ejecuta migraciones ni seed al arrancar; `synchronize` y `dropSchema` están desactivados.
+`npm run migration:revert` revierte la última migración: la del incremento 7 restaura la estructura 2FA vacía (los secretos TOTP eliminados no se recuperan); la de autenticación elimina sesiones; la inicial elimina inventario/usuarios; la del catálogo y combos (014) aborta si existe algún combo. Ambas reversiones **eliminan datos** y se prueban solo sobre bases descartables. La aplicación no ejecuta migraciones ni seed al arrancar; `synchronize` y `dropSchema` están desactivados.
 
 Las variables del proceso prevalecen sobre `.env`. Cuando `NODE_ENV=test`, no se carga `.env`. Una configuración inválida impide arrancar y el mensaje indica qué variable corregir sin mostrar su valor.
 
@@ -174,13 +198,13 @@ La documentación se genera con `@nestjs/swagger` a partir de los controladores 
 
 ## Colección Postman
 
-`postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json` es autocontenida (sus variables viven en la colección) y recorre casos exitosos y errores de todas las rutas en las carpetas 00 a 10. Trae las contraseñas de demostración de `.env.example`; si tu seed usa otras, cámbialas en la pestaña **Variables**. Con migración, seed y API iniciados:
+`postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json` es autocontenida (sus variables viven en la colección) y recorre casos exitosos y errores de todas las rutas en las carpetas 00 a 10 (más la 07b de roles de Mocca Go, la 07c de clientes y cambio de contraseña y la 07d de catálogo, combos, «agotado» y menú público la 07e de zonas y puntos de entrega y la 07f de pedidos). Trae las contraseñas de demostración de `.env.example`; si tu seed usa otras, cámbialas en la pestaña **Variables**. Con migración, seed y API iniciados:
 
 ```bash
 postman collection run "postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json"
 ```
 
-También se puede importar en Postman y ejecutar con el Collection Runner. Cada corrida crea usuarios `qa_*` y productos `QA-*`; el límite de 20 peticiones por minuto en `/auth/*` obliga a esperar un minuto entre corridas completas.
+También se puede importar en Postman y ejecutar con el Collection Runner. Cada corrida crea usuarios `qa_*` y productos `QA-*` (la 07d crea y elimina un combo `QA-CMB-*` la 07e, una zona y un punto `QA`, y la 07f, un comprador `qa_buyer_*` que no se puede eliminar porque ya tiene pedidos); el límite de 20 peticiones por minuto en `/auth/*` y de 5 registros por minuto en `POST /customers` obligan a esperar un minuto entre corridas completas.
 
 ## Autenticación: recorrido manual
 
@@ -195,30 +219,50 @@ Invoke-RestMethod -Method Post "$base/auth/logout" -Headers $headers
 # Repetir /auth/me con los mismos headers debe fallar con 401.
 ```
 
-| Ruta                | Entrada                | Resultado                                                   |
-| ------------------- | ---------------------- | ----------------------------------------------------------- |
-| `POST /auth/login`  | `username`, `password` | `200`: `{accessToken, tokenType:'Bearer', expiresIn:900}`   |
-| `GET /auth/me`      | Bearer JWT             | `200`: `{id,username,role}` sin secretos                    |
-| `POST /auth/logout` | Bearer JWT             | `204`: sesión revocada; después el mismo JWT devuelve `401` |
+| Ruta                   | Entrada                                                           | Resultado                                                   |
+| ---------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- |
+| `POST /auth/login`     | `password` y `username` (personal) o `email` (clientes), solo uno | `200`: `{accessToken, tokenType:'Bearer', expiresIn}`       |
+| `GET /auth/me`         | Bearer JWT                                                        | `200`: `{id,username,role}` sin secretos                    |
+| `POST /auth/logout`    | Bearer JWT                                                        | `204`: sesión revocada; después el mismo JWT devuelve `401` |
+| `PATCH /auth/password` | Bearer JWT, `currentPassword`, `newPassword`                      | `204`: contraseña cambiada y demás sesiones revocadas       |
 
 Las rutas son relativas a `/api/v1`. Las antiguas `/auth/2fa/setup`, `/auth/2fa/confirm` y `/auth/verify-2fa` fueron retiradas y devuelven `404`. Se rechazan campos adicionales con `400`; credenciales inválidas, usuario inexistente o cuenta bloqueada con el mismo `401`; exceso de peticiones con `429`. Username canónico y contraseña de 12–128 caracteres. Cinco fallos de contraseña bloquean el login de esa cuenta 15 minutos y un éxito reinicia el contador. El límite por IP/ruta es 20 peticiones/minuto en memoria por proceso.
 
-El JWT es HS256, dura 15 minutos y no hay refresh. Cada login crea una sesión en PostgreSQL; el guard comprueba JWT y sesión y toma el rol vigente de BD, y `logout` revoca solo esa sesión. Todas las respuestas auth llevan `Cache-Control: no-store`. Sin segundo factor, la contraseña es la única barrera: usa contraseñas propias en cualquier entorno compartido. Un admin puede cambiar la contraseña de un usuario con `PATCH /users/:id`; no hay cambio por el propio usuario, recuperación de contraseña, refresh tokens ni rotación de claves automatizada.
+El JWT es HS256, dura `ACCESS_TOKEN_TTL_SECONDS` (15 minutos por defecto) y no hay refresh. Cada login crea una sesión en PostgreSQL; el guard comprueba JWT y sesión y toma el rol vigente de BD, y `logout` revoca solo esa sesión. Todas las respuestas auth llevan `Cache-Control: no-store`. Sin segundo factor, la contraseña es la única barrera: usa contraseñas propias en cualquier entorno compartido. Cualquier usuario autenticado cambia su propia contraseña con `PATCH /auth/password` (`currentPassword` y `newPassword` de 12–128 caracteres, la nueva distinta de la actual): la actual se verifica con el mismo contador de fallos del login (cinco fallos bloquean la cuenta 15 minutos), una contraseña actual incorrecta responde `403` y un cambio correcto revoca las demás sesiones. Quien olvida su contraseña la recupera con un admin mediante `PATCH /users/:id`; no hay recuperación por correo, refresh tokens ni rotación de claves automatizada.
+
+## Clientes
+
+Los clientes se registran solos; no necesitan a un admin.
+
+| Ruta relativa a `/api/v1` | Acceso    | Entrada                                       | Respuesta                                   |
+| ------------------------- | --------- | --------------------------------------------- | ------------------------------------------- |
+| `POST /customers`         | Público   | JSON `email`, `password`, `fullName`, `phone` | `201`: perfil `{id,email,fullName,phone,…}` |
+| `GET /customers/me`       | `cliente` | Bearer JWT                                    | `200`: perfil propio                        |
+| `PATCH /customers/me`     | `cliente` | JSON `fullName` y/o `phone`                   | `200`: perfil actualizado                   |
+
+El registro no inicia sesión: después se llama a `POST /auth/login` con `email` y `password`. El correo se guarda en minúsculas y es único (`409` si ya existe). La contraseña tiene 12–128 caracteres y el nombre 2–100. El teléfono es obligatorio y se normaliza a E.164: `300 123 4567` queda como `+573001234567`, y también se aceptan números internacionales con `+` (`+34 612 345 678`); fijos, números incompletos y texto reciben `400`. El teléfono no es único y todavía no se usa para enviar mensajes. `POST /customers` admite 5 peticiones por minuto por IP; las respuestas de `/customers` llevan `Cache-Control: no-store` y nunca incluyen contraseña, hash ni el `username` interno que se genera para la cuenta. El correo no se puede cambiar. Un admin puede restablecer la contraseña de un cliente o eliminarlo con las rutas de `/users`, pero no cambiarle el rol.
+
+```powershell
+$base = 'http://localhost:3000/api/v1'
+Invoke-RestMethod -Method Post "$base/customers" -ContentType 'application/json' -Body (@{ email = 'ana@u.icesi.edu.co'; password = '<contraseña_de_12_a_128_caracteres>'; fullName = 'Ana Pérez'; phone = '300 123 4567' } | ConvertTo-Json)
+$session = Invoke-RestMethod -Method Post "$base/auth/login" -ContentType 'application/json' -Body (@{ email = 'ana@u.icesi.edu.co'; password = '<la misma contraseña>' } | ConvertTo-Json)
+Invoke-RestMethod "$base/customers/me" -Headers @{ Authorization = "Bearer $($session.accessToken)" }
+```
 
 ## Administración de usuarios y roles
 
-Después de iniciar sesión como admin, usa el Bearer JWT obtenido. Un operador recibe `403` y una petición sin sesión válida recibe `401` en las seis rutas. No existe registro público.
+Después de iniciar sesión como admin, usa el Bearer JWT obtenido. Un operador, repartidor o cliente recibe `403` y una petición sin sesión válida recibe `401` en las seis rutas. El registro público es solo para clientes (`POST /customers`); el personal lo crea un admin.
 
-| Ruta relativa a `/api/v1` | Parámetros                                                 | Respuesta                                   |
-| ------------------------- | ---------------------------------------------------------- | ------------------------------------------- |
-| `POST /users`             | JSON `username`, `password`, `role` (`admin` u `operador`) | `201`: usuario seguro                       |
-| `GET /users`              | `page` opcional 1–10000, `limit` opcional 1–100            | `200`: `{data,page,limit,total,totalPages}` |
-| `GET /users/:id`          | UUID v4                                                    | `200`: usuario seguro                       |
-| `PATCH /users/:id`        | UUID v4, JSON `username` y/o `password`                    | `200`: usuario seguro actualizado           |
-| `DELETE /users/:id`       | UUID v4                                                    | `204` sin cuerpo                            |
-| `PATCH /users/:id/role`   | UUID v4, JSON `{role}`                                     | `200`: usuario seguro actualizado           |
+| Ruta relativa a `/api/v1` | Parámetros                                                               | Respuesta                                   |
+| ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
+| `POST /users`             | JSON `username`, `password`, `role` (`admin`, `operador` o `repartidor`) | `201`: usuario seguro                       |
+| `GET /users`              | `page` opcional 1–10000, `limit` opcional 1–100                          | `200`: `{data,page,limit,total,totalPages}` |
+| `GET /users/:id`          | UUID v4                                                                  | `200`: usuario seguro                       |
+| `PATCH /users/:id`        | UUID v4, JSON `username` y/o `password`                                  | `200`: usuario seguro actualizado           |
+| `DELETE /users/:id`       | UUID v4                                                                  | `204` sin cuerpo                            |
+| `PATCH /users/:id/role`   | UUID v4, JSON `{role}`                                                   | `200`: usuario seguro actualizado           |
 
-Usuario seguro contiene solo `id`, `username`, `role`, `createdAt` y `updatedAt`, con fechas ISO-8601. El listado no devuelve credenciales. La creación ya no emite credencial de enrolamiento: el admin comunica privadamente la contraseña inicial y el nuevo usuario inicia sesión directamente con ella.
+Usuario seguro contiene solo `id`, `username`, `role`, `email`, `fullName`, `phone`, `createdAt` y `updatedAt`, con fechas ISO-8601. `email`, `fullName` y `phone` son los datos de contacto de un cliente (el teléfono en E.164); para el personal valen `null`. En un cliente, `username` es el identificador interno generado. El listado no devuelve credenciales. La creación ya no emite credencial de enrolamiento: el admin comunica privadamente la contraseña inicial y el nuevo usuario inicia sesión directamente con ella.
 
 Username debe ser canónico: 3–64 caracteres, minúsculas ASCII, dígitos y `._-`, empezando por letra/dígito. Password de 12–128 caracteres, sin transformación. Body/query con campos extra, UUID/rol/formato inválido → `400`; username duplicado → `409`; destino inexistente → `404`. No se aceptan campos para editar hash, contraseña o stock en el cambio de rol.
 
@@ -245,40 +289,117 @@ Invoke-RestMethod -Method Patch "$base/users/$($newUser.id)" -Headers $headers -
 Invoke-RestMethod -Method Delete "$base/users/$($newUser.id)" -Headers $headers
 ```
 
-## Catálogo de productos
+## Catálogo de productos y menú
 
-Todas las rutas requieren Bearer JWT de una sesión iniciada con `POST /auth/login`. Cualquier usuario autenticado (admin u operador) puede leer; solo admin puede crear, editar, activar/desactivar y eliminar. Sin sesión válida → `401`; operador en una ruta de escritura → `403`. La autorización se resuelve antes de validar el cuerpo.
+Las rutas de `/products` requieren Bearer JWT de una sesión iniciada con `POST /auth/login`. Desde el incremento 014 **leer** el catálogo (que incluye saldo y costo) es solo de `admin` y `operador`; `repartidor` y `cliente` reciben `403` y consultan el menú público `GET /menu`. Escribir es solo de `admin`, salvo el interruptor «agotado», que también cambia el `operador` (la cocina). Sin sesión válida → `401`. La autorización se resuelve antes de validar el cuerpo.
 
-| Ruta relativa a `/api/v1`    | Acceso | Entrada                                                  | Respuesta                                   |
-| ---------------------------- | ------ | -------------------------------------------------------- | ------------------------------------------- |
-| `POST /products`             | Admin  | JSON `sku`, `name`, `description` opcional               | `201`: producto con `stock` 0 y activo      |
-| `GET /products`              | Todos  | `page`, `limit`, `search`, `active` opcionales           | `200`: `{data,page,limit,total,totalPages}` |
-| `GET /products/:id`          | Todos  | UUID v4                                                  | `200`: producto                             |
-| `PATCH /products/:id`        | Admin  | UUID v4, JSON `name` y/o `description` (`null` la borra) | `200`: producto actualizado                 |
-| `PATCH /products/:id/status` | Admin  | UUID v4, JSON `{active}` booleano                        | `200`: producto actualizado                 |
-| `DELETE /products/:id`       | Admin  | UUID v4                                                  | `204` sin cuerpo                            |
+| Ruta relativa a `/api/v1`      | Acceso           | Entrada                                                                    | Respuesta                                      |
+| ------------------------------ | ---------------- | -------------------------------------------------------------------------- | ---------------------------------------------- |
+| `GET /menu`                    | Público          | Sin parámetros                                                             | `200`: `{data:[…]}` solo con productos activos |
+| `POST /products`               | Admin            | `sku`, `name`, `description?`, `category`, `price` y `cost` o `components` | `201`: producto activo, con `stock` 0          |
+| `GET /products`                | Admin y operador | `page`, `limit`, `search`, `active`, `category` opcionales                 | `200`: `{data,page,limit,total,totalPages}`    |
+| `GET /products/:id`            | Admin y operador | UUID v4                                                                    | `200`: producto                                |
+| `PATCH /products/:id`          | Admin            | UUID v4, `name`, `description`, `category`, `price` y/o `cost`             | `200`: producto actualizado                    |
+| `PATCH /products/:id/status`   | Admin            | UUID v4, JSON `{active}` booleano                                          | `200`: producto actualizado                    |
+| `PATCH /products/:id/sold-out` | Admin y operador | UUID v4, JSON `{soldOut}` booleano                                         | `200`: producto con su `available` resultante  |
+| `PUT /products/:id/components` | Admin            | UUID v4, JSON `{components:[{productId,quantity}]}`                        | `200`: combo con la composición nueva          |
+| `DELETE /products/:id`         | Admin            | UUID v4                                                                    | `204` sin cuerpo                               |
 
-Producto: exactamente `{id,sku,name,description,active,stock,createdAt,updatedAt}`; `description` es `null` si no existe y las fechas son ISO-8601. `stock` es de solo lectura: ninguna ruta de catálogo lo escribe; cambiará únicamente con los movimientos.
+**Producto** (respuesta de `/products`): `{id,sku,name,description,category,price,cost,costPercent,soldOut,available,active,stock,components,createdAt,updatedAt}`. `description` es `null` si no existe y las fechas son ISO-8601. `stock` es de solo lectura: ninguna ruta de catálogo lo escribe; cambia únicamente con los movimientos.
 
-SKU canónico, sin transformación automática: `^[A-Z0-9][A-Z0-9._-]{0,47}$` (1–48 caracteres; un SKU en minúsculas recibe `400`) e inmutable. `name`: 1–120 caracteres con algún carácter visible. `description`: 1–500 caracteres. Los textos no admiten el carácter NUL. Campos extra (`stock`, `active`, `sku`, `id`, fechas…), body vacío en la edición, UUID/body/query inválidos → `400`. SKU duplicado → `409` sin detalles de SQL. Producto inexistente → `404`.
+**Categorías** (lista fija): `cafe`, `bebida`, `panaderia`, `pasteleria`, `snack` y `combo`. `price` es un entero en pesos COP de 1 a 1.000.000 y `cost` (costo variable unitario) de 0 a 1.000.000; el costo puede superar al precio. `costPercent` es `cost ÷ price × 100` con un decimal y sirve para vigilar la meta de costo variable de 39 %. Un producto no se convierte en combo ni a la inversa.
 
-Listado: misma paginación que usuarios (defaults 1 y 20; `page` 1–10000, `limit` 1–100, texto decimal sin ceros iniciales ni valores repetidos). `search` (1–64 caracteres) busca texto parcial en SKU o nombre sin distinguir mayúsculas y trata `%`, `_` y `\` como texto literal. `active` admite solo `true` o `false`; sin él se listan también los inactivos. Orden por SKU e ID; una página fuera del total devuelve `data:[]`.
+**Combos:** un producto de categoría `combo` con 2 a 10 componentes distintos, cada uno con cantidad de 1 a 10. Los componentes deben existir, estar activos y ser productos simples (un combo no contiene combos); si no, `400` con el motivo. Su `price` es opcional al crearlo: si se omite vale la suma de `price × cantidad` de los componentes en ese momento, y si se envía se respeta (promociones); después se edita con `PATCH` y ya no sigue a los componentes. Su `cost` es la suma de `cost × cantidad` de los componentes (no se envía) y su `stock` es cuántos combos completos alcanzan con el saldo actual. No tiene saldo propio: `POST /movements` sobre un combo responde `409` y los movimientos se registran en sus componentes. Un producto que es componente no se elimina (`409`); sí se desactiva, y entonces sus combos quedan no disponibles.
+
+**«Agotado» y disponibilidad:** `soldOut` es el interruptor manual de la cocina; `available` se calcula (activo, no agotado, con precio y con saldo suficiente; un combo exige lo mismo de cada componente). El módulo de pedidos exigirá `available` para vender.
+
+**Menú público (`GET /menu`):** no exige sesión, no se cachea (`Cache-Control: no-store`) y admite 60 peticiones por minuto por IP. Devuelve solo productos activos, ordenados por categoría (combos, café, bebida, panadería, pastelería, snack) y nombre, con exactamente `{id,sku,name,description,category,price,available,components}`; los componentes se reducen a `{name,quantity}`. Nunca incluye costo, saldo, `active` ni `soldOut`. Las respuestas de `/products` también llevan `no-store`.
+
+SKU canónico, sin transformación automática: `^[A-Z0-9][A-Z0-9._-]{0,47}$` (1–48 caracteres; un SKU en minúsculas recibe `400`) e inmutable. `name`: 1–120 caracteres con algún carácter visible. `description`: 1–500 caracteres. Los textos no admiten el carácter NUL. Campos extra (`stock`, `active`, `soldOut`, `sku`, `id`, fechas…), `cost` en un combo, `components` en un producto simple, body vacío en la edición, UUID/body/query inválidos → `400`. SKU duplicado → `409` sin detalles de SQL. Producto inexistente → `404`.
+
+Listado: misma paginación que usuarios (defaults 1 y 20; `page` 1–10000, `limit` 1–100, texto decimal sin ceros iniciales ni valores repetidos). `search` (1–64 caracteres) busca texto parcial en SKU o nombre sin distinguir mayúsculas y trata `%`, `_` y `\` como texto literal. `active` admite solo `true` o `false`; sin él se listan también los inactivos. `category` admite una de las seis categorías. Orden por SKU e ID; una página fuera del total devuelve `data:[]`.
 
 Editar o cambiar el estado bloquea la fila del producto, compara y solo escribe las columnas de catálogo que cambian: repetir los mismos valores responde `200` sin modificar `updatedAt`, y una edición nunca pisa un saldo confirmado por otra transacción. Desactivar conserva datos, saldo e historial.
 
-`DELETE /products/:id` elimina físicamente solo un producto **sin movimientos**; su SKU queda libre. Con historial responde `409` y el producto se retira con `PATCH /products/:id/status`. El borrado bloquea la misma fila que los movimientos: si coincide con una entrada, o se elimina el producto y el movimiento recibe `404`, o se registra el movimiento y el borrado recibe `409`.
+`DELETE /products/:id` elimina físicamente solo un producto **sin movimientos** y que no sea componente de un combo; su SKU queda libre. Con historial responde `409` y el producto se retira con `PATCH /products/:id/status`; eliminar un combo borra su composición. El borrado bloquea la misma fila que los movimientos: si coincide con una entrada, o se elimina el producto y el movimiento recibe `404`, o se registra el movimiento y el borrado recibe `409`.
 
 Ejemplo PowerShell después del recorrido de autenticación (`$base` y `$headers` siguen definidos con una sesión admin vigente):
 
 ```powershell
-$p = Invoke-RestMethod -Method Post "$base/products" -Headers $headers -ContentType 'application/json' -Body (@{ sku = 'INV-100'; name = 'Cable HDMI'; description = 'Dos metros' } | ConvertTo-Json)
-Invoke-RestMethod "$base/products?search=cable&active=true" -Headers $headers
-Invoke-RestMethod "$base/products/$($p.id)" -Headers $headers
-Invoke-RestMethod -Method Patch "$base/products/$($p.id)" -Headers $headers -ContentType 'application/json' -Body (@{ name = 'Cable HDMI 2 m' } | ConvertTo-Json)
+Invoke-RestMethod "$base/menu"   # público: no necesita $headers
+$p = Invoke-RestMethod -Method Post "$base/products" -Headers $headers -ContentType 'application/json' -Body (@{ sku = 'CAF-MOCA'; name = 'Moca'; category = 'cafe'; price = 6000; cost = 2100 } | ConvertTo-Json)
+Invoke-RestMethod "$base/products?category=cafe&search=moca" -Headers $headers
+Invoke-RestMethod -Method Patch "$base/products/$($p.id)/sold-out" -Headers $headers -ContentType 'application/json' -Body (@{ soldOut = $true } | ConvertTo-Json)
 Invoke-RestMethod -Method Patch "$base/products/$($p.id)/status" -Headers $headers -ContentType 'application/json' -Body (@{ active = $false } | ConvertTo-Json)
 ```
 
-El incremento 6 no necesita migración ni dependencias nuevas: reutiliza la tabla `products` y sus restricciones de la migración inicial.
+El incremento 14 agrega la migración `1791244805000-catalog-and-combos` (columnas de catálogo y tabla `product_components`) y no necesita dependencias nuevas.
+
+## Zonas y puntos de entrega
+
+La entrega es en puntos fijos del campus. Cada **punto** (Edificio A, Biblioteca, Canchas…) pertenece a una **zona** de despacho (Zona 1 a Zona 4); el cliente elegirá el punto, y la zona se deduce de él. Un punto tiene un número de pisos (1 a 30) o ninguno, y una indicación de texto opcional (por ejemplo «Se entrega en la plazoleta de auditorios»).
+
+| Ruta                                                            | Acceso  | Resultado                                                                 |
+| --------------------------------------------------------------- | ------- | ------------------------------------------------------------------------- |
+| `GET /delivery-zones`                                           | Público | `200`: zonas activas con sus puntos activos `{id,name,hint,floors}`       |
+| `GET /delivery-zones/all`                                       | `admin` | `200`: todo, con `active`, fechas, inactivos y zonas vacías               |
+| `POST /delivery-zones`, `PATCH`, `DELETE /delivery-zones/:id`   | `admin` | `201`, `200` y `204`; `409` si el nombre se repite o la zona tiene puntos |
+| `POST /delivery-points`, `PATCH`, `DELETE /delivery-points/:id` | `admin` | `201`, `200` y `204`; `PATCH` también mueve de zona y activa o desactiva  |
+
+La consulta pública no se cachea (`Cache-Control: no-store`), admite 60 peticiones por minuto por IP y omite las zonas sin puntos activos. Los nombres son únicos sin distinguir mayúsculas. `npm run seed` crea las 4 zonas y 17 puntos sin repetirlos ni pisar lo que el admin haya editado.
+
+## Pedidos
+
+Solo un `cliente` crea pedidos. El cuerpo lleva las líneas (`productId` y cantidad de 1 a 10, hasta 10 productos distintos), `pointId`, `floor` (obligatorio si el punto tiene pisos), `deliveryNote` y `note` opcionales y `payment`. El servidor calcula el total con los precios del menú (máximo 200.000 COP, sin mínimo). Encabezado obligatorio `Idempotency-Key` (UUID): repetirlo con el mismo contenido devuelve el pedido ya creado con `200`, sin cobrar ni descontar otra vez.
+
+| Ruta                      | Acceso                                             | Resultado                                                                                   |
+| ------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `POST /orders`            | `cliente`                                          | `201` con el pedido; `402` si la tarjeta se rechaza; `409` sin saldo o producto agotado     |
+| `GET /orders`             | `cliente` (los suyos), `admin`, `operador` (todos) | `200` paginado, más reciente primero; filtro `status`                                       |
+| `GET /orders/:id`         | Igual                                              | `200`; el pedido de otro cliente responde `404`                                             |
+| `POST /orders/:id/cancel` | `cliente`, `admin`, `operador`                     | `200`; el cliente solo en `recibido`; admin y operador hasta `en_preparacion`, con `reason` |
+
+**Pago de demostración:** la tarjeta `4242424242424242` aprueba y `4000000000000002` rechaza (`402`, sin pedido ni cambios de saldo); cualquier otro número responde `400`. El número completo nunca se guarda: solo los últimos cuatro dígitos. `POST /orders` admite 10 peticiones por minuto por IP. Las respuestas de pedidos no incluyen costos. El `repartidor` no accede a estas rutas.
+
+**Inventario:** cada producto simple del pedido genera un movimiento `OUT` con la razón «Pedido #1001» y el cliente como autor; `GET /movements` muestra `orderId` (`null` en los manuales). Un cliente con pedidos no se puede eliminar (`409`).
+
+## Cocina y avisos en tiempo real
+
+La cocina la operan `operador` y `admin`. Un pedido avanza solo hacia adelante: `recibido → en_preparacion → listo`; cada paso queda en el historial con quién y cuándo, y si dos personas lo intentan a la vez una recibe `409`.
+
+| Ruta                             | Acceso              | Resultado                                                                                      |
+| -------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------- |
+| `GET /kitchen/orders`            | `operador`, `admin` | Cola: `recibido` y `en_preparacion`, el más antiguo primero; filtro `status` (también `listo`) |
+| `POST /kitchen/orders/:id/start` | `operador`, `admin` | `recibido → en_preparacion`; `409` en otro estado                                              |
+| `POST /kitchen/orders/:id/ready` | `operador`, `admin` | `en_preparacion → listo`; `409` en otro estado                                                 |
+| `GET /orders/stream`             | `cliente`           | Canal SSE con los avisos de **sus** pedidos                                                    |
+| `GET /kitchen/stream`            | `operador`, `admin` | Canal SSE con los pedidos nuevos y todos los cambios de estado                                 |
+
+**Cómo funciona el push:** en vez de que el frontend consulte cada pocos segundos, el servidor avisa en el momento del cambio. Al confirmarse la transacción, PostgreSQL entrega el aviso (`pg_notify`/`LISTEN`) a todas las instancias de la API y estas lo reenvían por los canales abiertos. El aviso es mínimo: `{orderId, number, status, at}`, sin datos personales.
+
+**Cómo usarlo desde el frontend:** `EventSource` no permite enviar `Authorization`, así que se lee con `fetch` en flujo (con `Authorization: Bearer …`). Al abrir el canal y tras cada reconexión llega un evento `ready`: ahí el frontend vuelve a consultar `GET /orders` (o la cola) y desde entonces aplica los eventos `order`. Cada 25 segundos llega un comentario de latido; el servidor cierra el canal si la sesión se revoca. Máximo 5 canales abiertos por usuario y 30 aperturas por minuto por IP (`429`).
+
+**Operación:** cada instancia de la API abre una conexión adicional a PostgreSQL (fuera del pool) para escuchar. Si esa conexión se cae, se reconecta sola y los canales reciben otro `ready`.
+
+## Despacho y entrega
+
+El repartidor arma sus propias rondas. Una ronda es una salida a repartir: hasta **5 pedidos `listo` de una sola zona**. Al crearla los pedidos pasan a `en_camino` con una hora estimada de llegada de 15 minutos (constante). Un repartidor puede tener como máximo **2 rondas activas** (10 pedidos en reparto).
+
+| Ruta                                | Acceso                            | Resultado                                                                                                                                             |
+| ----------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /dispatch/queue`               | `repartidor`, `operador`, `admin` | Pedidos `listo` por zona; la zona del pedido más antiguo va primero y se marca como sugerida                                                          |
+| `POST /dispatch/rounds`             | `repartidor`                      | Crea la ronda y sale. Sin cuerpo toma la sugerencia (zona del `listo` más antiguo y hasta 5 pedidos); con `orderIds` arma una ruta propia de una zona |
+| `GET /dispatch/rounds`              | `repartidor`, `operador`, `admin` | El repartidor ve las suyas (por defecto las activas); admin y operador ven todas; filtro `status`                                                     |
+| `GET /dispatch/rounds/:id`          | `repartidor`, `operador`, `admin` | Detalle con pedidos y datos del cliente; el repartidor solo ve las suyas (`404` en las ajenas)                                                        |
+| `POST /dispatch/orders/:id/deliver` | `repartidor`                      | `en_camino → entregado`                                                                                                                               |
+| `POST /dispatch/orders/:id/fail`    | `repartidor`                      | `en_camino → no_entregado` con `reason` obligatorio (1 a 200 caracteres); no mueve inventario ni pago                                                 |
+| `GET /dispatch/stream`              | `repartidor`                      | Canal SSE con todos los cambios de estado (mismo formato y límites que el de la cocina)                                                               |
+
+**Concurrencia:** la sugerencia salta los pedidos que otro repartidor está tomando en ese instante (`FOR UPDATE SKIP LOCKED`), por lo que dos repartidores reciben grupos distintos; con pedidos concretos, el que ya no esté `listo` da `409`. Ningún pedido puede quedar en dos rondas.
+
+**Cierre:** cuando ningún pedido de la ronda sigue `en_camino`, la ronda pasa a `finalizada`. `entregado` y `no_entregado` son estados finales; qué hacer con los `no_entregado` se define en un incremento posterior.
+
+**Lo que ve el cliente:** mientras su pedido está `en_camino`, `delivery.courier` trae `{fullName, phone, whatsappUrl}` (`https://wa.me/<teléfono sin +>`) y `delivery.etaAt` la hora estimada; en cualquier otro estado ambos son `null`. Por eso crear un usuario `repartidor` exige `phone` y `fullName` (`POST /users`), y cambiar a alguien a ese rol exige que ya los tenga. El seed del repartidor de demostración trae valores de ejemplo.
 
 ## Pruebas y verificaciones
 
@@ -317,6 +438,8 @@ Los scripts habilitan las VM de módulos de Node para cargar las dependencias ES
 
 ## Despliegue (Railway)
 
+> Mocca Go se vuelve a desplegar en un proyecto nuevo de Railway. La URL y los enlaces de esta sección corresponden al despliegue anterior del taller y quedan como antecedente. Variables a cargar: `DB_*`, `JWT_SECRET`, `ACCESS_TOKEN_TTL_SECONDS`, `CORS_ORIGINS` (URL del frontend), `TRUST_PROXY_HOPS=1` y las tres contraseñas de seed.
+
 La API se despliega en Railway con PostgreSQL gestionado; el diseño completo está en [la especificación 010](specs/010-deployment/spec.md) y la configuración del panel en [su plan](specs/010-deployment/plan.md).
 
 | Paso                  | Qué ocurre                                                                                     |
@@ -341,6 +464,7 @@ src/
   database/               # Conexión, comandos y migración inicial
   common/                 # Paginación, errores de BD y esquemas OpenAPI
   users/                  # Entidad, administración y roles
+  customers/              # Registro, perfil y teléfono de los clientes
   products/               # Entidad, catálogo (controlador, DTOs, servicio) y stock
   movements/entities/     # Historial con usuario y producto
   seed/                   # Credenciales, hash y carga transaccional

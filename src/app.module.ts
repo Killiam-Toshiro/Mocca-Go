@@ -7,6 +7,10 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/module/products.module';
 import { MovementsModule } from './movements/movements.module';
+import { CustomersModule } from './customers/customers.module';
+import { DeliveryModule } from './delivery/delivery.module';
+import { DispatchModule } from './dispatch/dispatch.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -22,6 +26,10 @@ import { MovementsModule } from './movements/movements.module';
     UsersModule,
     ProductsModule,
     MovementsModule,
+    CustomersModule,
+    DeliveryModule,
+    OrdersModule,
+    DispatchModule,
   ],
 })
 export class AppModule {}

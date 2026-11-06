@@ -117,7 +117,13 @@ describe('DELETE /products/:id: HTTP con PostgreSQL real', () => {
     await request(server)
       .post('/api/v1/products')
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ sku: 'DEL-001', name: 'Recreado' })
+      .send({
+        sku: 'DEL-001',
+        name: 'Recreado',
+        category: 'snack',
+        price: 1000,
+        cost: 400,
+      })
       .expect(201);
   });
 

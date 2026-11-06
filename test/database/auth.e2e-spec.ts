@@ -175,6 +175,7 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
       await runSeed(context.source, {
         adminPassword: 'Test-only-admin-password',
         operatorPassword: 'Test-only-operator-password',
+        courierPassword: 'Test-only-courier-password',
       });
       const admin = await login('admin', 'Test-only-admin-password');
       const operator = await login('operador', 'Test-only-operator-password');
@@ -422,6 +423,13 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
     });
 
     it('aplicada sobre datos del esquema anterior conserva usuarios, sesiones e inventario y elimina solo el 2FA', async () => {
+      // Las últimas migraciones son despacho, pedidos, zonas, catálogo, clientes y roles; se deshacen primero.
+      await context.source.undoLastMigration();
+      await context.source.undoLastMigration();
+      await context.source.undoLastMigration();
+      await context.source.undoLastMigration();
+      await context.source.undoLastMigration();
+      await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       expect(await columns()).toEqual(expect.arrayContaining(TOTP_COLUMNS));
       expect(await proofsTable()).not.toBeNull();
@@ -442,9 +450,13 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
         userId: user.id,
         expiresAt: new Date(Date.now() + 600_000),
       });
-      const product = await context.source
-        .getRepository(Product)
-        .save({ sku: 'KEEP-1', name: 'Conservar', stock: 3 });
+      // Inserción directa: en este esquema aún no existen las columnas del catálogo.
+      const product = (
+        await context.source.query<{ id: string }[]>(
+          `INSERT INTO ${table('products')} (sku, name, stock)
+           VALUES ('KEEP-1', 'Conservar', 3) RETURNING id`,
+        )
+      )[0];
 
       await context.source.runMigrations();
 
@@ -489,6 +501,13 @@ describe('Autenticación solo con JWT: HTTP con PostgreSQL real', () => {
     });
 
     it('down restaura la estructura vacía con sus restricciones y up la vuelve a quitar', async () => {
+      // Las últimas migraciones son despacho, pedidos, zonas, catálogo, clientes y roles; se deshacen primero.
+      await context.source.undoLastMigration();
+      await context.source.undoLastMigration();
+      await context.source.undoLastMigration();
+      await context.source.undoLastMigration();
+      await context.source.undoLastMigration();
+      await context.source.undoLastMigration();
       await context.source.undoLastMigration();
       const restored = await context.source.query<
         { totp_secret: string | null; totp_failures: number }[]

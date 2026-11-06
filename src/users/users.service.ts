@@ -10,6 +10,7 @@ import {
 import {
   DataSource,
   EntityManager,
+  In,
   IsNull,
   MoreThan,
   Not,
@@ -20,7 +21,11 @@ import { Session } from '../auth/entities/session.entity';
 import {
   isConstraintViolation,
   MOVEMENT_USER_FK,
+  ORDER_CUSTOMER_FK,
+  ORDER_EVENT_USER_FK,
+  ROUND_COURIER_FK,
 } from '../common/database-errors';
+import { Customer } from '../customers/entities/customer.entity';
 import { StockMovement } from '../movements/entities/stock-movement.entity';
 import { hashPassword } from '../seed/password';
 import { User, UserRole } from './entities/user.entity';
@@ -28,9 +33,14 @@ import { CreateUserDto, ListUsersDto, UpdateUserDto } from './users.dto';
 import { UserView, userView } from './user.view';
 
 export const USER_NOT_FOUND = 'Usuario no encontrado.';
+export const CLIENT_ROLE = 'Un cliente no cambia de rol.';
 const USERNAME_TAKEN = 'El username ya existe.';
 const USER_HAS_MOVEMENTS =
   'El usuario tiene movimientos; no se puede eliminar.';
+const COURIER_CONTACT =
+  'Un repartidor necesita teléfono y nombre de contacto (phone y fullName).';
+const CUSTOMER_CONTACT =
+  'Los datos de contacto de un cliente los edita él mismo en /customers/me.';
 
 function isDuplicateUsername(error: unknown): boolean {
   return isConstraintViolation(error, '23505', 'users_username_key');
@@ -76,6 +86,15 @@ export class UsersService {
       .getOne();
   }
 
+  /** Vista de un usuario con los datos de contacto si es cliente. */
+  private async viewOf(manager: EntityManager, user: User): Promise<UserView> {
+    const customer =
+      user.role === 'cliente'
+        ? await manager.getRepository(Customer).findOneBy({ userId: user.id })
+        : null;
+    return userView(user, customer);
+  }
+
   private async isLastAdmin(manager: EntityManager): Promise<boolean> {
     return (await manager.getRepository(User).countBy({ role: 'admin' })) <= 1;
   }
@@ -84,9 +103,13 @@ export class UsersService {
     const passwordHash = await hashPassword(input.password);
     try {
       return await this.adminTransaction(actor, 'write', async (manager) => {
-        const user = await manager
-          .getRepository(User)
-          .save({ username: input.username, role: input.role, passwordHash });
+        const user = await manager.getRepository(User).save({
+          username: input.username,
+          role: input.role,
+          passwordHash,
+          phone: input.phone ?? null,
+          fullName: input.fullName ?? null,
+        });
         return userView(user);
       });
     } catch (error) {
@@ -116,6 +139,8 @@ export class UsersService {
           id: true,
           username: true,
           role: true,
+          phone: true,
+          fullName: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -123,8 +148,17 @@ export class UsersService {
         skip: (page - 1) * limit,
         take: limit,
       });
+      const customers = new Map(
+        (
+          await manager.getRepository(Customer).findBy({
+            userId: In(
+              users.filter((u) => u.role === 'cliente').map((u) => u.id),
+            ),
+          })
+        ).map((customer) => [customer.userId, customer]),
+      );
       return {
-        data: users.map(userView),
+        data: users.map((user) => userView(user, customers.get(user.id))),
         page,
         limit,
         total,
@@ -137,7 +171,7 @@ export class UsersService {
     return this.adminTransaction(actor, 'read', async (manager) => {
       const user = await manager.getRepository(User).findOneBy({ id });
       if (!user) throw new NotFoundException(USER_NOT_FOUND);
-      return userView(user);
+      return this.viewOf(manager, user);
     });
   }
 
@@ -151,7 +185,12 @@ export class UsersService {
     id: string,
     input: UpdateUserDto,
   ): Promise<UserView> {
-    if (input.username === undefined && input.password === undefined)
+    if (
+      input.username === undefined &&
+      input.password === undefined &&
+      input.phone === undefined &&
+      input.fullName === undefined
+    )
       throw new BadRequestException('Indica al menos un campo para editar.');
     const passwordHash =
       input.password === undefined
@@ -165,9 +204,22 @@ export class UsersService {
         const changes: Partial<
           Pick<
             User,
-            'username' | 'passwordHash' | 'loginFailures' | 'blockedUntil'
+            | 'username'
+            | 'passwordHash'
+            | 'loginFailures'
+            | 'blockedUntil'
+            | 'phone'
+            | 'fullName'
           >
         > = {};
+        if (input.phone !== undefined || input.fullName !== undefined) {
+          if (user.role === 'cliente')
+            throw new BadRequestException(CUSTOMER_CONTACT);
+          if (input.phone !== undefined && input.phone !== user.phone)
+            changes.phone = input.phone;
+          if (input.fullName !== undefined && input.fullName !== user.fullName)
+            changes.fullName = input.fullName;
+        }
         if (input.username !== undefined && input.username !== user.username)
           changes.username = input.username;
         if (passwordHash !== undefined) {
@@ -181,9 +233,10 @@ export class UsersService {
               { revokedAt: new Date() },
             );
         }
-        if (Object.keys(changes).length === 0) return userView(user);
+        if (Object.keys(changes).length === 0)
+          return this.viewOf(manager, user);
         await repository.update({ id }, changes);
-        return userView(await repository.findOneByOrFail({ id }));
+        return this.viewOf(manager, await repository.findOneByOrFail({ id }));
       });
     } catch (error) {
       if (isDuplicateUsername(error))
@@ -214,7 +267,12 @@ export class UsersService {
         await manager.getRepository(User).delete({ id });
       });
     } catch (error) {
-      if (isConstraintViolation(error, '23503', MOVEMENT_USER_FK))
+      if (
+        isConstraintViolation(error, '23503', MOVEMENT_USER_FK) ||
+        isConstraintViolation(error, '23503', ORDER_CUSTOMER_FK) ||
+        isConstraintViolation(error, '23503', ORDER_EVENT_USER_FK) ||
+        isConstraintViolation(error, '23503', ROUND_COURIER_FK)
+      )
         throw new ConflictException(USER_HAS_MOVEMENTS);
       throw error;
     }
@@ -225,7 +283,10 @@ export class UsersService {
       const repository = manager.getRepository(User);
       const user = await this.lockUser(manager, id);
       if (!user) throw new NotFoundException(USER_NOT_FOUND);
+      if (user.role === 'cliente') throw new ConflictException(CLIENT_ROLE);
       if (user.role === role) return userView(user);
+      if (role === 'repartidor' && (!user.phone || !user.fullName))
+        throw new BadRequestException(COURIER_CONTACT);
       if (user.role === 'admin' && (await this.isLastAdmin(manager)))
         throw new ConflictException(
           'No se puede degradar al último administrador.',

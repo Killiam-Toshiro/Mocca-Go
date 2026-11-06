@@ -25,8 +25,15 @@ interface ProductBody {
   sku: string;
   name: string;
   description: string | null;
+  category: string;
+  price: number;
+  cost: number;
+  costPercent: number | null;
+  soldOut: boolean;
+  available: boolean;
   active: boolean;
   stock: number;
+  components: unknown[];
   createdAt: string;
   updatedAt: string;
 }
@@ -41,6 +48,8 @@ interface ErrorBody {
   statusCode: number;
   message: string | string[];
 }
+
+const COFFEE = { category: 'cafe', price: 4500, cost: 1600 };
 
 const wait = (milliseconds: number) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -134,11 +143,18 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
   function assertPublic(product: ProductBody) {
     expect(Object.keys(product).sort()).toEqual([
       'active',
+      'available',
+      'category',
+      'components',
+      'cost',
+      'costPercent',
       'createdAt',
       'description',
       'id',
       'name',
+      'price',
       'sku',
+      'soldOut',
       'stock',
       'updatedAt',
     ]);
@@ -173,7 +189,9 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
       ]) {
         const forged = await jwt.signAsync(claims);
         await list('', forged).expect(401);
-        await create({ sku: 'INV-002', name: 'X' }, forged).expect(401);
+        await create({ sku: 'INV-002', name: 'X', ...COFFEE }, forged).expect(
+          401,
+        );
       }
       expect(await productCount()).toBe(1);
     });
@@ -182,9 +200,10 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
       const product = await seedProduct('INV-001', { stock: 3 });
       await list('', operatorToken).expect(200);
       await detail(product.id, operatorToken).expect(200);
-      await create({ sku: 'INV-002', name: 'Nuevo' }, operatorToken).expect(
-        403,
-      );
+      await create(
+        { sku: 'INV-002', name: 'Nuevo', ...COFFEE },
+        operatorToken,
+      ).expect(403);
       await edit(product.id, { name: 'Otro' }, operatorToken).expect(403);
       await status(product.id, { active: false }, operatorToken).expect(403);
       const unchanged = await stored(product.id);
@@ -205,6 +224,7 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
         sku: 'INV-100',
         name: 'Cable HDMI',
         description: 'Dos metros',
+        ...COFFEE,
       }).expect(201);
       const body = response.body as ProductBody;
       assertPublic(body);
@@ -214,6 +234,13 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
         description: 'Dos metros',
         active: true,
         stock: 0,
+        category: 'cafe',
+        price: 4500,
+        cost: 1600,
+        costPercent: 35.6,
+        soldOut: false,
+        available: false,
+        components: [],
       });
       const row = await stored(body.id);
       expect(row.stock).toBe(0);
@@ -223,24 +250,32 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
 
     it('sin descripción se guarda y devuelve null', async () => {
       const body = (
-        await create({ sku: 'INV-101', name: 'Sin descripción' }).expect(201)
+        await create({
+          sku: 'INV-101',
+          name: 'Sin descripción',
+          ...COFFEE,
+        }).expect(201)
       ).body as ProductBody;
       expect(body.description).toBeNull();
       expect((await stored(body.id)).description).toBeNull();
     });
 
     it('un SKU duplicado devuelve 409 sin detalles de PostgreSQL y no crea nada', async () => {
-      await create({ sku: 'INV-100', name: 'Primero' }).expect(201);
-      const response = await create({ sku: 'INV-100', name: 'Segundo' }).expect(
-        409,
-      );
+      await create({ sku: 'INV-100', name: 'Primero', ...COFFEE }).expect(201);
+      const response = await create({
+        sku: 'INV-100',
+        name: 'Segundo',
+        ...COFFEE,
+      }).expect(409);
       const text = JSON.stringify(response.body);
       expect(text).not.toMatch(/products_sku_key|duplicate|violates|INV-100/i);
       expect(await productCount()).toBe(1);
     });
 
     it('SKU en minúsculas no se normaliza: 400 y no crea nada', async () => {
-      await create({ sku: 'inv-100', name: 'Minúsculas' }).expect(400);
+      await create({ sku: 'inv-100', name: 'Minúsculas', ...COFFEE }).expect(
+        400,
+      );
       expect(await productCount()).toBe(0);
     });
 
@@ -266,14 +301,15 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
       ['campo active', { sku: 'INV-1', name: 'X', active: false }],
       ['campo id', { sku: 'INV-1', name: 'X', id: randomUUID() }],
     ])('rechaza con 400: %s', async (_caso, body) => {
-      await create(body).expect(400);
+      await create({ ...COFFEE, ...body }).expect(400);
       expect(await productCount()).toBe(0);
     });
 
     it('acepta SKU y nombre en el límite exacto', async () => {
       const sku = 'A'.repeat(48);
-      const body = (await create({ sku, name: 'n'.repeat(120) }).expect(201))
-        .body as ProductBody;
+      const body = (
+        await create({ sku, name: 'n'.repeat(120), ...COFFEE }).expect(201)
+      ).body as ProductBody;
       expect(body.sku).toBe(sku);
       expect(body.name).toHaveLength(120);
     });
@@ -292,23 +328,29 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
   });
 
   describe('listado (P-04)', () => {
-    it('lista los productos del seed con sus saldos 20, 30 y 10', async () => {
+    it('lista el menú del seed con sus saldos y los combos calculados', async () => {
       await runSeed(context.source, {
         adminPassword: 'Test-only-admin-password',
         operatorPassword: 'Test-only-operator-password',
+        courierPassword: 'Test-only-courier-password',
       });
-      const page = (await list('', operatorToken).expect(200))
+      const page = (await list('?limit=100', operatorToken).expect(200))
         .body as ProductPage;
-      expect(page.data.map((p) => [p.sku, p.stock])).toEqual([
-        ['INV-001', 20],
-        ['INV-002', 30],
-        ['INV-003', 10],
-      ]);
+      expect(page.data).toHaveLength(23);
+      const stock = (sku: string) =>
+        page.data.find((p) => p.sku === sku)?.stock;
+      expect(stock('CAF-CAPU')).toBe(40);
+      expect(stock('PAS-CHEE')).toBe(16);
+      // Combo Clásico = Capuchino (40) + Pandebono (30): alcanzan 30.
+      expect(stock('CMB-CLASICO')).toBe(30);
+      expect(page.data.map((p) => p.sku)).toEqual(
+        [...page.data.map((p) => p.sku)].sort(),
+      );
       page.data.forEach(assertPublic);
       expect(page).toMatchObject({
         page: 1,
-        limit: 20,
-        total: 3,
+        limit: 100,
+        total: 23,
         totalPages: 1,
       });
     });
@@ -556,7 +598,7 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
     it('dos creaciones simultáneas con el mismo SKU: un 201 y un 409', async () => {
       const results = await Promise.all(
         Array.from({ length: 6 }, (_unused, index) =>
-          create({ sku: 'INV-777', name: `Intento ${index}` }),
+          create({ sku: 'INV-777', name: `Intento ${index}`, ...COFFEE }),
         ),
       );
       const codes = results.map((result) => result.status).sort();
@@ -629,7 +671,11 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
   describe('persistencia', () => {
     it('los productos creados sobreviven a reiniciar la aplicación', async () => {
       const created = (
-        await create({ sku: 'INV-500', name: 'Persistente' }).expect(201)
+        await create({
+          sku: 'INV-500',
+          name: 'Persistente',
+          ...COFFEE,
+        }).expect(201)
       ).body as ProductBody;
       await status(created.id, { active: false }).expect(200);
       await app.close();
@@ -658,7 +704,9 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
   });
 
   it('los errores de validación no exponen estructura interna de la base de datos', async () => {
-    const response = await create({ sku: 'x', name: 'y' }).expect(400);
+    const response = await create({ sku: 'x', name: 'y', ...COFFEE }).expect(
+      400,
+    );
     const body = response.body as ErrorBody;
     expect(body.statusCode).toBe(400);
     expect(JSON.stringify(body)).not.toMatch(

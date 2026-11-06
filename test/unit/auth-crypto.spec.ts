@@ -6,7 +6,10 @@ import { hashPassword } from '../../src/seed/password';
 describe('Configuración y verificación de contraseñas', () => {
   const JWT_SECRET = 'test-only-secret-for-jwt-more-than-32-bytes';
   it('acepta un JWT_SECRET suficiente y rechaza configuración débil sin revelar valores', () => {
-    expect(validateAuthEnvironment({ JWT_SECRET })).toEqual({ JWT_SECRET });
+    expect(validateAuthEnvironment({ JWT_SECRET })).toEqual({
+      JWT_SECRET,
+      ACCESS_TOKEN_TTL_SECONDS: 900,
+    });
     for (const weak of [undefined, 3, 'short-secret-value']) {
       let message = '';
       try {
@@ -20,7 +23,10 @@ describe('Configuración y verificación de contraseñas', () => {
   });
   it('ignora variables obsoletas de segundo factor de un .env antiguo', () => {
     const legacy = { JWT_SECRET, TOTP_ENCRYPTION_KEY: 'a1'.repeat(32) };
-    expect(validateAuthEnvironment(legacy)).toEqual({ JWT_SECRET });
+    expect(validateAuthEnvironment(legacy)).toEqual({
+      JWT_SECRET,
+      ACCESS_TOKEN_TTL_SECONDS: 900,
+    });
     expect(
       validateRuntimeEnvironment({
         ...legacy,

@@ -113,3 +113,71 @@ Decisiones del incremento 011 (aprobadas por el usuario el 2026-10-12, tras cont
 Decisión de alcance posterior a la auditoría (2026-10-13):
 
 - D-65: el usuario excluye explícitamente 2FA de los requisitos de aquí en adelante y autoriza commit/push de documentación a main. R-02 vigente exige login con usuario/contraseña, JWT, logout revocable y rutas protegidas; se verifica con las pruebas existentes. No se planifica restaurar 2FA. Se conserva el enunciado original como antecedente, sin atribuir esta modificación al docente. El informe está terminado según usuario y pendiente de compartir para revisión.
+
+Decisiones del incremento 012 (Mocca Go; aprobadas por el usuario el 2026-11-05):
+
+- D-66: el proyecto pasa a ser el backend de Mocca Go. Los incrementos 012 a 019 (fundaciones, clientes, catálogo y combos, zonas y puntos, pedidos con pago demo, órdenes de cocina, rondas, encuesta y métricas) siguen el flujo SDD y se detienen para revisión tras cada uno (D-04).
+- D-67: cuatro roles — `admin`, `operador` (cocina), `repartidor` y `cliente`. Un admin solo asigna roles de personal (`admin`, `operador`, `repartidor`); `cliente` nace del registro propio (013) y no cambia de rol (`409`). Reemplaza RN-07.
+- D-68: CORS por lista explícita de orígenes en `CORS_ORIGINS`, sin comodín ni credenciales; desactivado por defecto. El frontend Next.js usa el puerto 3001 en local.
+- D-69: la vida del JWT es configurable con `ACCESS_TOKEN_TTL_SECONDS` (60–86400 s, por defecto 900); sigue sin haber refresh.
+- D-69b: la base de desarrollo pasa a `mocca_go` (usuario `mocca_go`). `compose.yaml`, su volumen y la base efímera de pruebas `inventory_test` no cambian. Railway se vuelve a crear, sin datos que migrar.
+- D-70: `issuer` y `audience` del JWT pasan a `mocca-go-api` y `mocca-go-client`; los JWT anteriores dejan de ser válidos.
+- D-71: el seed añade `repartidor` con `SEED_COURIER_PASSWORD` obligatoria. El inventario de ejemplo se reemplaza en el incremento 014.
+- D-72: `ConfigModule` valida el entorno al importar `AppModule`, por lo que las pruebas de duración del JWT sustituyen `ConfigService` con el entorno ya validado y la validación de `CORS_ORIGINS` y `ACCESS_TOKEN_TTL_SECONDS` se prueba de forma unitaria; el comportamiento real de arranque se comprobó además con la API compilada (ver overview 012).
+
+Decisiones del incremento 013 (Clientes; aprobadas por el usuario el 2026-11-05):
+
+- D-73: el cliente es un `users` con rol `cliente` más una fila 1 a 1 en `customers` (correo, nombre, teléfono). Login, sesiones, bloqueo por intentos y guards se reutilizan; el `username` del cliente es interno y generado.
+- D-74: registro público `POST /customers`, limitado a 5 por minuto por IP, que no inicia sesión. El `409` por correo duplicado revela que el correo existe; se acepta en la demo.
+- D-75: `POST /auth/login` acepta `email` (clientes) o `username` (personal), exactamente uno. Todos los fallos son un `401` idéntico.
+- D-76: el teléfono es obligatorio, no único y se guarda en E.164; acepta celulares colombianos e internacionales. El envío de WhatsApp o SMS queda para un incremento posterior.
+- D-77: `PATCH /auth/password` permite a cualquier rol cambiar su propia contraseña: verifica la actual con el contador de fallos del login, exige una nueva distinta y revoca las demás sesiones. Una contraseña actual incorrecta responde `403` para no confundirla con una sesión vencida. Complementa D-61.
+- D-78: sin verificación de correo ni de teléfono; el origen de adquisición queda fuera de alcance.
+- D-79: las respuestas de usuario (`GET /users`, `GET /users/:id`, `POST` y `PATCH /users/:id`, solo admin) añaden `email`, `fullName` y `phone`; son `null` en el personal. Los datos se leen de `customers` con una consulta aparte por página (sin relación nueva en la entidad `User`). Corrección pedida por el usuario tras probar el listado (2026-11-05).
+
+Decisiones del incremento 014 (Catálogo y combos; aprobadas por el usuario el 2026-11-05):
+
+- D-80: el menú vendible vive en `products`, ampliada con `category`, `price`, `cost` y `sold_out`; los combos son productos de categoría `combo` con filas en `product_components`. Un combo no tiene saldo propio (`CHECK category <> 'combo' OR stock = 0`); su saldo, costo y disponibilidad se calculan al leer.
+- D-81: `available` y `costPercent` son calculados, nunca almacenados; `soldOut` es el interruptor manual de la cocina y es independiente de `active` (retirado del menú) y del saldo.
+- D-82: seis categorías fijas (`cafe`, `bebida`, `panaderia`, `pasteleria`, `snack`, `combo`) en un CHECK; un producto no cambia entre simple y combo.
+- D-83: `GET /products` pasa a ser solo `admin` y `operador` (datos internos: saldo y costo); el cliente lee `GET /menu`, público y `no-store`. Modifica el RN-15 de 012.
+- D-84: el inventario de ejemplo del taller (teclado, mouse, monitor) se reemplaza por el menú de Mocca Go. Como el historial de movimientos es inmutable, la base de desarrollo se recrea en vez de borrar filas.
+- D-85: las reglas entre filas (solo los combos tienen componentes, sin combos anidados, componentes activos) las verifica el servicio en una transacción con bloqueo de fila del combo; la FK `RESTRICT` del componente protege contra eliminaciones concurrentes.
+
+Decisiones del incremento 015 (Zonas y puntos de entrega; aprobadas por el usuario el 2026-11-05):
+
+- D-86: zonas y puntos son dos tablas (`delivery_zones`, `delivery_points`). La zona es solo de despacho y el cliente nunca la elige; se deduce del punto, que es lo que elegirá en el pedido (016).
+- D-87: `floors` es un entero de 1 a 30 o `NULL` («sin pisos»); `hint` es texto opcional de hasta 200 caracteres. La validación del piso elegido en un pedido es de 016.
+- D-88: la consulta pública (`GET /delivery-zones`, `no-store`, 60 peticiones por minuto por IP) y la de administración (`GET /delivery-zones/all`) son rutas separadas.
+- D-89: los nombres de zonas y puntos son únicos sin distinguir mayúsculas mediante índices únicos sobre `lower(name)`; la unicidad la decide PostgreSQL y el servicio la traduce a `409`.
+- D-90: las carreras entre crear o mover un punto y eliminar su zona se resuelven con bloqueo compartido de la zona al escribir un punto, bloqueo exclusivo al eliminarla y la FK `RESTRICT` como red de seguridad.
+- D-91: el teléfono del personal y el aviso «en camino» (estado y hora estimada en la app, botón del repartidor que abre WhatsApp) se difieren a 016/017; el máximo de 5 pedidos por ronda y una zona por ronda se aplican en 018.
+
+Decisiones del incremento 016 (Pedidos con pago de demostración; aprobadas por el usuario el 2026-11-05):
+
+- D-92: el inventario sigue teniendo una sola fuente de verdad, el historial de movimientos. El pedido no calcula saldos por su cuenta: llama al núcleo de `MovementsService` dentro de su transacción.
+- D-93: el saldo baja al aprobarse el pago, dentro de la misma transacción que crea el pedido; cancelar lo devuelve con movimientos `IN`.
+- D-94: los pagos son simulados con dos tarjetas de prueba (una aprueba y otra rechaza); el número completo se valida en memoria y nunca se persiste ni se registra. Un rechazo es `402` y no deja rastro.
+- D-95: `Idempotency-Key` obligatorio y huella del contenido guardada con el pedido; la unicidad `(customer_id, idempotency_key)` la decide PostgreSQL.
+- D-96: el pedido guarda copias (nombres, precios, costos, punto y zona, componentes de combos) para que el historial no cambie cuando cambie el menú.
+- D-97: los estados se modelan como CHECK y una tabla de eventos; 017 y 018 solo agregan transiciones.
+- D-98: el costo de las líneas es dato interno: se guarda pero no se devuelve en ninguna respuesta de pedidos.
+
+Decisiones del incremento 017 (Órdenes de cocina y notificaciones en tiempo real; aprobadas por el usuario el 2026-11-05):
+
+- D-99: los cambios de estado se avisan por **push** y no por consulta repetida; el estado sigue guardándose en la base y el aviso es solo una ayuda para no consultar.
+- D-100: el canal es SSE sobre HTTP normal (mismo `Bearer`, mismos guardas), no WebSocket, porque el flujo es solo del servidor al navegador. El frontend lo lee con `fetch` en flujo, ya que `EventSource` no envía `Authorization`.
+- D-101: la difusión entre instancias usa `LISTEN/NOTIFY` de PostgreSQL y el aviso se emite con `pg_notify` dentro de la transacción del cambio, de modo que un rollback lo descarta. No se añade Redis.
+- D-102: el aviso solo lleva número, estado, hora e id del pedido; el cliente solo recibe los de sus pedidos, la cocina todos. Al abrir el canal y tras cada reconexión de la escucha el servidor envía `ready` para que el frontend vuelva a consultar.
+- D-103: transiciones solo hacia adelante (`recibido → en_preparacion → listo`) con bloqueo de la fila del pedido; sin asignación a un operador, solo se registra quién hizo cada cambio.
+- D-104: un usuario tiene como máximo 5 canales abiertos y cada latido (25 s) verifica que su sesión siga vigente.
+
+Decisiones del incremento 018 (Rondas de despacho y entrega; aprobadas por el usuario el 2026-11-05):
+
+- D-105: el repartidor arma su propia ronda, con la sugerencia del sistema (zona del pedido `listo` más antiguo y hasta 5 de sus pedidos) o con una ruta propia de una sola zona; crear la ronda es salir (los pedidos pasan a `en_camino` al instante).
+- D-106: máximo 5 pedidos por ronda y 2 rondas activas por repartidor (10 pedidos en reparto); la hora estimada de llegada es una constante de 15 minutos desde la salida.
+- D-107: dos repartidores nunca toman el mismo pedido: la sugerencia usa `FOR UPDATE SKIP LOCKED`, la ruta propia bloquea por id, y el límite de rondas se verifica con la fila del repartidor bloqueada.
+- D-108: el personal tiene `phone` y `fullName` en `users` (mismo formato E.164 que los clientes); son obligatorios para el rol `repartidor`. El cliente ve nombre, teléfono y enlace de WhatsApp del repartidor solo mientras su pedido está `en_camino`.
+- D-109: `no_entregado` es un estado final con motivo obligatorio que no devuelve inventario ni reembolsa; su tratamiento se decide en un incremento posterior.
+- D-110: la ronda se cierra sola cuando ningún pedido sigue `en_camino`; entregar bloquea primero el pedido y luego la ronda para evitar interbloqueos.
+- D-111: el repartidor tiene su propio canal en tiempo real (`GET /dispatch/stream`) con los avisos de todos los pedidos; `admin` y `operador` consultan rondas pero no las modifican. Eliminar un usuario con historial de pedidos o rondas responde `409`.

@@ -127,7 +127,7 @@ export class UsersController {
   @ApiOkResponse({ type: UserResponse })
   @ApiErrors(400, NOT_FOUND, [
     409,
-    'No se puede degradar al último admin registrado.',
+    'No se puede degradar al último admin registrado, o el usuario es un cliente.',
   ])
   changeRole(
     @Req() request: AuthRequest,

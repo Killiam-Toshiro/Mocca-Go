@@ -85,6 +85,7 @@ export async function inTestEnvironment<T>(
     DB_SCHEMA: context.ownedSchema,
     SEED_ADMIN_PASSWORD: 'Test-only-admin-password',
     SEED_OPERATOR_PASSWORD: 'Test-only-operator-password',
+    SEED_COURIER_PASSWORD: 'Test-only-courier-password',
   };
   const previous = Object.fromEntries(
     Object.keys(changes).map((key) => [key, process.env[key]]),

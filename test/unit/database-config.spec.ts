@@ -13,8 +13,8 @@ describe('Configuración PostgreSQL', () => {
     expect(validateDatabaseEnvironment(base)).toEqual({
       DB_HOST: '127.0.0.1',
       DB_PORT: 5433,
-      DB_NAME: 'inventory',
-      DB_USERNAME: 'inventory',
+      DB_NAME: 'mocca_go',
+      DB_USERNAME: 'mocca_go',
       DB_PASSWORD: base.DB_PASSWORD,
       DB_SCHEMA: 'public',
       DB_SSL: false,
@@ -128,7 +128,7 @@ describe('Protección de limpieza de pruebas', () => {
   });
 
   it.each([
-    { ...config, DB_NAME: 'inventory' },
+    { ...config, DB_NAME: 'mocca_go' },
     { ...config, DB_SCHEMA: 'public' },
   ])('rechaza un destino distinto del creado por la suite', (invalid) => {
     expect(() => assertTestTarget(invalid, schema)).toThrow(

@@ -6,6 +6,7 @@ export interface MovementView {
   type: MovementType;
   quantity: number;
   reason: string;
+  orderId: string | null;
   user: { id: string; username: string };
   createdAt: Date;
 }
@@ -17,6 +18,7 @@ export function movementView(movement: StockMovement): MovementView {
     type: movement.type,
     quantity: movement.quantity,
     reason: movement.reason,
+    orderId: movement.orderId ?? null,
     user: { id: movement.user.id, username: movement.user.username },
     createdAt: movement.createdAt,
   };

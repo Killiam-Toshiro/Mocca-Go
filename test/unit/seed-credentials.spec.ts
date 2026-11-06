@@ -4,39 +4,43 @@ import { runCommand } from '../../src/database/commands';
 const passwords = {
   SEED_ADMIN_PASSWORD: 'test-only-admin-password',
   SEED_OPERATOR_PASSWORD: 'test-only-operator-password',
+  SEED_COURIER_PASSWORD: 'test-only-courier-password',
 };
 
 describe('Credenciales de seed', () => {
-  it('requiere ambas contraseñas válidas y conserva su valor', () => {
+  it('requiere las tres contraseñas válidas y conserva su valor', () => {
     expect(seedCredentials(passwords)).toEqual({
       adminPassword: passwords.SEED_ADMIN_PASSWORD,
       operatorPassword: passwords.SEED_OPERATOR_PASSWORD,
+      courierPassword: passwords.SEED_COURIER_PASSWORD,
     });
   });
 
-  it.each(['SEED_ADMIN_PASSWORD', 'SEED_OPERATOR_PASSWORD'])(
-    'rechaza %s inválida sin divulgar su valor',
-    (variable) => {
-      for (const value of [
-        undefined,
-        123,
-        '',
-        'short',
-        ' '.repeat(12),
-        'x'.repeat(129),
-      ]) {
-        expect(() =>
-          seedCredentials({ ...passwords, [variable]: value }),
-        ).toThrow(`${variable} debe tener entre 12 y 128 caracteres.`);
-      }
-    },
-  );
+  it.each([
+    'SEED_ADMIN_PASSWORD',
+    'SEED_OPERATOR_PASSWORD',
+    'SEED_COURIER_PASSWORD',
+  ])('rechaza %s inválida sin divulgar su valor', (variable) => {
+    for (const value of [
+      undefined,
+      123,
+      '',
+      'short',
+      ' '.repeat(12),
+      'x'.repeat(129),
+    ]) {
+      expect(() =>
+        seedCredentials({ ...passwords, [variable]: value }),
+      ).toThrow(`${variable} debe tener entre 12 y 128 caracteres.`);
+    }
+  });
 
   it.each([12, 128])('acepta el límite de %i caracteres', (length) => {
     expect(
       seedCredentials({
         SEED_ADMIN_PASSWORD: 'x'.repeat(length),
         SEED_OPERATOR_PASSWORD: 'y'.repeat(length),
+        SEED_COURIER_PASSWORD: 'z'.repeat(length),
       }).adminPassword.length,
     ).toBe(length);
   });

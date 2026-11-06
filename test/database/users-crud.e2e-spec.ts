@@ -122,7 +122,10 @@ describe('GET, PATCH y DELETE /users/:id: HTTP con PostgreSQL real', () => {
   function assertSafe(user: SafeUser) {
     expect(Object.keys(user).sort()).toEqual([
       'createdAt',
+      'email',
+      'fullName',
       'id',
+      'phone',
       'role',
       'updatedAt',
       'username',

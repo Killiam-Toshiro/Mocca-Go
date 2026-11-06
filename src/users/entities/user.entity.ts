@@ -7,12 +7,28 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export type UserRole = 'admin' | 'operador';
-export const USER_ROLES: readonly UserRole[] = ['admin', 'operador'];
+export type UserRole = 'admin' | 'operador' | 'repartidor' | 'cliente';
+export const USER_ROLES: readonly UserRole[] = [
+  'admin',
+  'operador',
+  'repartidor',
+  'cliente',
+];
+
+/** Roles que un admin puede asignar; `cliente` nace del registro propio. */
+export type StaffRole = Exclude<UserRole, 'cliente'>;
+export const STAFF_ROLES: readonly StaffRole[] = [
+  'admin',
+  'operador',
+  'repartidor',
+];
 
 @Entity('users')
 @Check('users_username_format', `"username" ~ '^[a-z0-9][a-z0-9._-]{2,63}$'`)
-@Check('users_role_valid', `"role" IN ('admin', 'operador')`)
+@Check(
+  'users_role_valid',
+  `"role" IN ('admin', 'operador', 'repartidor', 'cliente')`,
+)
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -25,6 +41,13 @@ export class User {
 
   @Column({ type: 'varchar', length: 16, default: 'operador' })
   role!: UserRole;
+
+  /** Contacto del personal (E.164); obligatorio para el repartidor. Los clientes lo guardan en `customers`. */
+  @Column({ type: 'varchar', length: 16, nullable: true })
+  phone!: string | null;
+
+  @Column({ name: 'full_name', type: 'varchar', length: 80, nullable: true })
+  fullName!: string | null;
 
   @Column({
     name: 'login_failures',

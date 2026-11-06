@@ -1,7 +1,7 @@
 {
-  "name": "taller-backend-nestjs",
+  "name": "mocca-go-backend",
   "version": "0.1.0",
-  "description": "API de inventario desarrollada con NestJS mediante Spec-Driven Design",
+  "description": "Backend de Mocca Go (café y snacks a domicilio en el campus de Icesi) con NestJS y Spec-Driven Design",
   "private": true,
   "license": "UNLICENSED",
   "engines": {
