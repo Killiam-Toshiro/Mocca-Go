@@ -85,17 +85,19 @@ export class CreateProductDto {
   @IsIn(PRODUCT_CATEGORIES)
   category!: ProductCategory;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: 'integer',
     minimum: 1,
     maximum: MAX_MONEY,
-    description: 'Pesos COP, entero.',
+    description:
+      'Pesos COP, entero. Obligatorio en productos simples. En un combo es opcional: si se omite, vale la suma de los precios de sus componentes al crearlo.',
     example: 4500,
   })
+  @ValidateIf((_object, value) => value !== undefined)
   @IsInt()
   @Min(1)
   @Max(MAX_MONEY)
-  price!: number;
+  price?: number;
 
   @ApiPropertyOptional({
     type: 'integer',

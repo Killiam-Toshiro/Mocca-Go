@@ -445,3 +445,78 @@ describe('Combos: HTTP con PostgreSQL real', () => {
     });
   });
 });
+
+describe('Precio de un combo: HTTP con PostgreSQL real', () => {
+  const harness = new CatalogHarness();
+  beforeEach(() => harness.start());
+  afterEach(() => harness.stop());
+
+  let round = 0;
+  const parts = async (priceA = 4500, priceB = 2500, quantityB = 2) => {
+    round++;
+    const a = await harness.simple(`A-${round}`, { price: priceA });
+    const b = await harness.simple(`B-${round}`, { price: priceB });
+    return [
+      { productId: a.id, quantity: 1 },
+      { productId: b.id, quantity: quantityB },
+    ];
+  };
+  const combo = (components: object[], extra: object = {}) =>
+    harness.send('post', '/products', {
+      sku: 'CMB-1',
+      name: 'Combo',
+      category: 'combo',
+      components,
+      ...extra,
+    });
+
+  it('sin precio vale la suma de precio × cantidad de sus componentes', async () => {
+    const body = (await combo(await parts()).expect(201)).body as ProductBody;
+    expect(body.price).toBe(4500 + 2 * 2500);
+  });
+
+  it('con precio explícito se respeta (promoción) y luego se puede editar', async () => {
+    const body = (await combo(await parts(), { price: 6000 }).expect(201))
+      .body as ProductBody;
+    expect(body).toMatchObject({ price: 6000, cost: 3000 });
+    const edited = (
+      await harness
+        .send('patch', `/products/${body.id}`, { price: 5500 })
+        .expect(200)
+    ).body as ProductBody;
+    expect(edited.price).toBe(5500);
+  });
+
+  it('el precio no sigue a los componentes después de crear el combo', async () => {
+    const body = (await combo(await parts()).expect(201)).body as ProductBody;
+    await harness
+      .send('patch', `/products/${body.components[0].productId}`, {
+        price: 9000,
+      })
+      .expect(200);
+    const read = (
+      await harness.get(`/products/${body.id}`, 'admin').expect(200)
+    ).body as ProductBody;
+    expect(read.price).toBe(9500);
+  });
+
+  it('rechaza con 400 si la suma no es un precio válido y no se indica otro', async () => {
+    await combo(await parts(0, 0)).expect(400);
+    await combo(await parts(900_000, 900_000)).expect(400);
+    await combo(await parts(900_000, 900_000), {
+      sku: 'CMB-2',
+      price: 50_000,
+    }).expect(201);
+  });
+
+  it('un producto simple sigue exigiendo precio', async () => {
+    await harness
+      .send('post', '/products', {
+        sku: 'S-1',
+        name: 'Simple',
+        category: 'snack',
+        cost: 100,
+      })
+      .expect(400);
+  });
+});

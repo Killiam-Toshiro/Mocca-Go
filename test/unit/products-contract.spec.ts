@@ -102,7 +102,6 @@ describe('Contratos y proyección de productos', () => {
       { category: undefined },
       { category: 'postre' },
       { category: 'COMBO' },
-      { price: undefined },
       { price: 0 },
       { price: -1 },
       { price: 1.5 },

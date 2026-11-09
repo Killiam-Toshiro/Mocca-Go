@@ -48,6 +48,7 @@ Que solo los combos tengan componentes y que un combo no contenga combos son reg
 
 - **RN-28 — Categorías.** `cafe`, `bebida`, `panaderia`, `pasteleria`, `snack` y `combo`. `combo` identifica a los combos y solo ellos la usan. Un producto no se convierte en combo ni a la inversa; entre las cinco categorías simples sí puede cambiar.
 - **RN-29 — Precio y costo.** Enteros en pesos COP. Al crear o editar: `price` de 1 a 1.000.000 y `cost` de 0 a 1.000.000. El costo puede superar al precio (un producto con pérdida es un dato válido, y `costPercent` lo hará visible).
+- **RN-40 — Precio de un combo (añadida el 2026-11-05).** El precio de un combo es suyo: al crearlo se puede enviar (de 1 a 1.000.000) o se omite y toma la suma de `price × cantidad` de sus componentes en ese momento. Después no sigue a los componentes: se cambia con `PATCH /products/:id`, y `costPercent` vigila el margen. Si la suma queda en 0 o sobre 1.000.000 y no se envía precio → `400`. Los productos simples siguen exigiendo `price`.
 - **RN-30 — Composición de un combo.** Entre 2 y 10 componentes, sin repetir producto, cada uno con cantidad de 1 a 10. Cada componente debe existir, estar **activo** al momento de guardar y **no ser un combo**. Los errores de composición responden `400` con el motivo.
 - **RN-31 — Un combo no tiene saldo propio.** `stock` en BD vale siempre 0 y `POST /movements` sobre un combo responde `409 "Un combo no tiene saldo propio; registra el movimiento de sus componentes."` (después de `404` y antes del resto de reglas de movimientos). En las respuestas, el `stock` de un combo es **calculado**: cuántos combos completos alcanzan con el saldo actual, `min(⌊saldo del componente ÷ cantidad⌋)`.
 - **RN-32 — Costo y porcentaje.** El `cost` de un combo es la suma de `cost × cantidad` de sus componentes; no se envía (si se envía, `400`). `costPercent` = `cost ÷ price × 100` redondeado a un decimal, o `null` si el precio es 0. Sirve para vigilar la meta de costo variable ≤ 39 %.
@@ -106,7 +107,7 @@ Que solo los combos tengan componentes y que un combo no contenga combos son reg
 Cuerpo: `sku`, `name`, `description?`, `category` (obligatoria), `price` (obligatorio) y, según el tipo:
 
 - simple (`cafe`, `bebida`, `panaderia`, `pasteleria`, `snack`): `cost` obligatorio; `components` no se admite (`400`);
-- combo (`combo`): `components: [{ "productId", "quantity" }]` obligatorio (RN-30); `cost` no se admite (`400`).
+- combo (`combo`): `components: [{ "productId", "quantity" }]` obligatorio (RN-30); `cost` no se admite (`400`). `price` es **opcional**: si se omite vale la suma de `price × cantidad` de los componentes al crear el combo (RN-40); si se envía, se respeta (promociones y descuentos).
 
 Nace activo, con `soldOut: false` y saldo 0. Errores: `401 → 403 → 400 → 409` (SKU repetido).
 

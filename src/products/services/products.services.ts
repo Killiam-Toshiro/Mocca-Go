@@ -172,11 +172,32 @@ export class ProductsService {
         throw new BadRequestException('Solo un combo admite componentes.');
       if (input.cost === undefined)
         throw new BadRequestException('El costo es obligatorio.');
+      if (input.price === undefined)
+        throw new BadRequestException('El precio es obligatorio.');
     }
     try {
       return await this.source.transaction(async (manager) => {
-        if (isCombo)
-          await this.validateComponents(manager, input.components ?? []);
+        let price = input.price;
+        if (isCombo) {
+          const parts = await this.validateComponents(
+            manager,
+            input.components ?? [],
+          );
+          // Sin precio explícito, el combo vale la suma de sus componentes.
+          price ??= parts.reduce(
+            (sum, part) =>
+              sum +
+              part.price *
+                (input.components ?? []).filter(
+                  (item) => item.productId === part.id,
+                )[0].quantity,
+            0,
+          );
+          if (price < 1 || price > 1_000_000)
+            throw new BadRequestException(
+              'La suma de los componentes no da un precio válido (1 a 1.000.000); indica el precio.',
+            );
+        }
         const repository = manager.getRepository(Product);
         const product = await repository.save(
           repository.create({
@@ -184,7 +205,7 @@ export class ProductsService {
             name: input.name,
             description: input.description ?? null,
             category: input.category,
-            price: input.price,
+            price,
             cost: isCombo ? 0 : input.cost,
           }),
         );
