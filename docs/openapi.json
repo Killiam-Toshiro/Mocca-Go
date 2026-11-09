@@ -1,0 +1,6381 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "description": "Indica que el proceso HTTP responde; no comprueba la BD.",
+        "operationId": "HealthController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Disponibilidad del proceso (público)",
+        "tags": ["health"]
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "description": "Ejecuta `SELECT 1` con un límite de 2 segundos.",
+        "operationId": "HealthController_getReadiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Base de datos no disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Disponibilidad de PostgreSQL (público)",
+        "tags": ["health"]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "description": "Usuario (personal) o correo (clientes) y contraseña producen un JWT asociado a una sesión; se envía exactamente uno de `username` o `email`. Cinco fallos bloquean la cuenta 15 minutos.",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas, usuario inexistente o cuenta bloqueada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde la misma IP (20 por minuto).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Iniciar sesión (público)",
+        "tags": ["auth"]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde la misma IP (20 por minuto).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Identidad de la sesión (cualquier rol)",
+        "tags": ["auth"]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "Revoca la sesión; el mismo JWT devuelve 401 después.",
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Sesión revocada."
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde la misma IP (20 por minuto).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cerrar sesión (cualquier rol)",
+        "tags": ["auth"]
+      }
+    },
+    "/api/v1/auth/password": {
+      "patch": {
+        "description": "Verifica la contraseña actual con el mismo contador de fallos del login (cinco fallos bloquean la cuenta 15 minutos), exige una nueva distinta y revoca las demás sesiones; la actual sigue válida.",
+        "operationId": "AuthController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Contraseña cambiada."
+          },
+          "400": {
+            "description": "Campos inválidos o la contraseña nueva es igual a la actual.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La contraseña actual no es correcta o la cuenta está bloqueada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde la misma IP (20 por minuto).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cambiar mi contraseña (cualquier rol)",
+        "tags": ["auth"]
+      }
+    },
+    "/api/v1/users": {
+      "post": {
+        "description": "No hay registro público; el admin comunica la contraseña.",
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El username ya existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear usuario (solo admin)",
+        "tags": ["users"]
+      },
+      "get": {
+        "operationId": "UsersController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Página, en dígitos sin signos ni ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Registros por página, en dígitos sin ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar usuarios paginados (solo admin)",
+        "tags": ["users"]
+      }
+    },
+    "/api/v1/users/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del usuario.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Consultar usuario (solo admin)",
+        "tags": ["users"]
+      },
+      "patch": {
+        "description": "No cambia el rol. Una contraseña nueva revoca las demás sesiones del usuario editado y reinicia su bloqueo de intentos.",
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del usuario.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El username ya existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Editar username o contraseña (solo admin)",
+        "tags": ["users"]
+      },
+      "delete": {
+        "description": "Sus sesiones dejan de ser válidas de inmediato.",
+        "operationId": "UsersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del usuario.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Usuario eliminado."
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Es el último admin, es tu propio usuario o tiene movimientos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar usuario sin movimientos (solo admin)",
+        "tags": ["users"]
+      }
+    },
+    "/api/v1/users/{id}/role": {
+      "patch": {
+        "description": "Los nuevos permisos aplican desde la siguiente petición.",
+        "operationId": "UsersController_changeRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del usuario.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "No se puede degradar al último admin registrado, o el usuario es un cliente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cambiar rol (solo admin)",
+        "tags": ["users"]
+      }
+    },
+    "/api/v1/products": {
+      "post": {
+        "description": "Nace activo, sin «agotado» y con stock 0. Simple: `cost` obligatorio. Combo: `components` obligatorio y `cost` se calcula.",
+        "operationId": "ProductsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El SKU ya existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear producto (solo admin)",
+        "tags": ["products"]
+      },
+      "get": {
+        "description": "Ordenado por SKU; incluye el saldo de cada producto.",
+        "operationId": "ProductsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Página, en dígitos sin signos ni ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Registros por página, en dígitos sin ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Texto parcial en SKU o nombre, sin distinguir mayúsculas.",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "name": "active",
+            "required": false,
+            "in": "query",
+            "description": "Filtra por estado; sin él se listan activos e inactivos.",
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"]
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "combo",
+                "cafe",
+                "bebida",
+                "panaderia",
+                "pasteleria",
+                "snack"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar catálogo paginado (admin u operador)",
+        "tags": ["products"]
+      }
+    },
+    "/api/v1/products/{id}": {
+      "get": {
+        "operationId": "ProductsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del producto.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Consultar producto y saldo (admin u operador)",
+        "tags": ["products"]
+      },
+      "patch": {
+        "description": "No modifica SKU, estado, «agotado», stock ni componentes. `cost` no se admite en combos y la categoría no pasa hacia ni desde `combo`.",
+        "operationId": "ProductsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del producto.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Editar nombre, descripción, categoría, precio o costo (solo admin)",
+        "tags": ["products"]
+      },
+      "delete": {
+        "description": "Con historial responde 409: se desactiva con /status.",
+        "operationId": "ProductsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del producto.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Producto eliminado."
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El producto tiene movimientos o es componente de un combo; no se elimina.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar producto sin movimientos (solo admin)",
+        "tags": ["products"]
+      }
+    },
+    "/api/v1/products/{id}/status": {
+      "patch": {
+        "description": "Desactivar conserva saldo e historial.",
+        "operationId": "ProductsController_setStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del producto.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetProductStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activar o desactivar producto (solo admin)",
+        "tags": ["products"]
+      }
+    },
+    "/api/v1/products/{id}/sold-out": {
+      "patch": {
+        "description": "Idempotente. Responde el producto con su `available` resultante.",
+        "operationId": "ProductsController_setSoldOut",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del producto.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSoldOutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Marcar o desmarcar «agotado» (admin u operador)",
+        "tags": ["products"]
+      }
+    },
+    "/api/v1/products/{id}/components": {
+      "put": {
+        "description": "2 a 10 productos simples, activos y distintos, con cantidad de 1 a 10. Si la composición es inválida se conserva la anterior.",
+        "operationId": "ProductsController_replaceComponents",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del producto.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceComponentsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El producto no es un combo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reemplazar la composición de un combo (solo admin)",
+        "tags": ["products"]
+      }
+    },
+    "/api/v1/menu": {
+      "get": {
+        "description": "Productos activos ordenados por categoría (combo, café, bebida, panadería, pastelería, snack) y nombre, con su disponibilidad. No incluye costo, saldo ni estado interno.",
+        "operationId": "MenuController_menu",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde la misma IP (20 por minuto).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Menú vendible (público)",
+        "tags": ["menu"]
+      }
+    },
+    "/api/v1/movements": {
+      "post": {
+        "description": "Actualiza el saldo y guarda el movimiento en una transacción. No es idempotente: repetirlo registra otro movimiento.",
+        "operationId": "MovementsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMovementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedMovementResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Producto inactivo, saldo insuficiente o saldo máximo excedido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Registrar entrada o salida (admin u operador)",
+        "tags": ["movements"]
+      },
+      "get": {
+        "description": "Más reciente primero; filtros por producto y tipo.",
+        "operationId": "MovementsController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Página, en dígitos sin signos ni ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Registros por página, en dígitos sin ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "productId",
+            "required": false,
+            "in": "query",
+            "description": "Filtra por producto.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filtra por tipo.",
+            "schema": {
+              "type": "string",
+              "enum": ["IN", "OUT"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovementPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Historial paginado (admin u operador)",
+        "tags": ["movements"]
+      }
+    },
+    "/api/v1/customers": {
+      "post": {
+        "description": "Crea la cuenta con correo y contraseña. No inicia sesión: después se llama a `POST /auth/login` con `email` y `password`.",
+        "operationId": "CustomersController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El correo ya está registrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Más de 5 registros por minuto desde la misma IP.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registrar cliente (público)",
+        "tags": ["customers"]
+      }
+    },
+    "/api/v1/customers/me": {
+      "get": {
+        "operationId": "CustomersController_profile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Perfil de cliente no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Consultar mi perfil (solo cliente)",
+        "tags": ["customers"]
+      },
+      "patch": {
+        "description": "El correo no se puede cambiar.",
+        "operationId": "CustomersController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Perfil de cliente no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Editar mi nombre o teléfono (solo cliente)",
+        "tags": ["customers"]
+      }
+    },
+    "/api/v1/delivery-zones": {
+      "get": {
+        "description": "Solo zonas y puntos activos, ordenados por nombre. Las zonas sin puntos activos se omiten.",
+        "operationId": "DeliveryZonesController_publicZones",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicZonesResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde la misma IP (20 por minuto).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Zonas y puntos de entrega (público)",
+        "tags": ["delivery-zones"]
+      },
+      "post": {
+        "operationId": "DeliveryZonesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateZoneDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZoneResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe una zona con ese nombre.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear zona (solo admin)",
+        "tags": ["delivery-zones"]
+      }
+    },
+    "/api/v1/delivery-zones/all": {
+      "get": {
+        "description": "Incluye inactivos y zonas sin puntos.",
+        "operationId": "DeliveryZonesController_allZones",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZonesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Todas las zonas y puntos (solo admin)",
+        "tags": ["delivery-zones"]
+      }
+    },
+    "/api/v1/delivery-zones/{id}": {
+      "patch": {
+        "operationId": "DeliveryZonesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 de la zona.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateZoneDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZoneResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Zona no encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe una zona con ese nombre.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Editar, activar o desactivar una zona (solo admin)",
+        "tags": ["delivery-zones"]
+      },
+      "delete": {
+        "operationId": "DeliveryZonesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 de la zona.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Zona eliminada."
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Zona no encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "La zona tiene puntos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar una zona sin puntos (solo admin)",
+        "tags": ["delivery-zones"]
+      }
+    },
+    "/api/v1/delivery-points": {
+      "post": {
+        "operationId": "DeliveryPointsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePointDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PointResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Punto o zona no encontrados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe un punto con ese nombre.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear punto de entrega (solo admin)",
+        "tags": ["delivery-points"]
+      }
+    },
+    "/api/v1/delivery-points/{id}": {
+      "patch": {
+        "operationId": "DeliveryPointsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del punto.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePointDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PointResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Punto o zona no encontrados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe un punto con ese nombre.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Editar, mover, activar o desactivar un punto (solo admin)",
+        "tags": ["delivery-points"]
+      },
+      "delete": {
+        "operationId": "DeliveryPointsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del punto.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Punto eliminado."
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Punto no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar un punto (solo admin)",
+        "tags": ["delivery-points"]
+      }
+    },
+    "/api/v1/orders": {
+      "post": {
+        "description": "Calcula el total con los precios del menú, cobra con la tarjeta de prueba y descuenta el saldo con movimientos `OUT` en una sola transacción.",
+        "operationId": "OrdersController_create",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "UUID generado por el cliente. Repetirlo con el mismo contenido devuelve el pedido ya creado (200).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Repetición con la misma clave y el mismo contenido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Pago rechazado (tarjeta de prueba `4000000000000002`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto o punto de entrega no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Producto no disponible, saldo insuficiente, punto inactivo o clave de idempotencia usada con otro contenido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas peticiones desde la misma IP (20 por minuto).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear pedido y pagar con tarjeta de demostración (solo cliente)",
+        "tags": ["orders"]
+      },
+      "get": {
+        "description": "Más reciente primero; filtro opcional por estado.",
+        "operationId": "OrdersController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Página, en dígitos sin signos ni ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Registros por página, en dígitos sin ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "recibido",
+                "en_preparacion",
+                "listo",
+                "en_camino",
+                "entregado",
+                "no_entregado",
+                "cancelado"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar pedidos (cliente: los suyos; admin y operador: todos)",
+        "tags": ["orders"]
+      }
+    },
+    "/api/v1/orders/stream": {
+      "get": {
+        "description": "Envía `ready` al abrir y tras cada reconexión de la escucha (el cliente vuelve a consultar sus pedidos), un evento `order` con número, estado y hora cada vez que cambia el estado de uno de **sus** pedidos, y un comentario de latido cada 25 segundos. Máximo 5 canales por usuario.",
+        "operationId": "OrdersController_stream",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Flujo `text/event-stream`.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados canales abiertos o aperturas por minuto.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Canal en tiempo real del cliente (SSE, solo cliente)",
+        "tags": ["orders"]
+      }
+    },
+    "/api/v1/orders/{id}": {
+      "get": {
+        "operationId": "OrdersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del pedido.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido no encontrado (o es de otro cliente).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Consultar un pedido",
+        "tags": ["orders"]
+      }
+    },
+    "/api/v1/orders/{id}/survey": {
+      "post": {
+        "description": "Calificación de 1 a 5 y comentario opcional. Una sola respuesta por pedido; no se edita.",
+        "operationId": "OrdersController_survey",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del pedido.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSurveyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido no encontrado (o es de otro cliente).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El pedido no está `entregado` o ya tiene respuesta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Responder la encuesta de un pedido entregado (solo cliente)",
+        "tags": ["orders"]
+      }
+    },
+    "/api/v1/orders/{id}/cancel": {
+      "post": {
+        "description": "El cliente solo cancela el suyo en `recibido`; admin y operador, en `recibido` o `en_preparacion`, con `reason`. Registra movimientos `IN` y reembolsa el pago de demostración.",
+        "operationId": "OrdersController_cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del pedido.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido no encontrado (o es de otro cliente).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El pedido no se puede cancelar en su estado actual.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancelar un pedido y devolver el saldo",
+        "tags": ["orders"]
+      }
+    },
+    "/api/v1/kitchen/orders": {
+      "get": {
+        "description": "Por defecto `recibido` y `en_preparacion`, el pedido más antiguo primero; con `status` también se pueden ver los `listo`.",
+        "operationId": "KitchenController_queue",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Página, en dígitos sin signos ni ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Registros por página, en dígitos sin ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Por defecto se listan `recibido` y `en_preparacion`, el más antiguo primero.",
+            "schema": {
+              "type": "string",
+              "enum": ["recibido", "en_preparacion", "listo"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cola de cocina (operador y admin)",
+        "tags": ["kitchen"]
+      }
+    },
+    "/api/v1/kitchen/orders/{id}/start": {
+      "post": {
+        "description": "Registra quién y cuándo, y avisa al cliente y a la cocina.",
+        "operationId": "KitchenController_start",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del pedido.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El pedido no está en estado `recibido`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Empezar a preparar un pedido (recibido → en_preparacion)",
+        "tags": ["kitchen"]
+      }
+    },
+    "/api/v1/kitchen/orders/{id}/ready": {
+      "post": {
+        "description": "Registra quién y cuándo, y avisa al cliente y a la cocina.",
+        "operationId": "KitchenController_ready",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del pedido.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El pedido no está en estado `en_preparacion`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Marcar un pedido como listo (en_preparacion → listo)",
+        "tags": ["kitchen"]
+      }
+    },
+    "/api/v1/kitchen/stream": {
+      "get": {
+        "description": "Envía `ready` al abrir y tras cada reconexión de la escucha (el cliente vuelve a consultar la cola), un evento `order` por cada pedido nuevo, cambio de estado o cancelación, y un comentario de latido cada 25 segundos. Máximo 5 canales por usuario.",
+        "operationId": "KitchenController_stream",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Flujo `text/event-stream`.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados canales abiertos o aperturas por minuto.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Canal en tiempo real de la cocina (SSE)",
+        "tags": ["kitchen"]
+      }
+    },
+    "/api/v1/surveys": {
+      "get": {
+        "description": "La más reciente primero; filtros por calificación y por rango de fechas (hora de Colombia, ambos días inclusive).",
+        "operationId": "SurveysController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Página, en dígitos sin signos ni ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Registros por página, en dígitos sin ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "rating",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Desde este día, inclusive (hora de Colombia).",
+            "schema": {
+              "example": "2026-11-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Hasta este día, inclusive (hora de Colombia).",
+            "schema": {
+              "example": "2026-11-30",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar respuestas de la encuesta (solo admin)",
+        "tags": ["surveys"]
+      }
+    },
+    "/api/v1/dispatch/queue": {
+      "get": {
+        "description": "Zonas ordenadas por su pedido más antiguo; `suggestedZoneId` es la zona del `listo` más antiguo.",
+        "operationId": "DispatchController_queue",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cola de despacho: pedidos listos por zona",
+        "tags": ["dispatch"]
+      }
+    },
+    "/api/v1/dispatch/rounds": {
+      "post": {
+        "description": "Sin `orderIds` toma la sugerencia (zona del `listo` más antiguo y hasta 5 pedidos); con `orderIds` arma una ruta propia de una sola zona. Los pedidos pasan a `en_camino` con ETA de 15 minutos. Máximo 2 rondas activas.",
+        "operationId": "DispatchController_createRound",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoundDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoundResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Algún pedido de `orderIds` no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sin pedidos listos, pedidos no listos o de varias zonas, perfil incompleto o 2 rondas activas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear una ronda y salir a repartir (repartidor)",
+        "tags": ["dispatch"]
+      },
+      "get": {
+        "description": "El repartidor ve las suyas (por defecto las activas); admin y operador ven todas. La más reciente primero.",
+        "operationId": "DispatchController_rounds",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Página, en dígitos sin signos ni ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Registros por página, en dígitos sin ceros iniciales.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "El repartidor ve por defecto sus rondas `activa`; admin y operador ven todas si no se filtra.",
+            "schema": {
+              "type": "string",
+              "enum": ["activa", "finalizada"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoundPageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar rondas",
+        "tags": ["dispatch"]
+      }
+    },
+    "/api/v1/dispatch/rounds/{id}": {
+      "get": {
+        "operationId": "DispatchController_round",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 de la ronda.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoundResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ronda no encontrada (o de otro repartidor).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Detalle de una ronda con sus pedidos",
+        "tags": ["dispatch"]
+      }
+    },
+    "/api/v1/dispatch/orders/{id}/deliver": {
+      "post": {
+        "operationId": "DispatchController_deliver",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del pedido.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido inexistente o de una ronda ajena.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El pedido no está `en_camino`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Marcar un pedido como entregado (en_camino → entregado)",
+        "tags": ["dispatch"]
+      }
+    },
+    "/api/v1/dispatch/orders/{id}/fail": {
+      "post": {
+        "description": "Exige un motivo. No mueve inventario ni pago.",
+        "operationId": "DispatchController_fail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID v4 del pedido.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FailOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido inexistente o de una ronda ajena.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El pedido no está `en_camino`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Marcar un pedido como no entregado (en_camino → no_entregado)",
+        "tags": ["dispatch"]
+      }
+    },
+    "/api/v1/dispatch/stream": {
+      "get": {
+        "description": "Mismo formato que el canal de la cocina: `ready`, un evento `order` por cada cambio de estado y latido cada 25 segundos. Máximo 5 canales por usuario.",
+        "operationId": "DispatchController_stream",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Flujo `text/event-stream`.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados canales abiertos o aperturas por minuto.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Canal en tiempo real del repartidor (SSE)",
+        "tags": ["dispatch"]
+      }
+    },
+    "/api/v1/metrics": {
+      "get": {
+        "description": "Ventas, margen, tiempos de despacho, satisfacción, recompra y resultado de los pedidos creados en el periodo (hora de Colombia). Por defecto, los últimos 30 días; máximo 366.",
+        "operationId": "MetricsController_report",
+        "parameters": [
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Primer día del periodo (hora de Colombia). Por defecto, 29 días antes de `to`.",
+            "schema": {
+              "example": "2026-10-07",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Último día del periodo, inclusive. Por defecto, hoy.",
+            "schema": {
+              "example": "2026-11-05",
+              "type": "string"
+            }
+          },
+          {
+            "name": "zoneId",
+            "required": false,
+            "in": "query",
+            "description": "Limita las cifras a los pedidos de una zona de entrega.",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros inválidos, campos faltantes o campos no permitidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT ausente, alterado, expirado o de una sesión cerrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol vigente no tiene permiso para esta operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La zona indicada no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Métricas del negocio (solo admin)",
+        "tags": ["metrics"]
+      }
+    }
+  },
+  "info": {
+    "title": "API de Mocca Go",
+    "description": "Café y snacks a domicilio en el campus de Icesi: usuarios y roles (admin, operador de cocina, repartidor y cliente), catálogo e inventario. Obtén un JWT con `POST /api/v1/auth/login`, pulsa **Authorize** y pégalo para probar las rutas protegidas. El token dura 15 minutos y `logout` lo revoca.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "JWT devuelto por POST /api/v1/auth/login."
+      }
+    },
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ok"],
+            "example": "ok"
+          }
+        },
+        "required": ["status"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 400
+          },
+          "message": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ],
+            "description": "Mensaje del error. En errores de validación es una lista de mensajes.",
+            "example": "Credenciales inválidas."
+          },
+          "error": {
+            "type": "string",
+            "example": "Bad Request"
+          }
+        },
+        "required": ["statusCode", "message"]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "minLength": 3,
+            "maxLength": 64,
+            "example": "admin",
+            "description": "Personal (admin, operador, repartidor). Excluyente con `email`."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254,
+            "example": "ana.perez@u.icesi.edu.co",
+            "description": "Clientes. Excluyente con `username`; no distingue mayúsculas."
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128,
+            "format": "password"
+          }
+        },
+        "required": ["password"]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "JWT HS256 de acceso.",
+            "example": "eyJhbGciOi…"
+          },
+          "tokenType": {
+            "type": "string",
+            "enum": ["Bearer"],
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "number",
+            "description": "Segundos de validez del JWT.",
+            "example": 900
+          }
+        },
+        "required": ["accessToken", "tokenType", "expiresIn"]
+      },
+      "IdentityResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string",
+            "example": "admin"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "operador", "repartidor", "cliente"],
+            "example": "admin"
+          }
+        },
+        "required": ["id", "username", "role"]
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128,
+            "format": "password"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128,
+            "format": "password",
+            "description": "Debe ser distinta de la actual."
+          }
+        },
+        "required": ["currentPassword", "newPassword"]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "minLength": 3,
+            "maxLength": 64,
+            "description": "Minúsculas ASCII, dígitos y `._-`, empezando por letra o dígito.",
+            "example": "nuevo_operador"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128,
+            "format": "password",
+            "description": "Contraseña inicial; se guarda con hash scrypt."
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "operador", "repartidor"],
+            "example": "operador",
+            "description": "Rol de personal. `cliente` solo nace del registro propio."
+          },
+          "phone": {
+            "type": "string",
+            "example": "300 123 4567",
+            "description": "Obligatorio para el rol `repartidor`. Celular colombiano o internacional; se guarda en E.164."
+          },
+          "fullName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80,
+            "example": "Carlos Gómez",
+            "description": "Obligatorio para el rol `repartidor`; lo ve el cliente cuando su pedido va en camino."
+          }
+        },
+        "required": ["username", "password", "role"]
+      },
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string",
+            "example": "operador"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "operador", "repartidor", "cliente"],
+            "example": "operador"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "example": null,
+            "description": "Solo clientes; el personal devuelve `null`."
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true,
+            "example": null,
+            "description": "Clientes: su nombre. Personal: el que le asignó el admin (obligatorio para repartidores) o `null`."
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": null,
+            "description": "Formato E.164. Clientes: su teléfono. Personal: el que le asignó el admin (obligatorio para repartidores) o `null`."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "role",
+          "email",
+          "fullName",
+          "phone",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UserPageResponse": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "number",
+            "example": 3,
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 1,
+            "minimum": 0
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserResponse"
+            }
+          }
+        },
+        "required": ["page", "limit", "total", "totalPages", "data"]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "minLength": 3,
+            "maxLength": 64,
+            "description": "Envía al menos un campo.",
+            "example": "operador_renombrado"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128,
+            "format": "password",
+            "description": "Contraseña nueva; revoca las demás sesiones del usuario editado."
+          },
+          "phone": {
+            "type": "string",
+            "example": "+57 300 123 4567",
+            "description": "Teléfono del personal (no aplica a clientes); se guarda en E.164."
+          },
+          "fullName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80,
+            "description": "Nombre del personal (no aplica a clientes)."
+          }
+        }
+      },
+      "ChangeRoleDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": ["admin", "operador", "repartidor"],
+            "example": "admin",
+            "description": "Rol de personal; un cliente no cambia de rol."
+          }
+        },
+        "required": ["role"]
+      },
+      "ComponentInputDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Producto simple y activo."
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "example": 1
+          }
+        },
+        "required": ["productId", "quantity"]
+      },
+      "CreateProductDto": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Z0-9._-]{0,47}$",
+            "minLength": 1,
+            "maxLength": 48,
+            "description": "Mayúsculas, dígitos y `._-`; único e inmutable.",
+            "example": "INV-100"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Al menos un carácter visible; sin NUL.",
+            "example": "Cable HDMI"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Opcional; sin NUL.",
+            "example": "Dos metros"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "combo",
+              "cafe",
+              "bebida",
+              "panaderia",
+              "pasteleria",
+              "snack"
+            ],
+            "example": "cafe"
+          },
+          "price": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000,
+            "description": "Pesos COP, entero. Obligatorio en productos simples. En un combo es opcional: si se omite, vale la suma de los precios de sus componentes al crearlo.",
+            "example": 4500
+          },
+          "cost": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "description": "Costo variable unitario en pesos COP. Obligatorio en productos simples; no se admite en combos (se calcula).",
+            "example": 1600
+          },
+          "components": {
+            "description": "Obligatorio en combos (2 a 10 productos distintos); no se admite en productos simples.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentInputDto"
+            }
+          }
+        },
+        "required": ["sku", "name", "category"]
+      },
+      "ComponentResponse": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sku": {
+            "type": "string",
+            "example": "CAF-CAPU"
+          },
+          "name": {
+            "type": "string",
+            "example": "Capuchino"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "example": 1
+          }
+        },
+        "required": ["productId", "sku", "name", "quantity"]
+      },
+      "ProductResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sku": {
+            "type": "string",
+            "example": "CAF-CAPU"
+          },
+          "name": {
+            "type": "string",
+            "example": "Capuchino"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Café con leche"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "combo",
+              "cafe",
+              "bebida",
+              "panaderia",
+              "pasteleria",
+              "snack"
+            ],
+            "example": "cafe"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Pesos COP.",
+            "example": 4500
+          },
+          "cost": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Costo variable unitario; en un combo se calcula.",
+            "example": 1600
+          },
+          "costPercent": {
+            "type": "number",
+            "nullable": true,
+            "description": "`cost ÷ price × 100` con un decimal; null si el precio es 0.",
+            "example": 35.6
+          },
+          "soldOut": {
+            "type": "boolean",
+            "description": "Interruptor manual «agotado» de la cocina.",
+            "example": false
+          },
+          "available": {
+            "type": "boolean",
+            "description": "Calculado: activo, no agotado, con precio y con saldo (en un combo, saldo de todos sus componentes).",
+            "example": true
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "stock": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Saldo de solo lectura; solo cambia con movimientos. En un combo es calculado.",
+            "example": 0
+          },
+          "components": {
+            "description": "[] si es simple.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentResponse"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "name",
+          "description",
+          "category",
+          "price",
+          "cost",
+          "costPercent",
+          "soldOut",
+          "available",
+          "active",
+          "stock",
+          "components",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ProductPageResponse": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "number",
+            "example": 3,
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 1,
+            "minimum": 0
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductResponse"
+            }
+          }
+        },
+        "required": ["page", "limit", "total", "totalPages", "data"]
+      },
+      "UpdateProductDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "No admite null. Envía al menos uno de `name`, `description`, `category`, `price` o `cost`.",
+            "example": "Cable HDMI 2 m"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "`null` borra la descripción; sin NUL.",
+            "example": "Dos metros"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "combo",
+              "cafe",
+              "bebida",
+              "panaderia",
+              "pasteleria",
+              "snack"
+            ],
+            "description": "No se puede pasar hacia ni desde `combo`."
+          },
+          "price": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000,
+            "example": 4500
+          },
+          "cost": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "description": "No se admite en combos (se calcula).",
+            "example": 1600
+          }
+        }
+      },
+      "SetProductStatusDto": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": ["active"]
+      },
+      "SetSoldOutDto": {
+        "type": "object",
+        "properties": {
+          "soldOut": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": ["soldOut"]
+      },
+      "ReplaceComponentsDto": {
+        "type": "object",
+        "properties": {
+          "components": {
+            "description": "2 a 10 productos simples, activos y distintos.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentInputDto"
+            }
+          }
+        },
+        "required": ["components"]
+      },
+      "MenuComponentResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Capuchino"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "example": 1
+          }
+        },
+        "required": ["name", "quantity"]
+      },
+      "MenuItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sku": {
+            "type": "string",
+            "example": "CAF-CAPU"
+          },
+          "name": {
+            "type": "string",
+            "example": "Capuchino"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Café con leche"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "combo",
+              "cafe",
+              "bebida",
+              "panaderia",
+              "pasteleria",
+              "snack"
+            ],
+            "example": "cafe"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Pesos COP.",
+            "example": 4500
+          },
+          "available": {
+            "type": "boolean",
+            "example": true
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuComponentResponse"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "name",
+          "description",
+          "category",
+          "price",
+          "available",
+          "components"
+        ]
+      },
+      "MenuResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuItemResponse"
+            }
+          }
+        },
+        "required": ["data"]
+      },
+      "CreateMovementDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID v4 del producto."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["IN", "OUT"],
+            "description": "`IN` suma al saldo y `OUT` resta; nunca queda negativo.",
+            "example": "IN"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647,
+            "description": "Número JSON entero, no texto.",
+            "example": 10
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Al menos un carácter visible; sin NUL.",
+            "example": "Compra a proveedor"
+          }
+        },
+        "required": ["productId", "type", "quantity", "reason"]
+      },
+      "MovementUserResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string",
+            "example": "operador"
+          }
+        },
+        "required": ["id", "username"]
+      },
+      "MovementResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["IN", "OUT"],
+            "example": "IN"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 1,
+            "example": 10
+          },
+          "reason": {
+            "type": "string",
+            "example": "Compra a proveedor"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Pedido que originó el movimiento; null si es manual."
+          },
+          "user": {
+            "description": "Responsable, tomado de la sesión.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MovementUserResponse"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "productId",
+          "type",
+          "quantity",
+          "reason",
+          "orderId",
+          "user",
+          "createdAt"
+        ]
+      },
+      "CreatedMovementResponse": {
+        "type": "object",
+        "properties": {
+          "movement": {
+            "$ref": "#/components/schemas/MovementResponse"
+          },
+          "stock": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Saldo confirmado por esta transacción.",
+            "example": 10
+          }
+        },
+        "required": ["movement", "stock"]
+      },
+      "MovementPageResponse": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "number",
+            "example": 3,
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 1,
+            "minimum": 0
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MovementResponse"
+            }
+          }
+        },
+        "required": ["page", "limit", "total", "totalPages", "data"]
+      },
+      "RegisterCustomerDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254,
+            "example": "ana.perez@u.icesi.edu.co",
+            "description": "Se guarda en minúsculas y es único."
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 128,
+            "format": "password",
+            "description": "Se guarda con hash scrypt."
+          },
+          "fullName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "example": "Ana Pérez"
+          },
+          "phone": {
+            "type": "string",
+            "example": "300 123 4567",
+            "description": "Celular colombiano o número internacional (`+…`). Se guarda en formato E.164, p. ej. `+573001234567`."
+          }
+        },
+        "required": ["email", "password", "fullName", "phone"]
+      },
+      "CustomerResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "ana.perez@u.icesi.edu.co"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Ana Pérez"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+573001234567",
+            "description": "Formato E.164."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "fullName",
+          "phone",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "description": "Envía al menos `fullName` o `phone`."
+          },
+          "phone": {
+            "type": "string",
+            "example": "+57 300 123 4567",
+            "description": "Celular colombiano o número internacional; se guarda en E.164."
+          }
+        }
+      },
+      "PublicPointResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Edificio A"
+          },
+          "hint": {
+            "type": "string",
+            "nullable": true,
+            "example": "Se entrega en la plazoleta de auditorios"
+          },
+          "floors": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Número de pisos; null si el lugar no tiene pisos.",
+            "example": 2
+          }
+        },
+        "required": ["id", "name", "hint", "floors"]
+      },
+      "PublicZoneResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Zona 1"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicPointResponse"
+            }
+          }
+        },
+        "required": ["id", "name", "points"]
+      },
+      "PublicZonesResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicZoneResponse"
+            }
+          }
+        },
+        "required": ["data"]
+      },
+      "PointResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Edificio A"
+          },
+          "hint": {
+            "type": "string",
+            "nullable": true,
+            "example": "Se entrega en la plazoleta de auditorios"
+          },
+          "floors": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Número de pisos; null si el lugar no tiene pisos.",
+            "example": 2
+          },
+          "zoneId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "hint",
+          "floors",
+          "zoneId",
+          "active",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ZoneResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Zona 1"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PointResponse"
+            }
+          }
+        },
+        "required": ["id", "name", "active", "createdAt", "updatedAt", "points"]
+      },
+      "ZonesResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ZoneResponse"
+            }
+          }
+        },
+        "required": ["data"]
+      },
+      "CreateZoneDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "example": "Zona 1"
+          }
+        },
+        "required": ["name"]
+      },
+      "UpdateZoneDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "example": "Zona 1"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreatePointDto": {
+        "type": "object",
+        "properties": {
+          "zoneId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "example": "Edificio A"
+          },
+          "hint": {
+            "type": "string",
+            "nullable": true,
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "Se entrega en la plazoleta"
+          },
+          "floors": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "maximum": 30,
+            "description": "Número de pisos; null o ausente si el lugar no tiene pisos.",
+            "example": 4
+          }
+        },
+        "required": ["zoneId", "name"]
+      },
+      "UpdatePointDto": {
+        "type": "object",
+        "properties": {
+          "zoneId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Mueve el punto."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "example": "Edificio A"
+          },
+          "hint": {
+            "type": "string",
+            "nullable": true,
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "null borra la indicación."
+          },
+          "floors": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "maximum": 30,
+            "description": "null significa «sin pisos»."
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "OrderLineDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Producto del menú."
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "example": 2
+          }
+        },
+        "required": ["productId", "quantity"]
+      },
+      "PaymentDto": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": ["tarjeta_demo"],
+            "example": "tarjeta_demo"
+          },
+          "cardNumber": {
+            "type": "string",
+            "pattern": "^[0-9]{16}$",
+            "description": "Tarjeta de prueba: `4242424242424242` aprueba y `4000000000000002` rechaza (402). No se guarda.",
+            "example": "4242424242424242"
+          }
+        },
+        "required": ["method", "cardNumber"]
+      },
+      "CreateOrderDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "minItems": 1,
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderLineDto"
+            }
+          },
+          "pointId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Punto de entrega (015)."
+          },
+          "floor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30,
+            "description": "Obligatorio si el punto tiene pisos; no se envía si no.",
+            "example": 2
+          },
+          "deliveryNote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Indicación para ubicar al cliente.",
+            "example": "Junto a la entrada del salón 302"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Nota para la cocina.",
+            "example": "Sin azúcar"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentDto"
+          }
+        },
+        "required": ["items", "pointId", "payment"]
+      },
+      "OrderComponentResponse": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sku": {
+            "type": "string",
+            "example": "CAF-CAPU"
+          },
+          "name": {
+            "type": "string",
+            "example": "Capuchino"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Por unidad del combo."
+          }
+        },
+        "required": ["productId", "sku", "name", "quantity"]
+      },
+      "OrderItemResponse": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sku": {
+            "type": "string",
+            "example": "CAF-CAPU"
+          },
+          "name": {
+            "type": "string",
+            "example": "Capuchino (caliente)"
+          },
+          "category": {
+            "type": "string",
+            "example": "cafe"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "example": 2
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "Pesos COP al momento de comprar.",
+            "example": 4500
+          },
+          "lineTotal": {
+            "type": "number",
+            "example": 9000
+          },
+          "components": {
+            "description": "[] si es simple.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderComponentResponse"
+            }
+          }
+        },
+        "required": [
+          "productId",
+          "sku",
+          "name",
+          "category",
+          "quantity",
+          "unitPrice",
+          "lineTotal",
+          "components"
+        ]
+      },
+      "OrderCourierResponse": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "example": "Carlos Gómez"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+573001234500"
+          },
+          "whatsappUrl": {
+            "type": "string",
+            "example": "https://wa.me/573001234500",
+            "description": "Enlace para escribirle por WhatsApp."
+          }
+        },
+        "required": ["fullName", "phone", "whatsappUrl"]
+      },
+      "OrderDeliveryResponse": {
+        "type": "object",
+        "properties": {
+          "pointId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pointName": {
+            "type": "string",
+            "example": "Edificio A"
+          },
+          "zoneName": {
+            "type": "string",
+            "example": "Zona 1"
+          },
+          "floor": {
+            "type": "integer",
+            "nullable": true,
+            "example": 2
+          },
+          "deliveryNote": {
+            "type": "string",
+            "nullable": true
+          },
+          "etaAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Hora estimada de llegada; solo mientras el pedido va `en_camino`."
+          },
+          "courier": {
+            "nullable": true,
+            "description": "Repartidor; solo mientras el pedido va `en_camino`.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderCourierResponse"
+              }
+            ]
+          }
+        },
+        "required": [
+          "pointId",
+          "pointName",
+          "zoneName",
+          "floor",
+          "deliveryNote",
+          "etaAt",
+          "courier"
+        ]
+      },
+      "OrderPaymentResponse": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "example": "tarjeta_demo"
+          },
+          "last4": {
+            "type": "string",
+            "example": "4242"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["aprobado", "reembolsado"]
+          }
+        },
+        "required": ["method", "last4", "status"]
+      },
+      "OrderCustomerResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ana Pérez"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+573001112233"
+          }
+        },
+        "required": ["name", "phone"]
+      },
+      "OrderSurveyResponse": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "example": 5
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true,
+            "example": "Llegó caliente y rápido"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["rating", "comment", "createdAt"]
+      },
+      "OrderEventResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "recibido",
+              "en_preparacion",
+              "listo",
+              "en_camino",
+              "entregado",
+              "no_entregado",
+              "cancelado"
+            ]
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["status", "at"]
+      },
+      "OrderResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "number",
+            "example": 1001,
+            "description": "Consecutivo legible."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "recibido",
+              "en_preparacion",
+              "listo",
+              "en_camino",
+              "entregado",
+              "no_entregado",
+              "cancelado"
+            ],
+            "example": "recibido"
+          },
+          "total": {
+            "type": "number",
+            "description": "Pesos COP.",
+            "example": 9000
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemResponse"
+            }
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/OrderDeliveryResponse"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "example": "Sin azúcar"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/OrderPaymentResponse"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/OrderCustomerResponse"
+          },
+          "cancelReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "failureReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Motivo, solo en pedidos `no_entregado`."
+          },
+          "survey": {
+            "nullable": true,
+            "description": "Encuesta del cliente; `null` mientras no la responda. Con el pedido `entregado` y `survey` en `null`, el front pide la calificación.",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderSurveyResponse"
+              }
+            ]
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderEventResponse"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "status",
+          "total",
+          "items",
+          "delivery",
+          "note",
+          "payment",
+          "customer",
+          "cancelReason",
+          "failureReason",
+          "survey",
+          "events",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "OrderPageResponse": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "number",
+            "example": 3,
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 1,
+            "minimum": 0
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderResponse"
+            }
+          }
+        },
+        "required": ["page", "limit", "total", "totalPages", "data"]
+      },
+      "CreateSurveyDto": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "example": 5
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "example": "Llegó caliente y rápido"
+          }
+        },
+        "required": ["rating"]
+      },
+      "SurveyResponse": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "example": 5
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true,
+            "example": "Llegó caliente y rápido"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["orderId", "rating", "comment", "createdAt"]
+      },
+      "CancelOrderDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Obligatorio para admin y operador.",
+            "example": "El cliente lo solicitó por teléfono"
+          }
+        }
+      },
+      "SurveyCustomerResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ana Pérez"
+          }
+        },
+        "required": ["name"]
+      },
+      "SurveyRowResponse": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "example": 5
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true,
+            "example": "Llegó caliente y rápido"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "number": {
+            "type": "number",
+            "example": 1042
+          },
+          "customer": {
+            "$ref": "#/components/schemas/SurveyCustomerResponse"
+          },
+          "zoneName": {
+            "type": "string",
+            "example": "Zona 1"
+          }
+        },
+        "required": [
+          "orderId",
+          "rating",
+          "comment",
+          "createdAt",
+          "number",
+          "customer",
+          "zoneName"
+        ]
+      },
+      "SurveyPageResponse": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "number",
+            "example": 3,
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 1,
+            "minimum": 0
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyRowResponse"
+            }
+          }
+        },
+        "required": ["page", "limit", "total", "totalPages", "data"]
+      },
+      "ZoneQueueResponse": {
+        "type": "object",
+        "properties": {
+          "zoneId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "zoneName": {
+            "type": "string",
+            "example": "Zona 1"
+          },
+          "oldestNumber": {
+            "type": "number",
+            "example": 1042,
+            "description": "Número del pedido `listo` más antiguo de la zona."
+          },
+          "orders": {
+            "description": "Del más antiguo al más nuevo.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderResponse"
+            }
+          }
+        },
+        "required": ["zoneId", "zoneName", "oldestNumber", "orders"]
+      },
+      "QueueResponse": {
+        "type": "object",
+        "properties": {
+          "suggestedZoneId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Zona del pedido `listo` más antiguo; `null` si no hay pedidos."
+          },
+          "zones": {
+            "description": "Zonas ordenadas por su pedido más antiguo.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ZoneQueueResponse"
+            }
+          }
+        },
+        "required": ["suggestedZoneId", "zones"]
+      },
+      "CreateRoundDto": {
+        "type": "object",
+        "properties": {
+          "orderIds": {
+            "minItems": 1,
+            "maxItems": 5,
+            "description": "Ruta propia: pedidos `listo` de una sola zona. Si se omite, se usa la sugerencia (zona del pedido `listo` más antiguo y hasta 5 de sus pedidos).",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        }
+      },
+      "RoundZoneResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Zona 1"
+          }
+        },
+        "required": ["id", "name"]
+      },
+      "RoundCourierResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Carlos Gómez"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "+573001234500"
+          }
+        },
+        "required": ["id", "fullName", "phone"]
+      },
+      "RoundResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["activa", "finalizada"],
+            "example": "activa"
+          },
+          "zone": {
+            "$ref": "#/components/schemas/RoundZoneResponse"
+          },
+          "courier": {
+            "$ref": "#/components/schemas/RoundCourierResponse"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "etaAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Salida más 15 minutos (constante)."
+          },
+          "finishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderResponse"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "zone",
+          "courier",
+          "startedAt",
+          "etaAt",
+          "finishedAt",
+          "orders"
+        ]
+      },
+      "RoundPageResponse": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "number",
+            "example": 3,
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 1,
+            "minimum": 0
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoundResponse"
+            }
+          }
+        },
+        "required": ["page", "limit", "total", "totalPages", "data"]
+      },
+      "FailOrderDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "El cliente no estaba en el punto de entrega"
+          }
+        },
+        "required": ["reason"]
+      },
+      "MetricsPeriodResponse": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "example": "2026-10-07"
+          },
+          "to": {
+            "type": "string",
+            "example": "2026-11-05"
+          },
+          "days": {
+            "type": "number",
+            "example": 30
+          },
+          "zoneId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "required": ["from", "to", "days", "zoneId"]
+      },
+      "DailyPointResponse": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-10-07"
+          },
+          "orders": {
+            "type": "number",
+            "example": 4
+          },
+          "revenue": {
+            "type": "number",
+            "example": 34800
+          }
+        },
+        "required": ["date", "orders", "revenue"]
+      },
+      "SalesResponse": {
+        "type": "object",
+        "properties": {
+          "orders": {
+            "type": "number",
+            "example": 120,
+            "description": "Pedidos con pago aprobado."
+          },
+          "revenue": {
+            "type": "number",
+            "example": 1044000
+          },
+          "averageTicket": {
+            "type": "number",
+            "example": 8700
+          },
+          "daily": {
+            "description": "Con ceros.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyPointResponse"
+            }
+          }
+        },
+        "required": ["orders", "revenue", "averageTicket", "daily"]
+      },
+      "CategoryMarginResponse": {
+        "type": "object",
+        "properties": {
+          "revenue": {
+            "type": "number",
+            "example": 500000
+          },
+          "variableCost": {
+            "type": "number",
+            "example": 150000
+          },
+          "margin": {
+            "type": "number",
+            "example": 350000
+          },
+          "variableCostRate": {
+            "type": "number",
+            "nullable": true,
+            "example": 0.3
+          },
+          "category": {
+            "type": "string",
+            "example": "cafe"
+          }
+        },
+        "required": [
+          "revenue",
+          "variableCost",
+          "margin",
+          "variableCostRate",
+          "category"
+        ]
+      },
+      "MarginResponse": {
+        "type": "object",
+        "properties": {
+          "revenue": {
+            "type": "number",
+            "example": 500000
+          },
+          "variableCost": {
+            "type": "number",
+            "example": 150000
+          },
+          "margin": {
+            "type": "number",
+            "example": 350000
+          },
+          "variableCostRate": {
+            "type": "number",
+            "nullable": true,
+            "example": 0.3
+          },
+          "byCategory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryMarginResponse"
+            }
+          }
+        },
+        "required": [
+          "revenue",
+          "variableCost",
+          "margin",
+          "variableCostRate",
+          "byCategory"
+        ]
+      },
+      "TotalMinutesResponse": {
+        "type": "object",
+        "properties": {
+          "average": {
+            "type": "number",
+            "nullable": true,
+            "example": 21.4
+          },
+          "median": {
+            "type": "number",
+            "nullable": true,
+            "example": 20
+          },
+          "p90": {
+            "type": "number",
+            "nullable": true,
+            "example": 29.5
+          }
+        },
+        "required": ["average", "median", "p90"]
+      },
+      "StageMinutesResponse": {
+        "type": "object",
+        "properties": {
+          "kitchen": {
+            "type": "number",
+            "nullable": true,
+            "example": 8.1
+          },
+          "waiting": {
+            "type": "number",
+            "nullable": true,
+            "example": 4.2
+          },
+          "delivery": {
+            "type": "number",
+            "nullable": true,
+            "example": 9.1
+          }
+        },
+        "required": ["kitchen", "waiting", "delivery"]
+      },
+      "ZoneTimingResponse": {
+        "type": "object",
+        "properties": {
+          "delivered": {
+            "type": "number",
+            "example": 100
+          },
+          "onTimeRate": {
+            "type": "number",
+            "nullable": true,
+            "example": 0.91,
+            "description": "Proporción de entregas con reparto de 15 minutos o menos."
+          },
+          "totalMinutes": {
+            "$ref": "#/components/schemas/TotalMinutesResponse"
+          },
+          "stageMinutes": {
+            "$ref": "#/components/schemas/StageMinutesResponse"
+          },
+          "zoneName": {
+            "type": "string",
+            "example": "Zona 1"
+          }
+        },
+        "required": [
+          "delivered",
+          "onTimeRate",
+          "totalMinutes",
+          "stageMinutes",
+          "zoneName"
+        ]
+      },
+      "DeliveryResponse": {
+        "type": "object",
+        "properties": {
+          "delivered": {
+            "type": "number",
+            "example": 100
+          },
+          "onTimeRate": {
+            "type": "number",
+            "nullable": true,
+            "example": 0.91,
+            "description": "Proporción de entregas con reparto de 15 minutos o menos."
+          },
+          "totalMinutes": {
+            "$ref": "#/components/schemas/TotalMinutesResponse"
+          },
+          "stageMinutes": {
+            "$ref": "#/components/schemas/StageMinutesResponse"
+          },
+          "onTimeThresholdMinutes": {
+            "type": "number",
+            "example": 15
+          },
+          "byZone": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ZoneTimingResponse"
+            }
+          }
+        },
+        "required": [
+          "delivered",
+          "onTimeRate",
+          "totalMinutes",
+          "stageMinutes",
+          "onTimeThresholdMinutes",
+          "byZone"
+        ]
+      },
+      "DistributionResponse": {
+        "type": "object",
+        "properties": {
+          "1": {
+            "type": "number",
+            "example": 1
+          },
+          "2": {
+            "type": "number",
+            "example": 2
+          },
+          "3": {
+            "type": "number",
+            "example": 6
+          },
+          "4": {
+            "type": "number",
+            "example": 20
+          },
+          "5": {
+            "type": "number",
+            "example": 41
+          }
+        },
+        "required": ["1", "2", "3", "4", "5"]
+      },
+      "SatisfactionResponse": {
+        "type": "object",
+        "properties": {
+          "responses": {
+            "type": "number",
+            "example": 70
+          },
+          "average": {
+            "type": "number",
+            "nullable": true,
+            "example": 4.4
+          },
+          "responseRate": {
+            "type": "number",
+            "nullable": true,
+            "example": 0.7
+          },
+          "distribution": {
+            "$ref": "#/components/schemas/DistributionResponse"
+          }
+        },
+        "required": ["responses", "average", "responseRate", "distribution"]
+      },
+      "RetentionResponse": {
+        "type": "object",
+        "properties": {
+          "customers": {
+            "type": "number",
+            "example": 60
+          },
+          "repeatCustomers": {
+            "type": "number",
+            "example": 49
+          },
+          "repeatRate": {
+            "type": "number",
+            "nullable": true,
+            "example": 0.8167
+          }
+        },
+        "required": ["customers", "repeatCustomers", "repeatRate"]
+      },
+      "OutcomesResponse": {
+        "type": "object",
+        "properties": {
+          "entregado": {
+            "type": "number",
+            "example": 100
+          },
+          "no_entregado": {
+            "type": "number",
+            "example": 3
+          },
+          "cancelado": {
+            "type": "number",
+            "example": 6
+          },
+          "enCurso": {
+            "type": "number",
+            "example": 5,
+            "description": "recibido, en_preparacion, listo o en_camino."
+          }
+        },
+        "required": ["entregado", "no_entregado", "cancelado", "enCurso"]
+      },
+      "MetricsResponse": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "$ref": "#/components/schemas/MetricsPeriodResponse"
+          },
+          "sales": {
+            "$ref": "#/components/schemas/SalesResponse"
+          },
+          "margin": {
+            "$ref": "#/components/schemas/MarginResponse"
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/DeliveryResponse"
+          },
+          "satisfaction": {
+            "$ref": "#/components/schemas/SatisfactionResponse"
+          },
+          "retention": {
+            "$ref": "#/components/schemas/RetentionResponse"
+          },
+          "outcomes": {
+            "$ref": "#/components/schemas/OutcomesResponse"
+          }
+        },
+        "required": [
+          "period",
+          "sales",
+          "margin",
+          "delivery",
+          "satisfaction",
+          "retention",
+          "outcomes"
+        ]
+      }
+    }
+  }
+}
